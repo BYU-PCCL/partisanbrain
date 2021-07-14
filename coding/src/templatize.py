@@ -71,9 +71,10 @@ class Templatizer:
 
         self.dataset_name = dataset_name
         self.args = arguments[self.dataset_name]
-        self.load_dataset(self.dataset_name)
         # update args with kwargs
         self.args.update(kwargs)
+
+        self.load_dataset(self.dataset_name)
 
         if self.dataset_name == 'nytimes-body':
             self.add_body_to_input()
