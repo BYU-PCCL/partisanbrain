@@ -172,37 +172,37 @@ class Templatizer:
         else:
             return f'{input} {self.args["join_input_category"]} {category}'
     
-    def generate_examples(self, n_examples, seed=-1):
+    def generate_examples(self, n_examples, seed_examples=-1):
         '''
         Select n randomly generated examples.
         '''
         # TODO - add functionality for sampling "ambiguous" or "prototypical"
-        if seed != -1:
-            examples = self.dataset.sample(n=n_examples, random_state=seed)
+        if seed_examples != -1:
+            examples = self.dataset.sample(n=n_examples, random_state=seed_examples)
         else:
             examples = self.dataset.sample(n=n_examples)
         return examples
     
-    def get_subset(self, n_per_category=30, seed=-1):
+    def get_subset(self, n_per_category=30, seed_instances=-1):
         '''
         Select a subset of the dataset. Draw n from each category.
         '''
         category_counts = self.dataset.category.value_counts()
-        if seed != -1:
-            subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
+        if seed_instances != -1:
+            subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
         else:
             subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
             # subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category) for cat in self.args['categories']], axis=0)
         return subset
     
-    def templatize_row(self, row, n_examples=3, seed=-1):
+    def templatize_row(self, row, n_examples=3, seed_examples=-1):
         '''
         Templatize a single row of input and category.
         '''
         # TODO - I could probably just generate this somewhere else
         instructions = self.generate_instructions()
         
-        examples = self.generate_examples(n_examples=n_examples, seed=seed)
+        examples = self.generate_examples(n_examples=n_examples, seed_examples=seed_examples)
         # generate per instance
         example_texts = [self.templatize_instance(input=example.input, category=example.category) for example in examples.itertuples()]
         # join
@@ -212,35 +212,65 @@ class Templatizer:
 
         return instructions + self.args['join_inputs'] + example_text + self.args['join_inputs'] + prompt
     
-    def templatize(self, n_per_category=30, n_examples=3, seed=-1, **kwargs):
+    def templatize(self, n_per_category=30, n_examples=3, seed_instances=-1, seed_examples=-1, **kwargs):
         '''
         Templatize the dataset.
+        Arguments:
+            n_per_category (int): number of instances to draw from each category
+            n_examples (int): number of examples to draw
+            seed_instances (int): random see for drawing instances
+            seed_examples (int or lambda function): random see for drawing examples per instance.
+                If lambda function, applies function to each instance row (1, 2, 3, ..., n_per_category*len(categories))
+            **kwargs: any necessary updates to args
         '''
         # update args with kwargs
         self.args.update(kwargs)
 
-        subset = self.get_subset(n_per_category=n_per_category, seed=seed)
-        prompts = [self.templatize_row(row, n_examples=n_examples, seed=i) for i, row in subset.iterrows()]
+        # if seed_examples is an int, turn into lambda function
+        if isinstance(seed_examples, int):
+            f = lambda x: seed_examples
+        else:
+            f = seed_examples
+
+        subset = self.get_subset(n_per_category=n_per_category, seed_instances=seed_instances)
+        prompts = [self.templatize_row(row, n_examples=n_examples, seed_examples=f(i)) for i, row in subset.iterrows()]
         categories = subset.category.tolist()
         # make a list of dictionaries with keys- 'text': prompt, 'target': category
         return [{'text': prompt.strip(), 'target': category} for prompt, category in zip(prompts, categories)]
 
 if __name__ == '__main__':
-    # nytimes example
-    print('nytimes')
+    # instantiate templatizer
     templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(n_per_category=10, seed=0, n_examples=6, category_lambda=lambda x: f'"{x}"')
-    print(output[0]['text'])
-    print()
+    # do for 10 runs
+    n_runs = 10
+    # hold examples constant across instances
+    for k in range(n_runs):
+        output = templatizer.templatize(n_per_category=10, n_examples=3, seed_instances=k, seed_examples=k)
+        print(output[0]['text'])
+        print(output[1]['text'])
+    # sample different examples across instances
+    for k in range(n_runs):
+        output = templatizer.templatize(n_per_category=10, n_examples=3, seed_instances=k, seed_examples=lambda i: n_runs*i + k)
+        print(output[0]['text'])
+        print(output[1]['text'])
 
-    print('nytimes-body')
-    templatizer = Templatizer(dataset_name='nytimes-body')
-    output = templatizer.templatize(n_per_category=10, seed=0, n_examples=3)
-    print(output[0]['text'])
-    print()
+    # # nytimes example
+    # print('nytimes')
+    # templatizer = Templatizer(dataset_name='nytimes')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_examples=6, category_lambda=lambda x: f'"{x}"')
+    # print(output[0]['text'])
+    # print()
 
-    print('congress')
-    templatizer = Templatizer(dataset_name='congress')
-    output = templatizer.templatize(n_per_category=10, seed=0, n_examples=3)
-    print(output[0]['text'])
-    print()
+    # # nytimes-body example
+    # print('nytimes-body')
+    # templatizer = Templatizer(dataset_name='nytimes-body')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_examples=3)
+    # print(output[0]['text'])
+    # print()
+
+    # # congress example
+    # print('congress')
+    # templatizer = Templatizer(dataset_name='congress')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_examples=3)
+    # print(output[0]['text'])
+    # print()
