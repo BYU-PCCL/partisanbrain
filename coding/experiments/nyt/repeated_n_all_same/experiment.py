@@ -7,7 +7,6 @@ from tqdm import tqdm
 import numpy as np
 # add src to path
 import sys
-breakpoint()
 sys.path.append('src')
 # import templatizing script
 from templatize import Templatizer
