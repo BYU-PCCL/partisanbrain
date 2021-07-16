@@ -1,0 +1,3 @@
+Compares few shot with n examples with n=0, 1, ..., 30. For each run, does num_trials=10 trails to be able to get a spread on expected accuracy over several sets of samples.
+
+Exemplars are different across runs and across instances.
