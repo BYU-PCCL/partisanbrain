@@ -20,7 +20,7 @@ n_exemplars = 31
 for i in range(n_runs):
     for j in range(n_runs):
         for n in range(n_exemplars):
-            exp_dir = os.path.join(f'experiments/nyt/07-16-2021/repeated_n_all_same/fewshot/n_{n}_instance_{i}_exemplar_{j}')
+            exp_dir = os.path.join(f'experiments/nyt/07-16-2021/repeated_n_all_same/n_{n}_instance_{i}_exemplar_{j}')
             if os.path.isdir(exp_dir):
                 pass
             else:
