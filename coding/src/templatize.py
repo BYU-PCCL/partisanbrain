@@ -233,23 +233,19 @@ class Templatizer:
         return instructions + self.args['join_inputs'] + example_text + self.args['join_inputs'] + prompt
     
     def templatize(self,
-        ns_per_category=[1],
-        ns_exemplars=[1],
-        n_exemplar_runs=1,
-        n_instance_runs=1,
+        n_per_category=1,
+        n_exemplars=1,
         seed_instances=-1,
         seed_exemplars=-1,
         **kwargs):
         '''
-        Templatize the dataset and put it into a df.
+        Templatize the dataset.
+
         Arguments:
-            ns_per_category (list): range of number of instances to draw from each category
-            ns_exemplars (list): range of number of exemplars to draw
-            n_exemplar_runs (int): number of distinct exemplar set trials
-            n_instance_runs (int): number of distinct instance set trials
+            ns_per_category (int): number of instances to draw from each category
+            ns_exemplars (int): number of exemplars to draw
             seed_instances (int): random see for drawing instances
-            seed_exemplars (int or lambda function): random see for drawing exemplars per instance.
-                If lambda function, applies function to each instance row (1, 2, 3, ..., ns_per_category*len(categories))
+            seed_exemplars (int): random see for drawing exemplars per instance.
             **kwargs: any necessary updates to args
         '''
         # throw an exception if any kwargs are not in self.args
@@ -260,31 +256,18 @@ class Templatizer:
         # update args with kwargs
         self.args.update(kwargs)
 
-        df = DataFrame()
-
-        # For every n_per_category
-        for n_per_category in tqdm(ns_per_category):
-            # Grab a distinct instance set n_instance runs times
-            for instance_set_ix in range(n_instance_runs):
-                instance_set_orig = self.get_subset(n_per_category=n_per_category, seed_instances=instance_set_ix)
-
-                #Then for every instance set, seed for sampling exemplars
-                for exemplar_set_ix in range(n_exemplar_runs):
-                    #Grow the set of exemplars according to ns_exemplars
-                    for n_exemplars in ns_exemplars:
-                        instance_set = instance_set_orig.copy()
-                        for i, row in instance_set.iterrows():
-                            exemplars = self.extract_exemplars(n_exemplars, exemplar_set_ix)
-                            instance_set.at[i, 'exemplars'] = "|||".join(exemplars)
-                            prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=exemplar_set_ix)
-                            instance_set.at[i, 'prompt'] = prompt
-                            instance_set.at[i, "n_per_category"] = int(n_per_category)
-                            instance_set.at[i, "instance_set_ix"] = int(instance_set_ix)
-                            instance_set.at[i, "exemplar_set_ix"] = int(exemplar_set_ix)
-                            instance_set.at[i, "n_exemplars"] = int(n_exemplars)
-                            instance_set.at[i, 'prompt_length'] = len(prompt.split())
-                        df = df.append(instance_set)
-        return df
+        instance_set = self.get_subset(n_per_category=n_per_category, seed_instances=seed_instances)
+        for i, row in instance_set.iterrows():
+            exemplars = self.extract_exemplars(n_exemplars, seed_exemplars)
+            instance_set.at[i, 'exemplars'] = "|||".join(exemplars)
+            prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
+            instance_set.at[i, 'prompt'] = prompt
+            instance_set.at[i, "n_per_category"] = int(n_per_category)
+            instance_set.at[i, "instance_set_ix"] = int(seed_instances)
+            instance_set.at[i, "exemplar_set_ix"] = int(seed_exemplars)
+            instance_set.at[i, "n_exemplars"] = int(n_exemplars)
+            instance_set.at[i, 'prompt_length'] = len(prompt.split())
+        return instance_set
 
     def templatize_many(self,
         ns_per_category=[1],
@@ -293,15 +276,13 @@ class Templatizer:
         n_instance_runs=1,
         **kwargs):
         '''
-        Templatizes over a cartesion product of all possible combinations of the input parameters.
+        Templatizes over a cartesian product of all possible combinations of the input parameters.
+
         Arguments:
-            ns_per_category (list, int): range of number of instances to draw from each category
-            ns_exemplars (list, int): range of number of exemplars to draw
+            ns_per_category (list(int)): range of number of instances to draw from each category
+            ns_exemplars (list(int)): range of number of exemplars to draw
             ns_exemplar_runs (int): number of distinct exemplar set trials
             ns_instance_runs (int): number of distinct instance set trials
-            seed_instances (int): random see for drawing instances
-            seed_exemplars (int or lambda function): random see for drawing exemplars per instance.
-                If lambda function, applies function to each instance row (1, 2, 3, ..., ns_per_category*len(categories))
             **kwargs: any necessary updates to args
         '''
         # if ns_per_category is not iterable, make a list
@@ -311,27 +292,22 @@ class Templatizer:
         if not hasattr(ns_exemplars, '__iter__'):
             ns_exemplars = [ns_exemplars]
         
+        df = pd.DataFrame()
+        
         # For every n_per_category
-        for n_per_category in tqdm(ns_per_category):
+        for n_per_category in ns_per_category:
             # Grab a distinct instance set n_instance runs times
             for instance_set_ix in range(n_instance_runs):
-                instance_set_orig = self.get_subset(n_per_category=n_per_category, seed_instances=instance_set_ix)
-
-                #Then for every instance set, seed for sampling exemplars
+                # Then for every instance set, seed for sampling exemplars
                 for exemplar_set_ix in range(n_exemplar_runs):
-                    #Grow the set of exemplars according to ns_exemplars
+                    # Grow the set of exemplars according to ns_exemplars
                     for n_exemplars in ns_exemplars:
-                        instance_set = instance_set_orig.copy()
-                        for i, row in instance_set.iterrows():
-                            exemplars = self.extract_exemplars(n_exemplars, exemplar_set_ix)
-                            instance_set.at[i, 'exemplars'] = "|||".join(exemplars)
-                            prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=exemplar_set_ix)
-                            instance_set.at[i, 'prompt'] = prompt
-                            instance_set.at[i, "n_per_category"] = int(n_per_category)
-                            instance_set.at[i, "instance_set_ix"] = int(instance_set_ix)
-                            instance_set.at[i, "exemplar_set_ix"] = int(exemplar_set_ix)
-                            instance_set.at[i, "n_exemplars"] = int(n_exemplars)
-                            instance_set.at[i, 'prompt_length'] = len(prompt.split())
+                        instance_set = self.templatize(
+                            n_per_category=n_per_category,
+                            n_exemplars=n_exemplars,
+                            seed_exemplars=exemplar_set_ix,
+                            seed_instances=instance_set_ix,
+                        )
                         df = df.append(instance_set)
         return df
 
@@ -340,7 +316,7 @@ def test_ns_exemplars():
     """Tests whether each n_exemplar in n_exemplars shows up 28 times, and that there are exactly 2"""
     templatizer = Templatizer(dataset_name='nytimes')
     ns_exemplars = [1, 3]
-    output = templatizer.templatize(
+    output = templatizer.templatize_many(
         ns_exemplars=ns_exemplars,
         )
     counts = output.n_exemplars.value_counts()
@@ -353,7 +329,7 @@ def test_ns_per_category():
     """Tests whether each code appears np.sum(ns_per_category) times"""
     templatizer = Templatizer(dataset_name='nytimes')
     ns_per_category = [1, 2]
-    output = templatizer.templatize(
+    output = templatizer.templatize_many(
         ns_per_category=ns_per_category,
         )
     counts = output.topic_2digit.value_counts().unique()
@@ -362,7 +338,7 @@ def test_ns_per_category():
 
 
     ns_per_category = [1, 2, 4]
-    output = templatizer.templatize(
+    output = templatizer.templatize_many(
         ns_per_category=ns_per_category,
         )
     counts = output.topic_2digit.value_counts().unique()
@@ -373,7 +349,7 @@ def test_exemplar_constancy():
     """Test whether marginal exemplar was the only one that changed"""
     templatizer = Templatizer(dataset_name='nytimes')
     ns_exemplars = [1, 2, 3]
-    output = templatizer.templatize(
+    output = templatizer.templatize_many(
         ns_exemplars=ns_exemplars,
         )
     articledf = output[output.article_id==4262] 
@@ -385,63 +361,76 @@ def test_exemplar_constancy():
 
 def test_instance_seed():
     """Test whether instance set was the same for all instances, and different for a different seed"""
+
     templatizer = Templatizer(dataset_name='nytimes')
-    ns_per_category = [1]
+    n_per_category = 1
     seed_instances = 42
+
     output1 = templatizer.templatize(
-        ns_per_category=ns_per_category,
+        n_per_category=n_per_category,
         seed_instances=seed_instances,
         )
     output2 = templatizer.templatize(
-        ns_per_category=ns_per_category,
+        n_per_category=n_per_category,
         seed_instances=seed_instances,
         )
-    assert output1.iloc[0][templatizer.args['input_column']] == output2.iloc[0][templatizer.args['input_column']]
-    assert output1.iloc[1][templatizer.args['input_column']] == output2.iloc[1][templatizer.args['input_column']]
-    assert output1.iloc[2][templatizer.args['input_column']] == output2.iloc[2][templatizer.args['input_column']]
 
     output3 = templatizer.templatize(
-        ns_per_category=ns_per_category,
+        n_per_category=n_per_category,
         seed_instances=seed_instances+1,
     )
 
-    breakpoint()
+    assert output1.iloc[0][templatizer.args['input_column']] == output2.iloc[0][templatizer.args['input_column']]
+    assert output1.iloc[1][templatizer.args['input_column']] == output2.iloc[1][templatizer.args['input_column']]
+    assert output1.iloc[2][templatizer.args['input_column']] == output2.iloc[2][templatizer.args['input_column']]
     assert output1.iloc[0][templatizer.args['input_column']] != output3.iloc[0][templatizer.args['input_column']]
+    assert output2.iloc[0][templatizer.args['input_column']] != output3.iloc[0][templatizer.args['input_column']]
 
 def test_exemplar_seed():
     """Test whether exemplar set was the same for all instances, and different for a different seed"""
+
     templatizer = Templatizer(dataset_name='nytimes')
-    ns_per_category = [1]
+    n_per_category = 1
     seed_exemplars = 42
-    output1 = templatizer.templatize(
-        ns_per_category=ns_per_category,
+
+    output1 = templatizer.templatize_many(
+        n_per_category=n_per_category,
         seed_exemplars=seed_exemplars,
     )
-    output2 = templatizer.templatize(
-        ns_per_category=ns_per_category,
+    output2 = templatizer.templatize_many(
+        n_per_category=n_per_category,
         seed_exemplars=seed_exemplars,
     )
+    output3 = templatizer.templatize(
+        n_per_category=n_per_category,
+        seed_exemplars=seed_exemplars+1,
+    )
+
     assert output1.iloc[0]['exemplars'] == output2.iloc[0]['exemplars']
+    assert output1.iloc[0]['exemplars'] != output3.iloc[0]['exemplars']
+    assert output2.iloc[0]['exemplars'] != output3.iloc[0]['exemplars']
 
 
 def tests():
-    test_exemplar_constancy()
-    test_ns_exemplars()
-    test_ns_per_category()
-    test_instance_seed()
+
+    # test_exemplar_constancy()
+    # test_ns_exemplars()
+    # test_ns_per_category()
+    # test_instance_seed()
     test_exemplar_seed()
 
-if __name__ == '__main__':
-    tests()
     print('Tests all passed!')
-    # templatizer = Templatizer(dataset_name='nytimes')
-    # output = templatizer.templatize(
-    #     ns_per_category=[1, 2, 3, 4],
-    #     ns_exemplars=[1, 2, 3, 4, 5],
-    #     n_exemplar_runs=5,
-    #     n_instance_runs=5,
-    #     )
-    # breakpoint()
+
+if __name__ == '__main__':
+    # tests()
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize(
+        ns_per_category=[1, 2, 3, 4],
+        ns_exemplars=[1, 2, 3, 4, 5],
+        n_exemplar_runs=5,
+        n_instance_runs=5,
+        )
+    breakpoint()
 
     # # nytimes example
     # print('nytimes')
