@@ -193,6 +193,14 @@ class Templatizer:
         category_counts = self.dataset.category.value_counts()
         subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
         return subset
+    
+    def ambiguity_candidates(self):
+        """Create a df with 90 instances in each category to pass a constant set of exemplars and score for ambiguity/prototypicality"""
+        instance_set = self.get_subset(n_per_category=90)
+        for i, row in instance_set.iterrows():
+            prompt = self.templatize_row(row, n_exemplars = 50, seed_exemplars = 0)
+            instance_set.at[i, "prompt"] = prompt
+        return instance_set
 
     def extract_exemplars(self, n_exemplars, seed_exemplars=0):
         """Extract exemplars in a dataset into a list of exemplars
@@ -474,8 +482,11 @@ def tests():
     print('Tests all passed!')
 
 if __name__ == '__main__':
-    tests()
-    # templatizer = Templatizer(dataset_name='nytimes')
+    # tests()
+    templatizer = Templatizer(dataset_name='nytimes')
+    amb_cands = templatizer.ambiguity_candidates()
+    breakpoint()
+
     # output = templatizer.templatize_many(
     #     ns_per_category=[1, 2, 3, 4],
     #     ns_exemplars=[1, 2, 3, 4, 5],
