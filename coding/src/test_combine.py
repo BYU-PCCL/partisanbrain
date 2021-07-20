@@ -40,11 +40,12 @@ def extract_values(s):
 
 
 if __name__ == '__main__':
-    files = get_files('experiments/nyt/', ends_with='.p')
+    files = get_files('experiments/nyt/07-06-21/slash/n_4_instance_0_exemplar_0/', ends_with='.p')
     # print(files)
     # iterate through files and get n, instance, and exemplar
     n_instances_exemplars = []
     dataframes = []
+    breakpoint()
     for f in files:
         n, instance, exemplar = extract_values(f)
         n_instances_exemplars.append((n, instance, exemplar))
@@ -55,7 +56,10 @@ if __name__ == '__main__':
         dataframes.append(df)
     
     # combine dataframes
-    df = pd.concat(dataframes)
+    if len(dataframes) > 1:
+        df = pd.concat(dataframes)
+    else:
+        df = dataframes[0]
     # pickle df as 'experiments/nyt/nyt_combined.pkl'
     breakpoint()
     df.to_pickle('experiments/nyt/nyt_combined.pkl')
