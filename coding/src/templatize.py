@@ -288,8 +288,9 @@ class Templatizer:
         
         df = pd.DataFrame()
         
+        print('Templatizing')
         # For every n_per_category
-        for n_per_category in ns_per_category:
+        for n_per_category in tqdm(ns_per_category):
             # Grab a distinct instance set n_instance runs times
             for instance_set_ix in range(n_instance_runs):
                 # Then for every instance set, seed for sampling exemplars
@@ -474,14 +475,13 @@ def tests():
 
 if __name__ == '__main__':
     tests()
-    templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize_many(
-        ns_per_category=[1, 2, 3, 4],
-        ns_exemplars=[1, 2, 3, 4, 5],
-        n_exemplar_runs=5,
-        n_instance_runs=5,
-    )
-    breakpoint()
+    # templatizer = Templatizer(dataset_name='nytimes')
+    # output = templatizer.templatize_many(
+    #     ns_per_category=[1, 2, 3, 4],
+    #     ns_exemplars=[1, 2, 3, 4, 5],
+    #     n_exemplar_runs=5,
+    #     n_instance_runs=5,
+    # )
 
     # # nytimes example
     # print('nytimes')
