@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+from matplotlib import pyplot as plt
 
 class ExperimentResults():
     def __init__(self, results_path):
@@ -180,9 +181,33 @@ class ExperimentResults():
         # # set index to columns
         # df = df.set_index(columns)
         return df
+    
+    def plot_n(self, split_by=[]):
+        '''
+        Plots the n column, and splits runs by the colums in split_by.
+        Arguments:
+            split_by (list): list of columns to split by
+        '''
+        # check if split_by is a list, if not, make it a list
+        if not isinstance(split_by, list):
+            split_by = [split_by]
+        df = self.group_by_columns(['n'] + split_by)
+        for col in df.columns:
+            df_col = df[col]
+            if len(split_by) > 0:
+                # get all unique index values for level 1
+                index_values = df_col.index.get_level_values(1).unique()
+                # plot each run for n
+                for ix in index_values:
+                    plt.plot(df_col.loc[:, ix])
+            else:
+                plt.plot(df)
+            plt.title(col)
+            plt.show()
+        pass
 
 if __name__ == '__main__':
     er = ExperimentResults('experiments/nyt/07-16-2021/examples_instances_runs/combined/')
-    df = er.group_by_columns(['n'])
-    breakpoint()
+    # df = er.group_by_columns(['n'])
+    er.plot_n('exemplar')
     pass
