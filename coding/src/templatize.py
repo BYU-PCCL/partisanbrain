@@ -176,15 +176,17 @@ class Templatizer:
         else:
             return f'{input} {self.args["join_input_category"]} {category}'
     
-    def generate_exemplars(self, n_exemplars, seed_exemplars=-1):
+    def generate_exemplars(self, n_exemplars, seed_exemplars=0):
         '''
         Select n randomly generated exemplars.
         '''
         # TODO - add functionality for sampling "ambiguous" or "prototypical"
+        # offset seed so that exemplars are different than instances
+        seed_offset = 42
         exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
         return exemplars
     
-    def get_subset(self, n_per_category=30, seed_instances=-1):
+    def get_subset(self, n_per_category=30, seed_instances=0):
         '''
         Select a subset of the dataset. Draw n from each category.
         '''
@@ -192,7 +194,7 @@ class Templatizer:
         subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
         return subset
 
-    def extract_exemplars(self, n_exemplars, seed_exemplars):
+    def extract_exemplars(self, n_exemplars, seed_exemplars=0):
         """Extract exemplars in a dataset into a list of exemplars
 
         Args:
@@ -207,7 +209,7 @@ class Templatizer:
         return example_texts
 
     
-    def templatize_row(self, row, n_exemplars=3, seed_exemplars=-1):
+    def templatize_row(self, row, n_exemplars=3, seed_exemplars=0):
         '''
         Templatize a single row of input and category.
 
@@ -227,8 +229,8 @@ class Templatizer:
     def templatize(self,
         n_per_category=1,
         n_exemplars=1,
-        seed_instances=-1,
-        seed_exemplars=-1,
+        seed_instances=0,
+        seed_exemplars=0,
         **kwargs):
         '''
         Templatize the dataset.
@@ -386,11 +388,11 @@ def test_exemplar_seed():
     n_per_category = 1
     seed_exemplars = 42
 
-    output1 = templatizer.templatize_many(
+    output1 = templatizer.templatize(
         n_per_category=n_per_category,
         seed_exemplars=seed_exemplars,
     )
-    output2 = templatizer.templatize_many(
+    output2 = templatizer.templatize(
         n_per_category=n_per_category,
         seed_exemplars=seed_exemplars,
     )
@@ -403,26 +405,82 @@ def test_exemplar_seed():
     assert output1.iloc[0]['exemplars'] != output3.iloc[0]['exemplars']
     assert output2.iloc[0]['exemplars'] != output3.iloc[0]['exemplars']
 
+def test_kwargs():
+    """Test whether kwargs are passed through"""
+    prefix = 'uSiNg OnLy ThE fOlLoWiNg CaTeGoRiEs'
+    per_cat_lamda = 'per cat lambda'
+    join_cats = 'join cats'
+    suffix = 'suffix'
+    input_lambda = 'input lambda'
+    category_lambda = 'category lambda'
+    join_input_category = 'join input category'
+    join_inputs = 'join inputs'
+
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize_many(
+        ns_exemplars=[1, 2],
+        prefix=prefix,
+        per_cat_lambda = lambda x: per_cat_lamda,
+        join_cats = join_cats,
+        suffix = suffix,
+        input_lambda = lambda x: input_lambda,
+        category_lambda = lambda x: category_lambda,
+        join_input_category = join_input_category,
+        join_inputs = join_inputs,
+    )
+
+    assert prefix in output.iloc[0].prompt
+    assert per_cat_lamda in output.iloc[0].prompt
+    assert join_cats in output.iloc[0].prompt
+    assert suffix in output.iloc[0].prompt
+    assert input_lambda in output.iloc[0].prompt
+    assert category_lambda in output.iloc[0].prompt
+    assert join_input_category in output.iloc[0].prompt
+    assert join_inputs in output.iloc[0].prompt
+
+    output = templatizer.templatize(
+        n_exemplars=1,
+        prefix=prefix,
+        per_cat_lambda = lambda x: per_cat_lamda,
+        join_cats = join_cats,
+        suffix = suffix,
+        input_lambda = lambda x: input_lambda,
+        category_lambda = lambda x: category_lambda,
+        join_input_category = join_input_category,
+        join_inputs = join_inputs,
+    )
+
+    assert prefix in output.iloc[0].prompt
+    assert per_cat_lamda in output.iloc[0].prompt
+    assert join_cats in output.iloc[0].prompt
+    assert suffix in output.iloc[0].prompt
+    assert input_lambda in output.iloc[0].prompt
+    assert category_lambda in output.iloc[0].prompt
+    assert join_input_category in output.iloc[0].prompt
+    assert join_inputs in output.iloc[0].prompt
+
+
 
 def tests():
 
-    # test_exemplar_constancy()
-    # test_ns_exemplars()
-    # test_ns_per_category()
-    # test_instance_seed()
+    test_exemplar_constancy()
+    test_ns_exemplars()
+    test_ns_per_category()
+    test_instance_seed()
     test_exemplar_seed()
+    test_kwargs()
 
     print('Tests all passed!')
 
 if __name__ == '__main__':
-    # tests()
+    tests()
     templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(
+    output = templatizer.templatize_many(
         ns_per_category=[1, 2, 3, 4],
         ns_exemplars=[1, 2, 3, 4, 5],
         n_exemplar_runs=5,
         n_instance_runs=5,
-        )
+    )
     breakpoint()
 
     # # nytimes example
