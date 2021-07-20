@@ -252,11 +252,65 @@ class Templatizer:
                 If lambda function, applies function to each instance row (1, 2, 3, ..., ns_per_category*len(categories))
             **kwargs: any necessary updates to args
         '''
+        # throw an exception if any kwargs are not in self.args
+        for key in kwargs:
+            if key not in self.args:
+                raise Exception(f'Keyword argument {key} not in args and is not supported.')
+
         # update args with kwargs
         self.args.update(kwargs)
 
         df = DataFrame()
 
+        # For every n_per_category
+        for n_per_category in tqdm(ns_per_category):
+            # Grab a distinct instance set n_instance runs times
+            for instance_set_ix in range(n_instance_runs):
+                instance_set_orig = self.get_subset(n_per_category=n_per_category, seed_instances=instance_set_ix)
+
+                #Then for every instance set, seed for sampling exemplars
+                for exemplar_set_ix in range(n_exemplar_runs):
+                    #Grow the set of exemplars according to ns_exemplars
+                    for n_exemplars in ns_exemplars:
+                        instance_set = instance_set_orig.copy()
+                        for i, row in instance_set.iterrows():
+                            exemplars = self.extract_exemplars(n_exemplars, exemplar_set_ix)
+                            instance_set.at[i, 'exemplars'] = "|||".join(exemplars)
+                            prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=exemplar_set_ix)
+                            instance_set.at[i, 'prompt'] = prompt
+                            instance_set.at[i, "n_per_category"] = int(n_per_category)
+                            instance_set.at[i, "instance_set_ix"] = int(instance_set_ix)
+                            instance_set.at[i, "exemplar_set_ix"] = int(exemplar_set_ix)
+                            instance_set.at[i, "n_exemplars"] = int(n_exemplars)
+                            instance_set.at[i, 'prompt_length'] = len(prompt.split())
+                        df = df.append(instance_set)
+        return df
+
+    def templatize_many(self,
+        ns_per_category=[1],
+        ns_exemplars=[1],
+        n_exemplar_runs=1,
+        n_instance_runs=1,
+        **kwargs):
+        '''
+        Templatizes over a cartesion product of all possible combinations of the input parameters.
+        Arguments:
+            ns_per_category (list, int): range of number of instances to draw from each category
+            ns_exemplars (list, int): range of number of exemplars to draw
+            ns_exemplar_runs (int): number of distinct exemplar set trials
+            ns_instance_runs (int): number of distinct instance set trials
+            seed_instances (int): random see for drawing instances
+            seed_exemplars (int or lambda function): random see for drawing exemplars per instance.
+                If lambda function, applies function to each instance row (1, 2, 3, ..., ns_per_category*len(categories))
+            **kwargs: any necessary updates to args
+        '''
+        # if ns_per_category is not iterable, make a list
+        if not hasattr(ns_per_category, '__iter__'):
+            ns_per_category = [ns_per_category]
+        # if ns_exemplars is not iterable, make a list
+        if not hasattr(ns_exemplars, '__iter__'):
+            ns_exemplars = [ns_exemplars]
+        
         # For every n_per_category
         for n_per_category in tqdm(ns_per_category):
             # Grab a distinct instance set n_instance runs times
@@ -329,21 +383,65 @@ def test_exemplar_constancy():
     assert article3shotexemplars[0] == article2shotexemplars[0] == article1shotexemplars[0]
     assert article3shotexemplars[1] == article2shotexemplars[1]
 
+def test_instance_seed():
+    """Test whether instance set was the same for all instances, and different for a different seed"""
+    templatizer = Templatizer(dataset_name='nytimes')
+    ns_per_category = [1]
+    seed_instances = 42
+    output1 = templatizer.templatize(
+        ns_per_category=ns_per_category,
+        seed_instances=seed_instances,
+        )
+    output2 = templatizer.templatize(
+        ns_per_category=ns_per_category,
+        seed_instances=seed_instances,
+        )
+    assert output1.iloc[0][templatizer.args['input_column']] == output2.iloc[0][templatizer.args['input_column']]
+    assert output1.iloc[1][templatizer.args['input_column']] == output2.iloc[1][templatizer.args['input_column']]
+    assert output1.iloc[2][templatizer.args['input_column']] == output2.iloc[2][templatizer.args['input_column']]
+
+    output3 = templatizer.templatize(
+        ns_per_category=ns_per_category,
+        seed_instances=seed_instances+1,
+    )
+
+    breakpoint()
+    assert output1.iloc[0][templatizer.args['input_column']] != output3.iloc[0][templatizer.args['input_column']]
+
+def test_exemplar_seed():
+    """Test whether exemplar set was the same for all instances, and different for a different seed"""
+    templatizer = Templatizer(dataset_name='nytimes')
+    ns_per_category = [1]
+    seed_exemplars = 42
+    output1 = templatizer.templatize(
+        ns_per_category=ns_per_category,
+        seed_exemplars=seed_exemplars,
+    )
+    output2 = templatizer.templatize(
+        ns_per_category=ns_per_category,
+        seed_exemplars=seed_exemplars,
+    )
+    assert output1.iloc[0]['exemplars'] == output2.iloc[0]['exemplars']
+
+
 def tests():
     test_exemplar_constancy()
     test_ns_exemplars()
     test_ns_per_category()
+    test_instance_seed()
+    test_exemplar_seed()
 
 if __name__ == '__main__':
-    # instantiate templatizer
-    templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(
-        ns_per_category=[1, 2, 3, 4],
-        ns_exemplars=[1, 2, 3, 4, 5],
-        n_exemplar_runs=5,
-        n_instance_runs=5,
-        )
-    breakpoint()
+    tests()
+    print('Tests all passed!')
+    # templatizer = Templatizer(dataset_name='nytimes')
+    # output = templatizer.templatize(
+    #     ns_per_category=[1, 2, 3, 4],
+    #     ns_exemplars=[1, 2, 3, 4, 5],
+    #     n_exemplar_runs=5,
+    #     n_instance_runs=5,
+    #     )
+    # breakpoint()
 
     # # nytimes example
     # print('nytimes')
