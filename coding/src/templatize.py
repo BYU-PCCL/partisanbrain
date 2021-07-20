@@ -181,11 +181,7 @@ class Templatizer:
         Select n randomly generated exemplars.
         '''
         # TODO - add functionality for sampling "ambiguous" or "prototypical"
-        if seed_exemplars != -1:
-            seed_offset = 42
-            exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
-        else:
-            exemplars = self.dataset.sample(n=n_exemplars)
+        exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
         return exemplars
     
     def get_subset(self, n_per_category=30, seed_instances=-1):
@@ -193,11 +189,7 @@ class Templatizer:
         Select a subset of the dataset. Draw n from each category.
         '''
         category_counts = self.dataset.category.value_counts()
-        if seed_instances != -1:
-            subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
-        else:
-            subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
-            # subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category) for cat in self.args['categories']], axis=0)
+        subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
         return subset
 
     def extract_exemplars(self, n_exemplars, seed_exemplars):
@@ -259,14 +251,14 @@ class Templatizer:
         instance_set = self.get_subset(n_per_category=n_per_category, seed_instances=seed_instances)
         for i, row in instance_set.iterrows():
             exemplars = self.extract_exemplars(n_exemplars, seed_exemplars)
-            instance_set.at[i, 'exemplars'] = "|||".join(exemplars)
+            instance_set.at[i, "exemplars"] = "|||".join(exemplars)
             prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
-            instance_set.at[i, 'prompt'] = prompt
+            instance_set.at[i, "prompt"] = prompt
             instance_set.at[i, "n_per_category"] = int(n_per_category)
             instance_set.at[i, "instance_set_ix"] = int(seed_instances)
             instance_set.at[i, "exemplar_set_ix"] = int(seed_exemplars)
             instance_set.at[i, "n_exemplars"] = int(n_exemplars)
-            instance_set.at[i, 'prompt_length'] = len(prompt.split())
+            instance_set.at[i, "prompt_length"] = len(prompt.split())
         return instance_set
 
     def templatize_many(self,
@@ -307,6 +299,7 @@ class Templatizer:
                             n_exemplars=n_exemplars,
                             seed_exemplars=exemplar_set_ix,
                             seed_instances=instance_set_ix,
+                            **kwargs,
                         )
                         df = df.append(instance_set)
         return df
