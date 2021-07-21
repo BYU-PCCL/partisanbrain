@@ -186,6 +186,26 @@ class ExperimentResults():
         df = df.groupby(columns).agg({'score': 'mean'})
         return df
     
+    def average_predictions(self, additional_columns=None):
+        '''
+        Average predictions for a given title and category to look at an "ensembled" prediction.
+        Arguments:
+            additional_columns (list): list of additional columns to split over. Default is None.
+        '''
+        columns = ['title', 'category']
+        if additional_columns is not None:
+            columns += additional_columns
+        # aggregate columns = self.categories
+        agg_dict = {cat: 'mean' for cat in self.categories}
+        df = self.results.groupby(columns).agg(agg_dict)
+        df = df.reset_index()
+
+        df['guess'] = df[self.categories].idxmax(axis=1)
+        df['score'] = 1 * (df['guess'] == df['category'])
+        return df
+
+
+    
     def plot_n(self, df = None, split_by=[], average=False, save_path=None):
         '''
         Plots the n column, and splits runs by the colums in split_by.
@@ -227,7 +247,7 @@ class ExperimentResults():
                 plt.plot(df_col)
             plt.title(col)
             plt.xlabel('n')
-            plt.show()
+            # plt.show()
             if save_path is not None:
                 if average:
                     plt.savefig(save_path + '_' + col + '_average.pdf')
@@ -247,10 +267,8 @@ class ExperimentResults():
         # TODO - sort categories in an intelligent way
         # get categories
         categories = self.categories
-        # get guesses
-        guesses = self.results['guess'].unique().tolist()
         # get confusion matrix
-        cm = confusion_matrix(self.results['category'], self.results['guess'])
+        cm = confusion_matrix(self.results['category'], self.results['guess'], normalize='true')
         # plot
         # make big figure
         fig, ax = plt.subplots(figsize=(10, 10))
@@ -260,10 +278,10 @@ class ExperimentResults():
         plt.colorbar()
         tick_marks = np.arange(len(categories))
         plt.xticks(tick_marks, categories, rotation=90)
-        plt.yticks(tick_marks, guesses)
+        plt.yticks(tick_marks, categories)
         plt.ylabel('Guess')
         plt.xlabel('Target')
-        plt.show()
+        # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_confusion_matrix.pdf')
             # clear plt
@@ -287,7 +305,7 @@ class ExperimentResults():
         plt.title('Accuracies')
         plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
         plt.subplots_adjust(bottom=0.5)
-        plt.show()
+        # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_accuracies.pdf')
             # clear plt
@@ -295,17 +313,26 @@ class ExperimentResults():
     
 if __name__ == '__main__':
     # er = ExperimentResults('experiments/nyt/07-16-2021/examples_instances_runs/combined/')
-    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with='pickle', normalize_marginal=True)
+    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with='EI.pickle', normalize_marginal=True)
     # er = ExperimentResults('experiments/nyt/07-06-21/slash/')
     # df = er.group_by_columns(['n'])
-    er.plot_category_accuracies(save_path='./')
-    er.plot_confusion_matrix(save_path='./')
+    er.plot_category_accuracies(save_path='plots/')
+    er.plot_confusion_matrix(save_path='plots/')
     # split by intsance set and exemplar set
-    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=True, save_path='./')
-    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=False, save_path='./')
+    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=True, save_path='plots/')
+    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=False, save_path='plots/')
     # hold instance set constant, split by exemplar set
-    er.plot_n(split_by=['exemplar_set_ix'], average=False, save_path='./instance_constant')
+    er.plot_n(split_by=['exemplar_set_ix'], average=False, save_path='plots/instance_constant')
     # hold exemplar set constant, split by instance set
-    er.plot_n(split_by=['instance_set_ix'], average=False, save_path='./exemplar_constant')
+    er.plot_n(split_by=['instance_set_ix'], average=False, save_path='plots/exemplar_constant')
+
+    # with aggregate predictions
+    df = er.average_predictions()
+    df_n = er.average_predictions(['n_exemplars'])
+
+    er.plot_category_accuracies(df, save_path='plots/ensemble/')
+    er.plot_confusion_matrix(df, save_path='plots/ensemble/')
+    # split by intsance set and exemplar set
+    er.plot_n(df_n, save_path='plots/ensemble/')
     breakpoint()
     pass
