@@ -1,3 +1,4 @@
+from time import time
 import pandas as pd
 import os
 import openai
@@ -6,47 +7,54 @@ import pickle
 from tqdm import tqdm
 from templatize import Templatizer
 import numpy as np
-from datetime import date
+from datetime import date, timedelta
 from readpickle import rpkl
 
 dataset = 'nyt'
 exp_name = 'EI'
 today = date.today()
-exp_dir = os.path.join(f'experiments/{dataset}/{today.strftime("%m-%d-%Y")}/{exp_name}')
+yesterday = today - timedelta(days=1)
+exp_dir = f'experiments/{dataset}/{yesterday.strftime("%m-%d-%Y")}/{exp_name}/fill'
+pccfs_dir = '/mnt/pccfs2/backed_up/crytting/partisanbrain/coding'
+exp_dir = os.path.join(pccfs_dir, exp_dir)
 
 if os.path.isdir(exp_dir):
     pass
 else:
     os.makedirs(exp_dir)
 
-templatizer = Templatizer(dataset_name='nytimes')
-output = templatizer.templatize_many(
-    ns_per_category=[1, 2, 3, 4],
-    ns_exemplars=[1, 2, 3, 4, 5],
-    n_exemplar_runs=5,
-    n_instance_runs=5,
-)
+# templatizer = Templatizer(dataset_name='nytimes')
+# output = templatizer.templatize_many(
+#     ns_per_category=[1, 2, 3, 4],
+#     ns_exemplars=[1, 2, 3, 4, 5],
+#     n_exemplar_runs=5,
+#     n_instance_runs=5,
+# )
 # output = templatizer.templatize_many()
 
-responses = []
+for pkl in 'eps1.pickle eps2.pickle'.split():
+    output = rpkl(os.path.join(exp_dir, pkl))
 
-print('Generating Completions')
-for i, row in tqdm(output.iterrows()):
-    try:
+    responses = []
+
+    print(f'Generating Completions for {pkl}')
+    for i, row in tqdm(output.iterrows()):
         response = None
-        response = openai.Completion.create(engine="davinci", prompt=row.prompt, max_tokens=1, logprobs=100)
+        try:
+            print(i, row)
+            breakpoint()
+            # response = openai.Completion.create(engine="davinci", prompt=row.prompt, max_tokens=1, logprobs=100)
+        except Exception as exc:
+            print(exc)
+            pass
         responses.append(response)
+        if i % 1000 == 0 or i == len(output) - 1:
+            pklpath = os.path.join(exp_dir,f'{pkl}responses.pickle')
+            with open(pklpath, 'wb') as f:
+                pickle.dump(responses, f)
 
-        pklpath = os.path.join(exp_dir,'responses.p')
-        with open(pklpath, 'wb') as f:
-            pickle.dump(responses, f)
-
-    except Exception as exc:
-        print(exc)
-        pass
-
-# Write output df to pickle
-output['responses'] = responses
-pklpath = os.path.join(exp_dir,'EI.p')
-with open(pklpath, 'wb') as f:
-    pickle.dump(output, f)
+    # Write output df to pickle
+    output['responses'] = responses
+    pklpath = os.path.join(exp_dir,'EI.pickle')
+    with open(pklpath, 'wb') as f:
+        pickle.dump(output, f)
