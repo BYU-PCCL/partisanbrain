@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from itertools import product
+from confusion_matrix_utils import get_best_confusion_matrix
 
 class ExperimentResults():
     def __init__(self, results_path, ends_with='.pickle', matching_strategy='substr', normalize_marginal=True):
@@ -77,8 +78,14 @@ class ExperimentResults():
         matched_files = []
         for root, dirs, files in os.walk(path):
             for file in files:
-                if file.endswith(self.ends_with):
-                    matched_files.append(os.path.join(root, file))
+                # if ends_with is list
+                if isinstance(self.ends_with, list):
+                    for end in self.ends_with:
+                        if file.endswith(end):
+                            matched_files.append(os.path.join(root, file))
+                else:
+                    if file.endswith(self.ends_with):
+                        matched_files.append(os.path.join(root, file))
         return matched_files
     
     def load_results(self):
@@ -99,6 +106,9 @@ class ExperimentResults():
         Given an instance of gpt3 response, return the logprobs of the first sampled token.
         Returns a sorted list of tuples of (token, logprob)
         '''
+        # if response is tuple, need to extract second element
+        if isinstance(response, tuple):
+            response = response[1]
         logprobs = response['choices'][0].logprobs.top_logprobs[0]
         # sort by logprob
         logprobs = sorted(logprobs.items(), key=lambda x: x[1], reverse=True)
@@ -166,13 +176,36 @@ class ExperimentResults():
         # add to results
         self.results = pd.concat([self.results, category_probs], axis=1)
     
-    def populate_scores(self):
+    def top_k_match(self, probs, labels, k):
+        '''
+        Arguments:
+            probs (np.array): probability vector array
+            labels (np.array): label vector array of ints
+            k (int): top k
+        Returns:
+            top_k_match (list): list of 1 if match, 0 otherwise
+        '''
+        # get top k labels
+        top_k_labels = np.argsort(probs)[:, -k:]
+        # reshape labels
+        labels = labels.repeat(k).reshape(-1, k)
+        return (labels == top_k_labels).sum(axis=1)
+    
+    def populate_scores(self, max_top_k=10):
         '''
         Populate score (0 if match, 1 otherwise) in self.results for each matching strategy.
+        Arguments:
+            max_top_k (int): maximum top_k_accuracy to calculate. Default is 3.
         '''
         # populate score
         self.results['guess'] = self.results[self.categories].idxmax(axis=1)
         self.results['score'] = 1 * (self.results['guess'] == self.results['category'])
+        # calculate top_k_accuracy
+        probs = self.results[self.categories].values
+        # get category as int
+        labels = np.array([self.categories.index(cat) for cat in self.results['category'].tolist()])
+        for k in range(1, max_top_k + 1):
+            self.results['score_' + str(k)] = self.top_k_match(probs, labels, k)
     
     def group_by_columns(self, columns, df=None):
         '''
@@ -203,60 +236,94 @@ class ExperimentResults():
         df['guess'] = df[self.categories].idxmax(axis=1)
         df['score'] = 1 * (df['guess'] == df['category'])
         return df
-
-
     
-    def plot_n(self, df = None, split_by=[], average=False, save_path=None):
+    def plot(self, df=None, x_variable='n_exemplars', y_variable='score', split_by=[], color_by='', average=False, save_path=''):
         '''
-        Plots the n column, and splits runs by the colums in split_by.
+        Plots the results of x_variable vs. y_variable.
         Arguments:
-            df (pandas dataframe): dataframe to plot. Default is self.results
-            split_by (list): list of columns to split by
-            average (bool): whether to plot average and error bars. Defaults to False.
+            x_variable (str): column to plot on x-axis
+            y_variable (str): column to plot on y-axis
+            split_by (list): list of columns to split by. Default is []
+            color_by (str): column to color by. Must be included in split_by. Default is None.
+            save_path (str): path to save figure. Default is ''
         '''
+        if df is None:
+            df = self.results
+
         # check if split_by is a list, if not, make it a list
         if not isinstance(split_by, list):
             split_by = [split_by]
-        if df is None:
-            df = self.results
-        df = self.group_by_columns(df=df, columns=split_by + ['n_exemplars'])
+        
+        if color_by:
+            # check if color_by is in split_by, if not, add it
+            if color_by not in split_by:
+                split_by.append(color_by)
+            unique = df[color_by].unique()
+            colors = sns.color_palette("Set1", len(unique))
+            color_dict = {cat: color for cat, color in zip(unique, colors)}
+            # df['color'] = df[color_by].map(color_dict)
+            # split_by.append('color')
+        
+        # add x_variable to split_by
+        if x_variable not in split_by:
+            split_by.append(x_variable)
 
-        for col in df.columns:
-            df_col = df[col]
-            if len(split_by) > 0:
-                if average:
-                    means = df_col.groupby('n_exemplars').agg('mean')
-                    std = df_col.groupby('n_exemplars').agg('std')
-                    # plot with shaded error bars
-                    plt.plot(means.index, means, label=col)
-                    plt.fill_between(means.index, means - 2*std, means + 2*std, alpha=0.2)
-                else:
-                    n_levels = len(split_by)
-                    runs = list(product(*[df_col.index.get_level_values(i).unique() for i in range(n_levels)]))
-                    for run in runs:
-                        if n_levels == 1:
-                            run = df_col.loc[run[0]]
-                        elif n_levels == 2:
-                            run = df_col.loc[run[0], run[1]]
-                        elif n_levels == 3:
-                            run = df_col.loc[run[0], run[1], run[2]]
+        df_agg = df.groupby(split_by).agg({y_variable: 'mean'})
+        df_agg = df_agg.reset_index()
+
+        # iterate through unique tuples of columns, excluding x_variable and y_variable
+        other_columns = list(set(df_agg.columns) - set([x_variable, y_variable]))
+        if not average:
+            # if other columns, split by other columns and then plot
+            if len(other_columns) > 0:
+                runs = df_agg[other_columns].drop_duplicates()
+                # iterate through runs and plot x_variable vs. y_variable
+                labels = []
+                for run in runs.itertuples():
+                    df_run = df_agg.copy()
+                    for i, column in enumerate(other_columns):
+                        df_run = df_run[df_run[column] == run[i+1]].copy()
+                    # plot
+                    if color_by:
+                        i = other_columns.index(color_by)
+                        label = run[i+1]
+                        color = color_dict[label]
+                        if label not in labels:
+                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {int(label)}', color=color, alpha=.6)
+                            labels.append(label)
                         else:
-                            raise ValueError('split_by must be of length <= 3')
-                        plt.plot(run.index, run, alpha=.5)
+                            plt.plot(df_run[x_variable], df_run[y_variable], color=color, alpha=.6)
+                    else:
+                        label = y_variable
+                        if label not in labels:
+                            plt.plot(df_run[x_variable], df_run[y_variable], alpha=.6, label=label)
+                        else:
+                            plt.plot(df_run[x_variable], df_run[y_variable], alpha=.6)
+            # otherwise, just plot x_variable vs. y_variable
             else:
-                plt.plot(df_col)
-            plt.title(col)
-            plt.xlabel('n')
-            # plt.show()
-            if save_path is not None:
-                if average:
-                    plt.savefig(save_path + '_' + col + '_average.pdf')
-                else:
-                    plt.savefig(save_path + '_' + col + '.pdf')
-                # clear plt
-                plt.clf()
-        pass
-    
+                label = y_variable
+                plt.plot(df_agg[x_variable], df_agg[y_variable], label=label)
+        else:
+            means = df_agg.groupby(x_variable).agg({y_variable: 'mean'}).reset_index()
+            std = df_agg.groupby(x_variable).agg({y_variable: 'std'}).reset_index()
+            # plot with shaded error bars
+            plt.plot(means[x_variable], means[y_variable], label=f'{y_variable}')
+            plt.fill_between(means[x_variable], means[y_variable] - 2*std[y_variable], means[y_variable] + 2*std[y_variable], alpha=0.2)
+        
+        plt.legend()
+        plt.xlabel(x_variable)
+        plt.ylabel(y_variable)
+        plt.title(f'{y_variable} vs. {x_variable}')
+        if save_path is not None:
+            if average:
+                plt.savefig(save_path + '_' + x_variable + '_vs_' + y_variable + '_average.pdf')
+            else:
+                plt.savefig(save_path + '_' + x_variable + '_vs_' + y_variable + '.pdf')
+        else:
+            plt.show()
+        # clear plt
+        plt.clf()
+
     def plot_confusion_matrix(self, df=None, save_path=None):
         '''
         Plot a confusion matrix for all categories. Guesses located in 'guess' and target in 'categories' in self.results.
@@ -266,9 +333,11 @@ class ExperimentResults():
 
         # TODO - sort categories in an intelligent way
         # get categories
-        categories = self.categories
+        categories = sorted(self.categories)
         # get confusion matrix
-        cm = confusion_matrix(self.results['category'], self.results['guess'], normalize='true')
+        cm = confusion_matrix(df['category'], df['guess'], normalize='true')
+        # find best matrix
+        cm, categories = get_best_confusion_matrix(cm, categories)
         # plot
         # make big figure
         fig, ax = plt.subplots(figsize=(10, 10))
@@ -312,19 +381,35 @@ class ExperimentResults():
             plt.clf()
     
 if __name__ == '__main__':
-    # er = ExperimentResults('experiments/nyt/07-16-2021/examples_instances_runs/combined/')
-    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with='EI.pickle', normalize_marginal=True)
-    # er = ExperimentResults('experiments/nyt/07-06-21/slash/')
-    # df = er.group_by_columns(['n'])
+    # er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
+    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EInex0.pickle'], normalize_marginal=True)
     er.plot_category_accuracies(save_path='plots/')
     er.plot_confusion_matrix(save_path='plots/')
-    # split by intsance set and exemplar set
-    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=True, save_path='plots/')
-    er.plot_n(split_by=['exemplar_set_ix', 'instance_set_ix'], average=False, save_path='plots/')
-    # hold instance set constant, split by exemplar set
-    er.plot_n(split_by=['exemplar_set_ix'], average=False, save_path='plots/instance_constant')
-    # hold exemplar set constant, split by instance set
-    er.plot_n(split_by=['instance_set_ix'], average=False, save_path='plots/exemplar_constant')
+
+    # plot by different colors
+    er.plot(
+        split_by=['exemplar_set_ix', 'instance_set_ix'],
+        color_by='instance_set_ix',
+        save_path='plots/'
+    )
+    # plot means and std
+    er.plot(
+        split_by=['exemplar_set_ix', 'instance_set_ix'],
+        average=True,
+        save_path='plots/'
+    )
+    # plot instances
+    er.plot(
+        split_by = ['instance_set_ix'],
+        color_by='instance_set_ix',
+        save_path='plots/instance'
+    )
+    # plot exemplars
+    er.plot(
+        split_by = ['exemplar_set_ix'],
+        color_by='exemplar_set_ix',
+        save_path='plots/exemplar'
+    )
 
     # with aggregate predictions
     df = er.average_predictions()
@@ -333,6 +418,6 @@ if __name__ == '__main__':
     er.plot_category_accuracies(df, save_path='plots/ensemble/')
     er.plot_confusion_matrix(df, save_path='plots/ensemble/')
     # split by intsance set and exemplar set
-    er.plot_n(df_n, save_path='plots/ensemble/')
     breakpoint()
+    er.plot(df_n, save_path='plots/ensemble/')
     pass
