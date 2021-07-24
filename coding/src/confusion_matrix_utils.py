@@ -114,15 +114,26 @@ def clustering_score(cm):
     '''
     Compute clustering score. Score is higher if more weight on off diagonals, lower otherwise.
     '''
+    score = (cm[1:] * cm[:-1]).sum() + (cm[:, 1:] * cm[:, :-1]).sum()
+    score += (cm[2:] * cm[:-2]).sum() + (cm[:, 2:] * cm[:, :-2]).sum()
+
+    # METHOD 2
     n_diags = len(cm)
     diag_weight = 1 / np.arange(1, n_diags)**2
 
-    score = 0
+    # score = 0
     for k, weight in zip(range(n_diags), diag_weight):
         # add off-diagonal weight
         score += weight * (np.diag(cm, k) + np.diag(cm, -k)).sum()
-    # TODO - try convolve?
 
+    # TODO - try convolve?
+    # kernels = [np.ones((i, i)) for i in range(2, 10)]
+    # kernels = [np.ones((i, i)) for i in range(3, 8, 2)]
+    # # score = 0
+    # for kernel in kernels:
+    #     score += np.diag(convolve2D(cm, kernel)).sum()
+    
+    # TODO - try k means or something?
     return score
 
 def get_best_confusion_matrix(cm, categories):
