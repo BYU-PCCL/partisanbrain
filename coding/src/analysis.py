@@ -15,6 +15,8 @@ class ExperimentResults():
             results_path (str): path to results
             ends_with (str): file extension of results. Defaults to 'pickle'
             matching_strategy (str): matching strategy for logprobs to categories. Supported: 'starts_with', 'substr'. Defaults to 'substr'.
+                'starts_with' - category must start with token
+                'substr' - token must be a substring of category
             normalize_marignal (bool): whether to normalize marginal probabilities. Defaults to True.
         Attributes:
             results_path: path to directory containing results
@@ -96,8 +98,6 @@ class ExperimentResults():
         self.results = self.read_and_combine_dfs(files)
         # dropna in row 'responses'
         self.results = self.results.dropna(subset=['responses'])
-        # TODO - remove
-        # self.results = self.results.sample(n=1000)
         # reset index
         self.results = self.results.reset_index()
     
@@ -146,9 +146,6 @@ class ExperimentResults():
             for category in self.categories:
                 if self.matches(token, category):
                     category_probs[category] += np.exp(logprob)
-        
-        # normalize so sums to 1
-        # category_probs = {cat: prob/sum(category_probs.values()) for cat, prob in category_probs.items()}
 
         return category_probs
     
@@ -158,13 +155,9 @@ class ExperimentResults():
         Afterwards, there should be a column for each category with total weight.
         '''
         # get all categories
-        # self.categories = self.results['category'].unique().tolist()
-        # TODO - remove
-        from nyt_categories import categories
-        self.categories = list(categories.values())
+        self.categories = self.results['category'].unique().tolist()
         # populate category probs
         category_probs = self.results.apply(lambda x: self.get_category_probs(x['responses']), axis=1)
-        # category_probs = [self.get_category_probs(x['response'], matching_strategy) for x in self.results.itertuples()]
         # to dataframe
         category_probs = pd.DataFrame(category_probs.tolist())
         # normalize by marginal probability
@@ -179,15 +172,15 @@ class ExperimentResults():
     def top_k_match(self, probs, labels, k):
         '''
         Arguments:
-            probs (np.array): probability vector array
-            labels (np.array): label vector array of ints
+            probs (np.array): 2d probability vector array (instances x categories)
+            labels (np.array): label vector array of ints. Corresponds to the index of the probs vector.
             k (int): top k
         Returns:
             top_k_match (list): list of 1 if match, 0 otherwise
         '''
         # get top k labels
         top_k_labels = np.argsort(probs)[:, -k:]
-        # reshape labels
+        # reshape labels to be same shape as top_k_labels
         labels = labels.repeat(k).reshape(-1, k)
         return (labels == top_k_labels).sum(axis=1)
     
@@ -207,6 +200,22 @@ class ExperimentResults():
         for k in range(1, max_top_k + 1):
             self.results['score_' + str(k)] = self.top_k_match(probs, labels, k)
     
+    def get_average_score(self, top_k=0):
+        '''
+        Returns the average score.
+        Arguments:
+            top_k (int): top_k_accuracy to calculate. Default is 0.
+        '''
+        # get average score
+        if top_k == 0:
+            return self.results['score'].mean()
+        else:
+            column = 'score_' + str(top_k)
+            if column not in self.results.columns:
+                # compute populate_scores again with top_k
+                self.populate_scores(top_k)
+            return self.results[column].mean()
+    
     def group_by_columns(self, columns, df=None):
         '''
         Groups df by columns and returns a dataframe of the aggregated scores.
@@ -219,15 +228,15 @@ class ExperimentResults():
         df = df.groupby(columns).agg({'score': 'mean'})
         return df
     
-    def average_predictions(self, additional_columns=None):
+    def average_predictions(self, additional_columns=[]):
         '''
         Average predictions for a given title and category to look at an "ensembled" prediction.
         Arguments:
-            additional_columns (list): list of additional columns to split over. Default is None.
+            additional_columns (list): list of additional columns to split over. Default is [].
         '''
         columns = ['title', 'category']
-        if additional_columns is not None:
-            columns += additional_columns
+        # add aditional columns
+        columns += additional_columns
         # aggregate columns = self.categories
         agg_dict = {cat: 'mean' for cat in self.categories}
         df = self.results.groupby(columns).agg(agg_dict)
@@ -239,11 +248,11 @@ class ExperimentResults():
     
     def plot(self, df=None, x_variable='n_exemplars', y_variable='score', split_by=[], color_by='', average=False, save_path=''):
         '''
-        Plots the results of x_variable vs. y_variable.
+        Plots the results of x_variable vs. y_variable given some other variables (split_by).
         Arguments:
             x_variable (str): column to plot on x-axis
             y_variable (str): column to plot on y-axis
-            split_by (list): list of columns to split by. Default is []
+            split_by (list, str): list of columns to split by. Variables that you want to iterate over, keeping x and y constant. If single string, turn into list. Default is []
             color_by (str): column to color by. Must be included in split_by. Default is None.
             save_path (str): path to save figure. Default is ''
         '''
@@ -261,8 +270,6 @@ class ExperimentResults():
             unique = df[color_by].unique()
             colors = sns.color_palette("Set1", len(unique))
             color_dict = {cat: color for cat, color in zip(unique, colors)}
-            # df['color'] = df[color_by].map(color_dict)
-            # split_by.append('color')
         
         # add x_variable to split_by
         if x_variable not in split_by:
@@ -331,7 +338,6 @@ class ExperimentResults():
         if df is None:
             df = self.results
 
-        # TODO - sort categories in an intelligent way
         # get categories
         categories = sorted(self.categories)
         # get confusion matrix
@@ -381,8 +387,7 @@ class ExperimentResults():
             plt.clf()
     
 if __name__ == '__main__':
-    # er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
-    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EInex0.pickle'], normalize_marginal=True)
+    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
     er.plot_category_accuracies(save_path='plots/')
     er.plot_confusion_matrix(save_path='plots/')
 
@@ -417,7 +422,8 @@ if __name__ == '__main__':
 
     er.plot_category_accuracies(df, save_path='plots/ensemble/')
     er.plot_confusion_matrix(df, save_path='plots/ensemble/')
-    # split by intsance set and exemplar set
-    breakpoint()
+
+    # split by instance set and exemplar set
     er.plot(df_n, save_path='plots/ensemble/')
+    breakpoint()
     pass
