@@ -1,3 +1,5 @@
+import sys
+sys.path.append('src')
 from time import time
 import pandas as pd
 import os
@@ -9,6 +11,7 @@ from templatize import Templatizer
 import numpy as np
 from datetime import date, timedelta
 from readpickle import rpkl
+
 
 dataset = 'nyt'
 exp_name = 'EI'
