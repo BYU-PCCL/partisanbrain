@@ -184,11 +184,12 @@ class ExperimentResults():
         labels = labels.repeat(k).reshape(-1, k)
         return (labels == top_k_labels).sum(axis=1)
     
-    def populate_scores(self, max_top_k=10):
+    
+    def populate_scores(self, max_k=10):
         '''
         Populate score (0 if match, 1 otherwise) in self.results for each matching strategy.
         Arguments:
-            max_top_k (int): maximum top_k_accuracy to calculate. Default is 3.
+            max_k (int): maximum top_k_accuracy to calculate. Default is 3.
         '''
         # populate score
         self.results['guess'] = self.results[self.categories].idxmax(axis=1)
@@ -197,24 +198,27 @@ class ExperimentResults():
         probs = self.results[self.categories].values
         # get category as int
         labels = np.array([self.categories.index(cat) for cat in self.results['category'].tolist()])
-        for k in range(1, max_top_k + 1):
+        for k in range(1, max_k + 1):
             self.results['score_' + str(k)] = self.top_k_match(probs, labels, k)
     
-    def get_average_score(self, top_k=0):
+    def get_average_score(self, df=None, top_k=1):
         '''
         Returns the average score.
         Arguments:
             top_k (int): top_k_accuracy to calculate. Default is 0.
         '''
+        if df is None:
+            df = self.results
+
         # get average score
         if top_k == 0:
-            return self.results['score'].mean()
+            return df['score'].mean()
         else:
             column = 'score_' + str(top_k)
-            if column not in self.results.columns:
+            if column not in df.columns:
                 # compute populate_scores again with top_k
                 self.populate_scores(top_k)
-            return self.results[column].mean()
+            return df[column].mean()
     
     def group_by_columns(self, columns, df=None):
         '''
@@ -245,6 +249,29 @@ class ExperimentResults():
         df['guess'] = df[self.categories].idxmax(axis=1)
         df['score'] = 1 * (df['guess'] == df['category'])
         return df
+    
+    def plot_top_k_accuracies(self, df=None, max_k=3, save_path=None):
+        '''
+        Plots the top_k accuracy from 1 to max_k.
+        '''
+        if df is None:
+            df = self.results
+        
+        # get K
+        K = np.arange(1, max_k + 1)
+        # get scores
+        scores = [self.get_average_score(df, k) for k in K]
+        # plot
+        plt.plot(K, scores)
+        plt.xlabel('k')
+        plt.ylabel('accuracy')
+        plt.title('Top-k Accuracy')
+        if save_path is not None:
+            plt.savefig(save_path + '_top_k.pdf')
+        else:
+            plt.show()
+        # clear plt
+        plt.clf()
     
     def plot(self, df=None, x_variable='n_exemplars', y_variable='score', split_by=[], color_by='', average=False, save_path=''):
         '''
@@ -390,6 +417,7 @@ if __name__ == '__main__':
     er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
     er.plot_category_accuracies(save_path='plots/')
     er.plot_confusion_matrix(save_path='plots/')
+    er.plot_top_k_accuracies(max_k=10, save_path='plots/')
 
     # plot by different colors
     er.plot(
