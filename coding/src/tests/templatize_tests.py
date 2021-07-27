@@ -175,6 +175,24 @@ def test_templatize_many():
     )
     assert output1.equals(output2)
 
+
+def test_description():
+    """Test whether description is added"""
+    # test with descriptions
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize(use_description=True)
+    # make sure nyt_descriptions are in the prompt
+    for desc in nyt_descriptions.values():
+        assert desc in output.iloc[0].prompt
+    
+    # test without descriptions
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize(use_description=False)
+    # make sure nyt_descriptions are not in the prompt
+    for desc in nyt_descriptions.values():
+        if desc != '':
+            assert desc not in output.iloc[0].promp
+
 def tests():
 
     test_exemplar_constancy()
@@ -184,6 +202,7 @@ def tests():
     test_exemplar_seed()
     test_kwargs()
     test_templatize_many()
+    test_description()
     print('Tests all passed!')
 
 if __name__ == '__main__':
