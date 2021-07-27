@@ -139,15 +139,14 @@ between cities to attract businesses, city boundaries), state and local services
 cleaning), constitutional issues (city charter revision), state and local statutes and ordinances, 
 legislative action, speeches by the mayor or governor (inaugural, state of the city, state of the state 
 addresses), partisan politics in the legislative arena, nominations to the state supreme court.''',
-    'Weather and Natural Disasters': '''This code should be used for U.S. as well as non-U.S. events.  This is the ONLY topic category 
-where U.S. and non-U.S. events are coded together without the need for country codes.''',
-    'Fires': '''Use code 270000 for fires and major accidents (any non-natural event in which multiple people 
-die).  Examples: major power outages, explosion of an overturned tanker truck, oil refinery 
-accidents, water main ruptures, etc.''',
-    'Sports and Recreation': '''''',
-    'Death Notices': '''Use code 300000 for death notices, even for extremely high-profile individuals.''',
-    'Churches and Religion': '''This code should be reserved for stories that are about religion or the church itself, broadly 
-speaking.''',
-    'Other, Miscellaneous, and Human Interest': '''For example, a story about a man stuck in his apartment’s elevator for three days. For example, a story about how the Atlanta Zoo renting two panda bears from the Chinese 
+    'Weather and Natural Disasters': '''Examples: weather, natural disasters, natural events,
+tsunamis, tornadoes, tornadoes.''',
+    'Fires': '''Examples: fires, forest fires, major power outages, explosion of an overturned tanker truck, oil refinery.''',
+    'Sports and Recreation': '''Examples: sports, sports events, sports stories, sports books, sports radio.''',
+    'Death Notices': '''Examples: obituaries, death notices, national and state deaths.''',
+    'Education': '''Examples: education, school, school education, education policy, school education, 
+education and education policy, school education.''',
+    'Churches and Religion': '''Examples: churches, religion, religious scandals, religious announcements.''',
+    'Other, Miscellaneous, and Human Interest': '''For example, a story about a man stuck in his apartment’s elevator for three days. For example, a story about a man stuck in his apartment’s elevator for three days. For example, a story about how the Atlanta Zoo renting two panda bears from the Chinese 
 government at a tab of $2 million a year (total, not per panda).''',
 }

@@ -334,6 +334,9 @@ class Templatizer:
         return df
 
 if __name__ == '__main__':
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize(use_description=True)
+    breakpoint()
     pass
     # templatizer = Templatizer(dataset_name='nytimes')
     # output = templatizer.templatize_many(
