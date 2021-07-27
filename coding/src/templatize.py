@@ -345,21 +345,12 @@ class Templatizer:
                         df = df.append(instance_set)
         return df
 
-<<<<<<< HEAD
-
-if __name__ == '__main__':
-    templatizer = Templatizer(dataset_name='nytimes')
-    amb_cands = templatizer.ambiguity_candidates()
-    breakpoint()
-
-=======
 if __name__ == '__main__':
     templatizer = Templatizer(dataset_name='nytimes')
     output = templatizer.templatize(use_description=True)
     breakpoint()
     pass
     # templatizer = Templatizer(dataset_name='nytimes')
->>>>>>> origin/main
     # output = templatizer.templatize_many(
     #     ns_per_category=[1, 2, 3, 4],
     #     ns_exemplars=[1, 2, 3, 4, 5],

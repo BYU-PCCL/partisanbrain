@@ -414,7 +414,8 @@ class ExperimentResults():
             plt.clf()
     
 if __name__ == '__main__':
-    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
+    er = ExperimentResults('experiments/nyt/07-27-2021/ambiguity', normalize_marginal=True)
+
     er.plot_category_accuracies(save_path='plots/')
     er.plot_confusion_matrix(save_path='plots/')
     er.plot_top_k_accuracies(max_k=10, save_path='plots/')
