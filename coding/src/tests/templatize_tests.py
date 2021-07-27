@@ -1,9 +1,4 @@
-import numpy as np
-import pandas as pd
 from templatize import Templatizer
-from nyt_categories import categories as nyt_categories
-from nyt_categories import category_descriptions as nyt_descriptions
-from congress_categories import categories as congress_categories
 
 def test_ns_exemplars():
     """Tests whether each n_exemplar in n_exemplars shows up 28 times, and that there are exactly 2"""
@@ -157,6 +152,30 @@ def test_kwargs():
     assert join_input_category in output.iloc[0].prompt
     assert join_inputs in output.iloc[0].prompt
 
+def test_templatize_many():
+    """Instantiate two Templatizer instances, call templatize_many on both of 
+    them, and check whether they generate the same output."""
+    templatizer1 = Templatizer(dataset_name='nytimes')
+    templatizer2 = Templatizer(dataset_name='nytimes')
+    output1 = templatizer1.templatize_many()
+    output2 = templatizer2.templatize_many()
+    assert output1.equals(output2)
+
+    output1 = templatizer1.templatize_many(
+        ns_per_category=[1, 2],
+        ns_exemplars=[2, 3],
+        n_exemplar_runs=2,
+        n_instance_runs=2,
+    )
+    output2 = templatizer2.templatize_many(
+        ns_per_category=[1, 2],
+        ns_exemplars=[2, 3],
+        n_exemplar_runs=2,
+        n_instance_runs=2,
+    )
+    assert output1.equals(output2)
+
+
 def test_description():
     """Test whether description is added"""
     # test with descriptions
@@ -172,7 +191,7 @@ def test_description():
     # make sure nyt_descriptions are not in the prompt
     for desc in nyt_descriptions.values():
         if desc != '':
-            assert desc not in output.iloc[0].prompt
+            assert desc not in output.iloc[0].promp
 
 def tests():
 
@@ -182,8 +201,8 @@ def tests():
     test_instance_seed()
     test_exemplar_seed()
     test_kwargs()
+    test_templatize_many()
     test_description()
-
     print('Tests all passed!')
 
 if __name__ == '__main__':

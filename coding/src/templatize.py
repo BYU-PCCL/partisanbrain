@@ -200,7 +200,21 @@ class Templatizer:
         category_counts = self.dataset.category.value_counts()
         subset = pd.concat([self.dataset[self.dataset.category == cat].sample(n=n_per_category, random_state=seed_instances, replace=False if category_counts[cat] > n_per_category else True) for cat in self.args['categories']], axis=0)
         return subset
-    
+
+    def extract_exemplars(self, n_exemplars, seed_exemplars=0):
+        """Extract exemplars in a dataset into a list of exemplars
+
+        Args:
+            n_exemplars (int): Number of exemplars to extract
+            seed_exemplars (int): Random seed to extract exemplars
+
+        Returns:
+            example_texts: List of exemplars joined by self.args.join_input_category
+        """
+        exemplars = self.generate_exemplars(n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
+        example_texts = [self.templatize_instance(input=example.input, category=example.category) for example in exemplars.itertuples()]
+        return example_texts
+
     def ambiguity_candidates(self):
         """Create a df with 90 instances in each category to pass a constant set of exemplars and score for ambiguity/prototypicality"""
         instance_set = self.get_subset(n_per_category=90)
@@ -225,6 +239,7 @@ class Templatizer:
     def templatize_row(self, row, n_exemplars=3, seed_exemplars=0):
         '''
         Templatize a single row of input and category.
+
         Arguments:
             row (row of a pandas dataframe)
         '''
@@ -246,6 +261,7 @@ class Templatizer:
         **kwargs):
         '''
         Templatize the dataset.
+
         Arguments:
             ns_per_category (int): number of instances to draw from each category
             ns_exemplars (int): number of exemplars to draw
@@ -317,9 +333,9 @@ class Templatizer:
                         df = df.append(instance_set)
         return df
 
-
-
 if __name__ == '__main__':
+    pass
+    # templatizer = Templatizer(dataset_name='nytimes')
     # output = templatizer.templatize_many(
     #     ns_per_category=[1, 2, 3, 4],
     #     ns_exemplars=[1, 2, 3, 4, 5],
@@ -347,4 +363,3 @@ if __name__ == '__main__':
     # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
     # print(output[0]['text'])
     # print()
-    pass
