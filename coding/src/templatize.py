@@ -27,6 +27,7 @@ arguments = {
         'join_category_description': lambda cat, desc: f'{cat} ({desc})', # function to join category and description in prompt
         'use_description': False, # whether to use description in prompt
         'category_to_description': nyt_descriptions, # dictionary mapping category to descriptio
+        'exemplar_method':'random', # method to select exemplars
     },
     'nytimes-body': {
         'data_path': 'data/nyt/nytimes.csv',
@@ -89,6 +90,35 @@ class Templatizer:
 
         if self.dataset_name == 'nytimes-body':
             self.add_body_to_input()
+        
+        self.exemplar_method = 'random'
+        
+    
+    def load_exemplar_candidates(self):
+        self.candidate_exemplars = self.load_pandas('data/nyt/ambiguity/ambiguity_candidates_w_margin.pickle')
+
+
+    def set_exemplar_method(self, exemplar_method):
+        '''
+        Set the method to use to select exemplars.
+        '''
+        self.load_exemplar_candidates()
+
+        self.exemplar_method = exemplar_method
+        candidate_exemplars = self.candidate_exemplars
+        if exemplar_method == 'tricky':
+            candidate_exemplars.sort_values(by = 'margin', inplace=True)
+        if exemplar_method == 'prototypical':
+            candidate_exemplars.sort_values(by = 'margin', ascending=False, inplace=True)
+        elif exemplar_method == 'ambiguous':
+            candidate_exemplars['margin'] = candidate_exemplars.margin.abs()
+            candidate_exemplars.sort_values(by = 'margin', inplace=True)
+            pass
+        exemplars = candidate_exemplars.groupby('category').first()
+        exemplars.reset_index(inplace=True)
+        self.candidate_exemplars = exemplars
+    
+
 
     
     def load_pandas(self, path):
@@ -98,7 +128,7 @@ class Templatizer:
         '''
         if path.endswith('.csv'):
             return pd.read_csv(path, encoding='unicode_escape')
-        if path.endswith('.pkl'):
+        if path.endswith('.pkl') or path.endswith('.pickle'):
             return pd.read_pickle(path)
         raise ValueError(f'Unsupported file type for load_pandas: {path}')
 
@@ -186,11 +216,16 @@ class Templatizer:
     def generate_exemplars(self, n_exemplars, seed_exemplars=0):
         '''
         Select n randomly generated exemplars.
+        Arguments:
+            n_exemplars (int): number of exemplars to generate
+            seed_exemplars (int): random seed for drawing exemplars
         '''
-        # TODO - add functionality for sampling "ambiguous" or "prototypical"
         # offset seed so that exemplars are different than instances
         seed_offset = 42
-        exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
+        if self.exemplar_method != 'random':
+            exemplars = self.candidate_exemplars.head(n_exemplars)
+        else:
+            exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
         return exemplars
     
     def get_subset(self, n_per_category=30, seed_instances=0):
@@ -215,28 +250,6 @@ class Templatizer:
 
     def extract_exemplars(self, n_exemplars, seed_exemplars=0):
         """Extract exemplars in a dataset into a list of exemplars
-
-        Args:
-            n_exemplars (int): Number of exemplars to extract
-            seed_exemplars (int): Random seed to extract exemplars
-
-        Returns:
-            example_texts: List of exemplars joined by self.args.join_input_category
-        """
-        exemplars = self.generate_exemplars(n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
-        example_texts = [self.templatize_instance(input=example.input, category=example.category) for example in exemplars.itertuples()]
-        return example_texts
-
-    def ambiguity_candidates(self):
-        """Create a df with 90 instances in each category to pass a constant set of exemplars and score for ambiguity/prototypicality"""
-        instance_set = self.get_subset(n_per_category=90)
-        for i, row in instance_set.iterrows():
-            prompt = self.templatize_row(row, n_exemplars = 50, seed_exemplars = 0)
-            instance_set.at[i, "prompt"] = prompt
-        return instance_set
-
-    def extract_exemplars(self, n_exemplars, seed_exemplars=0):
-        """Extract exemplars in a dataset into a list of exemplars
         Args:
             n_exemplars (int): Number of exemplars to extract
             seed_exemplars (int): Random seed to extract exemplars
@@ -254,6 +267,7 @@ class Templatizer:
 
         Arguments:
             row (row of a pandas dataframe)
+            n_exemplars (int): Number of exemplars to extract
         '''
         # TODO - I could probably just generate this somewhere else
         instructions = self.generate_instructions()
@@ -289,17 +303,30 @@ class Templatizer:
         # update args with kwargs
         self.args.update(kwargs)
 
-        instance_set = self.get_subset(n_per_category=n_per_category, seed_instances=seed_instances)
+        instance_set = self.get_subset(
+            n_per_category=n_per_category,
+            seed_instances=seed_instances,
+        )
+
         for i, row in instance_set.iterrows():
-            exemplars = self.extract_exemplars(n_exemplars, seed_exemplars)
+            print(i)
+            exemplars = self.extract_exemplars(
+                n_exemplars, 
+                seed_exemplars,
+                )
             instance_set.at[i, "exemplars"] = "|||".join(exemplars)
-            prompt = self.templatize_row(row, n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
+            prompt = self.templatize_row(
+                row,
+                n_exemplars=n_exemplars,
+                seed_exemplars=seed_exemplars,
+            )
             instance_set.at[i, "prompt"] = prompt
             instance_set.at[i, "n_per_category"] = int(n_per_category)
             instance_set.at[i, "instance_set_ix"] = int(seed_instances)
             instance_set.at[i, "exemplar_set_ix"] = int(seed_exemplars)
             instance_set.at[i, "n_exemplars"] = int(n_exemplars)
             instance_set.at[i, "prompt_length"] = len(prompt.split())
+            instance_set.at[i, 'exemplar_method'] = self.exemplar_method
         return instance_set
 
     def templatize_many(self,
@@ -347,34 +374,3 @@ class Templatizer:
 
 if __name__ == '__main__':
     templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(use_description=True)
-    breakpoint()
-    pass
-    # templatizer = Templatizer(dataset_name='nytimes')
-    # output = templatizer.templatize_many(
-    #     ns_per_category=[1, 2, 3, 4],
-    #     ns_exemplars=[1, 2, 3, 4, 5],
-    #     n_exemplar_runs=5,
-    #     n_instance_runs=5,
-    # )
-
-    # # nytimes example
-    # print('nytimes')
-    # templatizer = Templatizer(dataset_name='nytimes')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=6, category_lambda=lambda x: f'"{x}"')
-    # print(output[0]['text'])
-    # print()
-
-    # # nytimes-body example
-    # print('nytimes-body')
-    # templatizer = Templatizer(dataset_name='nytimes-body')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
-    # print(output[0]['text'])
-    # print()
-
-    # # congress example
-    # print('congress')
-    # templatizer = Templatizer(dataset_name='congress')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
-    # print(output[0]['text'])
-    # print()
