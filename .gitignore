@@ -1,5 +1,13 @@
+# ignore all experiment files
+experiment/
+coding/experiments
+
 # ignore all data files
 data/
+coding/data
+
+#ignore coding/legacy
+coding/legacy
 # ignore api key
 nyt_apikey.py
 # ignore any checkpoints
