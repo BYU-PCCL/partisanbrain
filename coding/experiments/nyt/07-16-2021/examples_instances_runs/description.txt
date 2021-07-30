@@ -1,1 +1,0 @@
-Compares few shots across n = 0, 1,, ..., 30. Does this for all combinations of five instance sets and five exemplar sets.
