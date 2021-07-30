@@ -309,7 +309,6 @@ class ExperimentResults():
             color_by (str): column to color by. Must be included in split_by. Default is None.
             save_path (str): path to save figure. Default is ''
         '''
-        breakpoint()
         if df is None:
             df = self.results
 
@@ -413,7 +412,7 @@ class ExperimentResults():
         # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_confusion_matrix.pdf')
-            # clear plt
+            # clear plt'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
             plt.clf()
         
     
@@ -442,7 +441,7 @@ class ExperimentResults():
     
 if __name__ == '__main__':
     experiment_dir = 'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
-    er = ExperimentResults(experiment_dir, normalize_marginal=True)
+    er = ExperimentResults(experiment_dir, ends_with = 'output.pickle', normalize_marginal=True)
     er.plot(
         split_by=['exemplar_method'],
         save_path=experiment_dir+'/plots'
