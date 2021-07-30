@@ -151,7 +151,12 @@ class Templatizer:
         if 'use_description' in self.args:
             if self.args['use_description']:
                 # apply join_category_description
-                d = self.args['category_to_description']
+                d = self.args['category_to_description'].copy()
+                # TODO - do this more programmatically?
+                # for each entry in d, split by ',' and keep the first 4 entries
+                for k, v in d.items():
+                    d[k] = ','.join(v.split(',')[:4])
+
                 cats = [self.args['join_category_description'](cat, d[cat]) for cat in cats]
 
         # run category lambda function
@@ -335,7 +340,7 @@ class Templatizer:
 
 if __name__ == '__main__':
     templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(use_description=True)
+    output = templatizer.templatize(use_description=True, n_exemplars=3)
     breakpoint()
     pass
     # templatizer = Templatizer(dataset_name='nytimes')
