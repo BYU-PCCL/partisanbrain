@@ -181,7 +181,12 @@ class Templatizer:
         if 'use_description' in self.args:
             if self.args['use_description']:
                 # apply join_category_description
-                d = self.args['category_to_description']
+                d = self.args['category_to_description'].copy()
+                # TODO - do this more programmatically?
+                # for each entry in d, split by ',' and keep the first 4 entries
+                for k, v in d.items():
+                    d[k] = ','.join(v.split(',')[:4])
+
                 cats = [self.args['join_category_description'](cat, d[cat]) for cat in cats]
 
         # run category lambda function
@@ -373,4 +378,39 @@ class Templatizer:
         return df
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     templatizer = Templatizer(dataset_name='nytimes')
+=======
+    templatizer = Templatizer(dataset_name='nytimes')
+    output = templatizer.templatize(use_description=True, n_exemplars=3)
+    breakpoint()
+    pass
+    # templatizer = Templatizer(dataset_name='nytimes')
+    # output = templatizer.templatize_many(
+    #     ns_per_category=[1, 2, 3, 4],
+    #     ns_exemplars=[1, 2, 3, 4, 5],
+    #     n_exemplar_runs=5,
+    #     n_instance_runs=5,
+    # )
+
+    # # nytimes example
+    # print('nytimes')
+    # templatizer = Templatizer(dataset_name='nytimes')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=6, category_lambda=lambda x: f'"{x}"')
+    # print(output[0]['text'])
+    # print()
+
+    # # nytimes-body example
+    # print('nytimes-body')
+    # templatizer = Templatizer(dataset_name='nytimes-body')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
+    # print(output[0]['text'])
+    # print()
+
+    # # congress example
+    # print('congress')
+    # templatizer = Templatizer(dataset_name='congress')
+    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
+    # print(output[0]['text'])
+    # print()
+>>>>>>> main

@@ -350,7 +350,7 @@ class ExperimentResults():
                         label = run[i+1]
                         color = color_dict[label]
                         if label not in labels:
-                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {int(label)}', color=color, alpha=.6)
+                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {label}', color=color, alpha=.6)
                             labels.append(label)
                         else:
                             plt.plot(df_run[x_variable], df_run[y_variable], color=color, alpha=.6)
@@ -400,16 +400,16 @@ class ExperimentResults():
         cm, categories = get_best_confusion_matrix(cm, categories)
         # plot
         # make big figure
-        fig, ax = plt.subplots(figsize=(10, 10))
+        fig, ax = plt.subplots(figsize=(20, 20))
         # title
         plt.title('Confusion Matrix')
-        plt.imshow(cm, cmap='Blues', interpolation='nearest')
+        plt.imshow(cm, cmap='viridis', interpolation='nearest')
         plt.colorbar()
         tick_marks = np.arange(len(categories))
         plt.xticks(tick_marks, categories, rotation=90)
         plt.yticks(tick_marks, categories)
-        plt.ylabel('Guess')
-        plt.xlabel('Target')
+        plt.ylabel('Target')
+        plt.xlabel('Guess')
         # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_confusion_matrix.pdf')
