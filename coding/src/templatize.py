@@ -94,13 +94,18 @@ class Templatizer:
         self.exemplar_method = 'random'
         
     
-    def load_exemplar_candidates(self):
-        self.candidate_exemplars = self.load_pandas('data/nyt/ambiguity/ambiguity_candidates_w_margin.pickle')
+    def load_exemplar_candidates(self, pickle_path='data/nyt/ambiguity/ambiguity_candidates_w_margin.pickle'):
+        self.candidate_exemplars = self.load_pandas(pickle_path)
 
 
     def set_exemplar_method(self, exemplar_method):
         '''
-        Set the method to use to select exemplars.
+        Set the method to use to select exemplars, based on margin between
+        correct category and predicted category.
+        'tricky' selects exemplars with highest negative margin, 
+        'random' selects random exemplars,
+        'ambiguity' selects exemplars with the lowest absolute value margin, and 
+        'prototypical' selects exemplars with the highest margin.
         '''
         self.load_exemplar_candidates()
 
@@ -378,39 +383,4 @@ class Templatizer:
         return df
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     templatizer = Templatizer(dataset_name='nytimes')
-=======
-    templatizer = Templatizer(dataset_name='nytimes')
-    output = templatizer.templatize(use_description=True, n_exemplars=3)
-    breakpoint()
-    pass
-    # templatizer = Templatizer(dataset_name='nytimes')
-    # output = templatizer.templatize_many(
-    #     ns_per_category=[1, 2, 3, 4],
-    #     ns_exemplars=[1, 2, 3, 4, 5],
-    #     n_exemplar_runs=5,
-    #     n_instance_runs=5,
-    # )
-
-    # # nytimes example
-    # print('nytimes')
-    # templatizer = Templatizer(dataset_name='nytimes')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=6, category_lambda=lambda x: f'"{x}"')
-    # print(output[0]['text'])
-    # print()
-
-    # # nytimes-body example
-    # print('nytimes-body')
-    # templatizer = Templatizer(dataset_name='nytimes-body')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
-    # print(output[0]['text'])
-    # print()
-
-    # # congress example
-    # print('congress')
-    # templatizer = Templatizer(dataset_name='congress')
-    # output = templatizer.templatize(n_per_category=10, seed=0, n_exemplars=3)
-    # print(output[0]['text'])
-    # print()
->>>>>>> main
