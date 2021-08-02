@@ -49,11 +49,10 @@ class ExperimentResults():
         #populate margin
         self.populate_margin()
     
-    def populate_margin(self):
+    def populate_margin(self, picklepath='experiments/nyt/07-27-2021/ambiguity/ambiguitycandidates/ambiguity_candidates_w_margin.pickle'):
         '''Finds the margin between the probability of the correct category
         and the probability of the next category of highest weight'''
         
-        picklepath = 'experiments/nyt/07-27-2021/ambiguity/ambiguitycandidates/ambiguity_candidates_w_margin.pickle'
         if not os.path.exists(picklepath):
             df = self.results[self.categories + ['category']]
             # get logprobs of correct category
@@ -412,7 +411,7 @@ class ExperimentResults():
         # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_confusion_matrix.pdf')
-            # clear plt'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
+            # clear plt
             plt.clf()
         
     
