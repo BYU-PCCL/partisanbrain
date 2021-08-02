@@ -46,7 +46,6 @@ Below, a comprehensive list of these descriptions is provided.
         'join_input_category':'''\n\nThis article is the first in a series of article on the category of "''',
         },
     'v3':{
-        'suffix':"""The following is a list of categories:""",
         'suffix':'''\n"""\n\nThe world's best article categorizer made a lot of money by expertly categorizing the following headlines with the above categories, making no mistakes in the process:''',
         },
 }
