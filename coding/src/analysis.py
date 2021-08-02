@@ -323,7 +323,8 @@ class ExperimentResults():
                         label = run[i+1]
                         color = color_dict[label]
                         if label not in labels:
-                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {int(label)}', color=color, alpha=.6)
+                            # plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {int(label)}', color=color, alpha=.6)
+                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {label}', color=color, alpha=.6)
                             labels.append(label)
                         else:
                             plt.plot(df_run[x_variable], df_run[y_variable], color=color, alpha=.6)
@@ -345,6 +346,9 @@ class ExperimentResults():
             plt.fill_between(means[x_variable], means[y_variable] - 2*std[y_variable], means[y_variable] + 2*std[y_variable], alpha=0.2)
         
         plt.legend()
+        # if df[x_variable] is of type string, rotate xlabel
+        if isinstance(df[x_variable].iloc[0], str):
+            plt.xticks(rotation=10)
         plt.xlabel(x_variable)
         plt.ylabel(y_variable)
         plt.title(f'{y_variable} vs. {x_variable}')
@@ -414,44 +418,55 @@ class ExperimentResults():
             plt.clf()
     
 if __name__ == '__main__':
-    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
-    er.plot_category_accuracies(save_path='plots/')
-    er.plot_confusion_matrix(save_path='plots/')
-    er.plot_top_k_accuracies(max_k=10, save_path='plots/')
+    # er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
+    experiment_directory = 'experiments/nyt/07-30-2021/gpt3_sizes/'
+    er = ExperimentResults(experiment_directory, ends_with='output.pickle', normalize_marginal=True)
+    # check if plots is subdirectory of experiment directory
+    plot_dir = os.path.join(experiment_directory, 'plots/')
+    if not os.path.isdir(plot_dir):
+        os.mkdir(plot_dir)
+    # plot 'model' as x_variable
+    er.plot(x_variable='model', save_path=plot_dir)
+    # er.plot_category_accuracies(save_path='plots/')
+    # er.plot_confusion_matrix(save_path='plots/')
+    # er.plot_top_k_accuracies(max_k=10, save_path='plots/')
 
-    # plot by different colors
-    er.plot(
-        split_by=['exemplar_set_ix', 'instance_set_ix'],
-        color_by='instance_set_ix',
-        save_path='plots/'
-    )
-    # plot means and std
-    er.plot(
-        split_by=['exemplar_set_ix', 'instance_set_ix'],
-        average=True,
-        save_path='plots/'
-    )
-    # plot instances
-    er.plot(
-        split_by = ['instance_set_ix'],
-        color_by='instance_set_ix',
-        save_path='plots/instance'
-    )
-    # plot exemplars
-    er.plot(
-        split_by = ['exemplar_set_ix'],
-        color_by='exemplar_set_ix',
-        save_path='plots/exemplar'
-    )
+    # # plot 
+    # er.plot(color_by = 'exemplar_method', average=True, save_path='plots/method')
 
-    # with aggregate predictions
-    df = er.average_predictions()
-    df_n = er.average_predictions(['n_exemplars'])
+    # # plot by different colors
+    # er.plot(
+    #     split_by=['exemplar_set_ix', 'instance_set_ix'],
+    #     color_by='instance_set_ix',
+    #     save_path='plots/'
+    # )
+    # # plot means and std
+    # er.plot(
+    #     split_by=['exemplar_set_ix', 'instance_set_ix'],
+    #     average=True,
+    #     save_path='plots/'
+    # )
+    # # plot instances
+    # er.plot(
+    #     split_by = ['instance_set_ix'],
+    #     color_by='instance_set_ix',
+    #     save_path='plots/instance'
+    # )
+    # # plot exemplars
+    # er.plot(
+    #     split_by = ['exemplar_set_ix'],
+    #     color_by='exemplar_set_ix',
+    #     save_path='plots/exemplar'
+    # )
 
-    er.plot_category_accuracies(df, save_path='plots/ensemble/')
-    er.plot_confusion_matrix(df, save_path='plots/ensemble/')
+    # # with aggregate predictions
+    # df = er.average_predictions()
+    # df_n = er.average_predictions(['n_exemplars'])
 
-    # split by instance set and exemplar set
-    er.plot(df_n, save_path='plots/ensemble/')
-    breakpoint()
-    pass
+    # er.plot_category_accuracies(df, save_path='plots/ensemble/')
+    # er.plot_confusion_matrix(df, save_path='plots/ensemble/')
+
+    # # split by instance set and exemplar set
+    # er.plot(df_n, save_path='plots/ensemble/')
+    # breakpoint()
+    # pass
