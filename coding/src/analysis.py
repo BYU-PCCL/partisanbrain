@@ -1,4 +1,5 @@
 import numpy as np
+from pdb import set_trace as breakpoint
 import pandas as pd
 import os
 from matplotlib import pyplot as plt
@@ -45,7 +46,33 @@ class ExperimentResults():
         self.populate_category_probs()
         # populate scores
         self.populate_scores()
-
+        #populate margin
+        self.populate_margin()
+    
+    def populate_margin(self):
+        '''Finds the margin between the probability of the correct category
+        and the probability of the next category of highest weight'''
+        
+        picklepath = 'experiments/nyt/07-27-2021/ambiguity/ambiguitycandidates/ambiguity_candidates_w_margin.pickle'
+        if not os.path.exists(picklepath):
+            df = self.results[self.categories + ['category']]
+            # get logprobs of correct category
+            for i, row in df.iterrows():
+                correctcol = row.category
+                correctlogprob = row[correctcol]
+                leftovers = row.copy().drop([correctcol, 'category'])
+                otherprobs = sorted(leftovers.items(), key = lambda x: x[1], reverse=True)
+                # get logprobs of next highest weight
+                
+                runnerupcol, nextlogprob = otherprobs[0]
+                # get margin
+                margin = correctlogprob - nextlogprob
+                df.at[i, 'margin'] = margin
+                df.at[i, 'runnerup'] = runnerupcol
+            self.results['margin'] = df['margin']
+            self.results['runnerup'] = df['runnerup']
+            self.results.to_pickle(picklepath)
+    
     def read_df(self, file_name):
         '''
         Reads a file into a pandas dataframe. Supported filetypes: csv, pkl, p, pickle
@@ -62,7 +89,6 @@ class ExperimentResults():
         '''
         Reads a list of files into a pandas dataframe. Supported filetypes: csv, pkl
         '''
-        print(file_names)
         dfs = []
         for file_name in file_names:
             dfs.append(self.read_df(file_name))
@@ -386,7 +412,7 @@ class ExperimentResults():
         # plt.show()
         if save_path is not None:
             plt.savefig(save_path + '_confusion_matrix.pdf')
-            # clear plt
+            # clear plt'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
             plt.clf()
         
     
@@ -414,14 +440,18 @@ class ExperimentResults():
             plt.clf()
     
 if __name__ == '__main__':
-    # er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with=['EI.pickle', 'EInex0.pickle'], normalize_marginal=True)
-    er = ExperimentResults('experiments/nyt/07-27-2021/ambiguity', ends_with='pickle', normalize_marginal=True)
-    # plot by exemplar_method
-    er.plot(color_by='exemplar_method', save_path='plots/method')
+    experiment_dir = 'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
+    er = ExperimentResults(experiment_dir, ends_with = 'output.pickle', normalize_marginal=True)
+    er.plot(
+        split_by=['exemplar_method'],
+        save_path=experiment_dir+'/plots'
+    )
+    breakpoint()
 
-    er.plot_category_accuracies(save_path='plots/')
-    er.plot_confusion_matrix(save_path='plots/')
-    er.plot_top_k_accuracies(max_k=10, save_path='plots/')
+    # er.plot_category_accuracies(save_path='plots/')
+    # er.plot_confusion_matrix(save_path='plots/')
+    # er.plot_top_k_accuracies(max_k=10, save_path='plots/')
+    er.plot(split_by='exemplar_method')
 
     # plot by different colors
     er.plot(

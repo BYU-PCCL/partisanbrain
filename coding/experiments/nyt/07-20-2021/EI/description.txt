@@ -1,5 +1,0 @@
-This is the first hyper-cube experiment, where we are doing several exemplar 
-runs and several instance runs and also incrementing n_instances_per_category
-and n_exemplars. We hope to observe a lot less variance in incrementing 
-exemplars by keeping the set constant as we add marginal exemplars, instead
-of drawing entirely new sets.
