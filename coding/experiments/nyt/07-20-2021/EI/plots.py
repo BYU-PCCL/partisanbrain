@@ -26,13 +26,13 @@ er.plot(
 er.plot(
     split_by = ['instance_set_ix'],
     color_by='instance_set_ix',
-    save_path=plot_dir,
+    save_path=plot_dir + 'instances',
 )
 # plot exemplars
 er.plot(
     split_by = ['exemplar_set_ix'],
     color_by='exemplar_set_ix',
-    save_path=plot_dir,
+    save_path=plot_dir + 'exemplars',
 )
 
 plot_dir = os.path.join(plot_dir, 'ensemble/')
