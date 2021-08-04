@@ -1,0 +1,17 @@
+import sys
+sys.path.append('src')
+from analysis import ExperimentResults
+import os
+
+experiment_directory = 'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
+er = ExperimentResults(experiment_directory, ends_with='output.pickle', normalize_marginal=True)
+# er = ExperimentResults(experiment_directory, ends_with='.pickle', normalize_marginal=False)
+# check if plots is subdirectory of experiment directory
+plot_dir = os.path.join(experiment_directory, 'plots/')
+if not os.path.isdir(plot_dir):
+    os.mkdir(plot_dir)
+
+# plot and color by exemplar_method
+er.plot(color_by='exemplar_method', save_path=plot_dir)
+# er.plot(x_variable='version', save_path=plot_dir+'version')
+pass
