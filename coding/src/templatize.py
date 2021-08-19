@@ -98,7 +98,13 @@ class Templatizer:
         self.candidate_exemplars = self.load_pandas(pickle_path)
 
 
-    def set_exemplar_method(self, exemplar_method):
+    def set_exemplar_method(self, 
+        exemplar_method,
+        keep_first_n=3,
+        tricky_threshold = -0.75,
+        ambiguous_threshold = 0.25,
+        prototypical_threshold = 0.75,
+        ):
         '''
         Set the method to use to select exemplars, based on margin between
         correct category and predicted category.
@@ -113,18 +119,23 @@ class Templatizer:
         candidate_exemplars = self.candidate_exemplars
         if exemplar_method == 'tricky':
             candidate_exemplars.sort_values(by = 'margin', inplace=True)
+            #Keep only exemplars with margin < tricky_threshold
+            candidate_exemplars = candidate_exemplars[candidate_exemplars['margin'] < tricky_threshold]
+
         if exemplar_method == 'prototypical':
             candidate_exemplars.sort_values(by = 'margin', ascending=False, inplace=True)
+            #Keep only exemplars with margin > protypical_threshold
+            candidate_exemplars = candidate_exemplars[candidate_exemplars['margin'] > prototypical_threshold]
+
         elif exemplar_method == 'ambiguous':
             candidate_exemplars['margin'] = candidate_exemplars.margin.abs()
             candidate_exemplars.sort_values(by = 'margin', inplace=True)
-            pass
-        exemplars = candidate_exemplars.groupby('category').first()
+            #Keep only exemplars with margin < ambiguous_threshold
+            candidate_exemplars = candidate_exemplars[candidate_exemplars['margin'] < ambiguous_threshold]
+
+        exemplars = candidate_exemplars.groupby('category').nth([i for i in range(keep_first_n)])
         exemplars.reset_index(inplace=True)
         self.candidate_exemplars = exemplars
-    
-
-
     
     def load_pandas(self, path):
         '''
@@ -223,7 +234,7 @@ class Templatizer:
         else:
             return f'{input} {self.args["join_input_category"]} {category}'
     
-    def generate_exemplars(self, n_exemplars, seed_exemplars=0):
+    def generate_exemplars(self, n_exemplars, seed_exemplars=0, n_exemplar_runs=1):
         '''
         Select n randomly generated exemplars.
         Arguments:
@@ -232,10 +243,19 @@ class Templatizer:
         '''
         # offset seed so that exemplars are different than instances
         seed_offset = 42
+
         if self.exemplar_method != 'random':
-            exemplars = self.candidate_exemplars.head(n_exemplars)
+            all_exemplars = self.candidate_exemplars.sample(frac=1, random_state=seed_exemplars + seed_offset)
+            #Make sure there are at least as many all_exemplars as n_exemplars*n_exemplar_runs
+            if len(all_exemplars) < n_exemplars*n_exemplar_runs:
+                raise ValueError(f'Not enough exemplars to generate \
+                    {n_exemplars} for each exemplar_run. Change threshold in \
+                        set exemplar method to be looser.')
+            #Shuffle all_exemplars
+            exemplars = all_exemplars.iloc[:n_exemplars]
         else:
             exemplars = self.dataset.sample(n=n_exemplars, random_state=seed_exemplars+seed_offset)
+
         return exemplars
     
     def get_subset(self, n_per_category=30, seed_instances=0):
@@ -258,7 +278,7 @@ class Templatizer:
             instance_set.at[i, "prompt"] = prompt
         return instance_set
 
-    def extract_exemplars(self, n_exemplars, seed_exemplars=0):
+    def extract_exemplars(self, n_exemplars, seed_exemplars=0, n_exemplar_runs=1):
         """Extract exemplars in a dataset into a list of exemplars
         Args:
             n_exemplars (int): Number of exemplars to extract
@@ -266,12 +286,12 @@ class Templatizer:
         Returns:
             example_texts: List of exemplars joined by self.args.join_input_category
         """
-        exemplars = self.generate_exemplars(n_exemplars=n_exemplars, seed_exemplars=seed_exemplars)
+        exemplars = self.generate_exemplars(n_exemplars=n_exemplars, seed_exemplars=seed_exemplars, n_exemplar_runs=n_exemplar_runs)
         example_texts = [self.templatize_instance(input=example.input, category=example.category) for example in exemplars.itertuples()]
         return example_texts
 
     
-    def templatize_row(self, row, n_exemplars=3, seed_exemplars=0):
+    def templatize_row(self, row, n_exemplars=3, seed_exemplars=0, n_exemplar_runs=1):
         '''
         Templatize a single row of input and category.
 
@@ -282,7 +302,7 @@ class Templatizer:
         # TODO - I could probably just generate this somewhere else
         instructions = self.generate_instructions()
         
-        example_texts = self.extract_exemplars(n_exemplars, seed_exemplars)
+        example_texts = self.extract_exemplars(n_exemplars, seed_exemplars, n_exemplar_runs=n_exemplar_runs)
         example_text = self.args['join_inputs'].join(example_texts)
 
         prompt = self.templatize_instance(input=row.input, category='')
@@ -294,6 +314,7 @@ class Templatizer:
         n_exemplars=1,
         seed_instances=0,
         seed_exemplars=0,
+        n_exemplar_runs=1,
         **kwargs):
         '''
         Templatize the dataset.
@@ -319,16 +340,17 @@ class Templatizer:
         )
 
         for i, row in instance_set.iterrows():
-            print(i)
             exemplars = self.extract_exemplars(
                 n_exemplars, 
                 seed_exemplars,
+                n_exemplar_runs=n_exemplar_runs,
                 )
             instance_set.at[i, "exemplars"] = "|||".join(exemplars)
             prompt = self.templatize_row(
                 row,
                 n_exemplars=n_exemplars,
                 seed_exemplars=seed_exemplars,
+                n_exemplar_runs=n_exemplar_runs,
             )
             instance_set.at[i, "prompt"] = prompt
             instance_set.at[i, "n_per_category"] = int(n_per_category)
@@ -377,6 +399,7 @@ class Templatizer:
                             n_exemplars=n_exemplars,
                             seed_exemplars=exemplar_set_ix,
                             seed_instances=instance_set_ix,
+                            n_exemplar_runs=n_exemplar_runs,
                             **kwargs,
                         )
                         df = df.append(instance_set)
@@ -384,3 +407,10 @@ class Templatizer:
 
 if __name__ == '__main__':
     templatizer = Templatizer(dataset_name='nytimes')
+    templatizer.set_exemplar_method('ambiguous')
+    templatizer.templatize_many(
+        ns_per_category=[4],
+        ns_exemplars=[0,1,2,3,4,5],
+        n_exemplar_runs=5,
+        n_instance_runs=1,
+        )

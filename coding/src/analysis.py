@@ -441,10 +441,11 @@ class ExperimentResults():
 if __name__ == '__main__':
     experiment_dir = 'experiments/nyt/07-27-2021/ambiguity/ambiguitytiers'
     er = ExperimentResults(experiment_dir, ends_with = 'output.pickle', normalize_marginal=True)
-    er.plot(
-        split_by=['exemplar_method'],
-        save_path=experiment_dir+'/plots'
-    )
+    # er.plot(
+    #     split_by=['exemplar_method'],
+    #     save_path=experiment_dir+'/plots'
+    # )
+    er = ExperimentResults('experiments/nyt/07-20-2021/EI', ends_with = 'EInex0.pickle'.split())
     breakpoint()
 
     # er.plot_category_accuracies(save_path='plots/')
