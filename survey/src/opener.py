@@ -1,3 +1,4 @@
+import os.path
 import pandas as pd
 
 
@@ -19,8 +20,8 @@ class Opener:
 
     def open(self, fname, opening_func=None):
         """
-        opening_func is a custom function to turn the file
-        specified by fname into a pandas DataFrame. If not included
+        opening_func is for a custom function to use to turn the file
+        specified by fname into a pandas DataFrame. If not included,
         opening_func will be chosen from a list of reasonable
         defaults.
         """
@@ -36,8 +37,8 @@ class Opener:
                 raise NotImplementedError(msg)
 
         # Open file if it exists
-        try:
+        if os.path.isfile(fname):
             return opening_func(fname)
-        except FileNotFoundError:
+        else:
             msg = f"Opener could not open {fname} because it doesn't exist"
             raise FileNotFoundError(msg)
