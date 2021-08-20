@@ -9,7 +9,8 @@ class Opener:
         self._opening_funcs = {
             "csv": pd.read_csv,
             "pkl": self._load_pickled_df,
-            "pickle": self._load_pickled_df
+            "pickle": self._load_pickled_df,
+            "sav": pd.read_spss
         }
 
     def _load_pickled_df(self, fname):
