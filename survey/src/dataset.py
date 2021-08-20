@@ -19,8 +19,6 @@ class Dataset(abc.ABC):
         exemplar_idxs = self._get_exemplar_idxs(n_exemplars)
         self._exemplars = self._data.loc[self._data.index.isin(exemplar_idxs)]
         self._data = self._data.loc[~self._data.index.isin(exemplar_idxs)]
-        print(len(self._exemplars))
-        print(len(self._data))
 
     @abc.abstractmethod
     def _format(self, df):
