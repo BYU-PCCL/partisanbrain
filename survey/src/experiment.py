@@ -1,4 +1,5 @@
 class Experiment:
+    """For running experiments with GPT-3 API and saving them"""
 
     def __init__(self, dataset):
         pass
