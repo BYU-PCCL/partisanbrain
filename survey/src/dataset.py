@@ -28,6 +28,16 @@ class Dataset(abc.ABC):
         self._exemplar_backstories = [self._make_backstory(row) for (_, row)
                                       in self._exemplars.iterrows()]
 
+        # Make a mapping from row index to row's prompts
+        self._prompts_dict = {}
+        for idx in self.kept_indices:
+            self._prompts_dict[idx] = self._make_prompts(idx)
+
+    @property
+    def prompts(self):
+        """Mapping from row index to row's prompts"""
+        return self._prompts_dict
+
     @property
     def kept_indices(self):
         return self._data.index.tolist()
