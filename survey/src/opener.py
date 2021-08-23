@@ -7,12 +7,15 @@ class Opener:
 
     def __init__(self):
         self._opening_funcs = {
-            "csv": pd.read_csv,
+            "csv": self._load_csv,
             "pkl": self._load_pickled_df,
             "pickle": self._load_pickled_df,
             "sav": pd.read_spss,
             "dta": pd.read_stata
         }
+
+    def _load_csv(self, fname):
+        return pd.read_csv(fname, encoding="unicode_escape")
 
     def _load_pickled_df(self, fname):
         return pd.read_pickle(fname)
