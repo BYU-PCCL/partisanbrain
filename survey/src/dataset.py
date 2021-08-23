@@ -21,6 +21,14 @@ class Dataset(abc.ABC):
         self._exemplars = self._data.loc[self._data.index.isin(exemplar_idxs)]
         self._data = self._data.loc[~self._data.index.isin(exemplar_idxs)]
 
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def exemplars(self):
+        return self._exemplars
+
     @abc.abstractmethod
     def _format(self, df):
         """
