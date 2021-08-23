@@ -27,27 +27,15 @@ class ExampleSurveyDataset(Dataset):
         new_df = new_df.loc[new_df["shot_first"].isin(["Han", "Greedo"])]
         return new_df
 
-    def _get_shot_first_str(self, value):
-        if value is None:
-            return ("Between Han and Greedo I think the one "
-                    "who shot first was")
-        else:
-            return ("Between Han and Greedo I think the one "
-                    f"who shot first was {value}")
-
-    def _get_fan_str(self, value):
-        if value is None:
-            return "When asked if I'm a Star Wars fan I say"
-        else:
-            return ("When asked if I'm a Star Wars fan "
-                    f"I say {value.lower()}")
-
     def _make_backstory(self, row):
         return f"I am a {row['age']} year old {row['gender'].lower()}."
 
     def _get_prompt_instructions(self):
-        return {"shot_first": self._get_shot_first_str,
-                "fan": self._get_fan_str}
+        return {"shot_first": (("Between Han and Greedo I think the one "
+                                "who shot first was"),
+                               lambda x: x),
+                "fan": ("When asked if I'm a Star Wars fan I say",
+                        lambda x: x.lower())}
 
 
 if __name__ == '__main__':

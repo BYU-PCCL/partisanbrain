@@ -84,25 +84,25 @@ class Dataset(abc.ABC):
         """
         pass
 
-    def _make_prompt(self, row_idx, col_name, func):
+    def _make_prompt(self, row_idx, col_name):
         row_backstory = self._row_backstories[row_idx]
+        prompt_str, dv_func = self._get_prompt_instructions()[col_name]
 
-        exemplar_dv_strs = [func(e[col_name]) for (_, e)
+        exemplar_dv_strs = [prompt_str + " " + dv_func(e[col_name]) for (_, e)
                             in self._exemplars.iterrows()]
-        blank_dv_str = func(None)
         prompt = ""
         for i in range(len(self._exemplars)):
             prompt += self._exemplar_backstories[i] + " "
             prompt += exemplar_dv_strs[i] + "\n"
         prompt += row_backstory + " "
-        prompt += blank_dv_str
+        prompt += prompt_str
 
         return prompt
 
     def _make_prompts(self, row_idx):
         prompts = []
-        for (col_name, func) in self._get_prompt_instructions().items():
-            prompts.append(self._make_prompt(row_idx, col_name, func))
+        for (col_name, _) in self._get_prompt_instructions().items():
+            prompts.append(self._make_prompt(row_idx, col_name))
         return prompts
 
     def _get_exemplar_idxs(self, n):
