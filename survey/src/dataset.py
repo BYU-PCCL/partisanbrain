@@ -39,10 +39,10 @@ class Dataset(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _row_to_prompt(self, row):
+    def _make_prompt(self, row, exemplars_df):
         """
         Here subclass should implement converting a pandas row
-        to a prompt string.
+        and exemplars dataframe to a prompt string.
         """
         pass
 
