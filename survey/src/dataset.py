@@ -29,6 +29,10 @@ class Dataset(abc.ABC):
                                       in self._exemplars.iterrows()]
 
     @property
+    def kept_indices(self):
+        return self._data.index.tolist()
+
+    @property
     def data(self):
         return self._data
 
@@ -102,4 +106,4 @@ class Dataset(abc.ABC):
         return prompts
 
     def _get_exemplar_idxs(self, n):
-        return random.sample(range(len(self._data)), n)
+        return random.sample(self.kept_indices, n)
