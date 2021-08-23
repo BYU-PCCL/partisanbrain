@@ -45,19 +45,9 @@ class ExampleSurveyDataset(Dataset):
     def _make_backstory(self, row):
         return f"I am a {row['age']} year old {row['gender'].lower()}."
 
-    def _make_prompts(self, row_idx):
-
-        prompts = []
-
-        # Our first prompt is for the shot first DV
-        p = self._make_prompt(row_idx, "shot_first", self._get_shot_first_str)
-        prompts.append(p)
-
-        # Our second prompt is for the fan DV
-        p = self._make_prompt(row_idx, "fan", self._get_fan_str)
-        prompts.append(p)
-
-        return prompts
+    def _get_prompt_instructions(self):
+        return {"shot_first": self._get_shot_first_str,
+                "fan": self._get_fan_str}
 
 
 if __name__ == '__main__':

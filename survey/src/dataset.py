@@ -67,6 +67,19 @@ class Dataset(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def _get_prompt_instructions(self):
+        """
+        Here subclass should return a dictionary where each key
+        is a column name present in self._data and each value
+        is a function used to handle that column's values. Note
+        that the column handling functions must be able to handle
+        None input. In the case of None the function should return the
+        DV string cut off before the value (e.g., "The political
+        party I associate most with is").
+        """
+        pass
+
     def _make_prompt(self, row_idx, col_name, func):
         row_backstory = self._row_backstories[row_idx]
 
@@ -82,15 +95,11 @@ class Dataset(abc.ABC):
 
         return prompt
 
-    @abc.abstractmethod
     def _make_prompts(self, row_idx):
-        """
-        Here subclass should implement converting a pandas row
-        and exemplars dataframe to a list of prompt strings. This
-        is a list because each subclass will have many prompts
-        for each respondent because there are many DVs.
-        """
-        pass
+        prompts = []
+        for (col_name, func) in self._get_prompt_instructions().items():
+            prompts.append(self._make_prompt(row_idx, col_name, func))
+        return prompts
 
     def _get_exemplar_idxs(self, n):
         return random.sample(range(len(self._data)), n)
