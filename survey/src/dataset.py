@@ -5,6 +5,7 @@ import random
 
 
 class Dataset(abc.ABC):
+    """Base class for datasets."""
 
     def __init__(self, fname, n_exemplars, opening_func=None):
 
