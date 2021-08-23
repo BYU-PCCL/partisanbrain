@@ -34,7 +34,8 @@ class Dataset(abc.ABC):
         """
         Here subclass should implement filtering rows and
         columns, handling NA, and anything else related to
-        the dataframe. Return the resulting dataframe.
+        the dataframe. Return the resulting dataframe. DO
+        NOT modify df in place.
         """
         pass
 
@@ -42,7 +43,8 @@ class Dataset(abc.ABC):
     def _make_prompt(self, row, exemplars_df):
         """
         Here subclass should implement converting a pandas row
-        and exemplars dataframe to a prompt string.
+        and exemplars dataframe to a prompt string. DO NOT
+        modify exemplars_df in place.
         """
         pass
 
