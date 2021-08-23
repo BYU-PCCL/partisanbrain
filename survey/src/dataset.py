@@ -35,7 +35,10 @@ class Dataset(abc.ABC):
         Here subclass should implement filtering rows and
         columns, handling NA, and anything else related to
         the dataframe. Return the resulting dataframe. DO
-        NOT modify df in place - return a new dataframe.
+        NOT modify df in place - return a new dataframe. ALL
+        modifying of column values (binning, etc.) should
+        happen here (not in the _make_backstory or _make_prompts
+        methods).
         """
         pass
 
