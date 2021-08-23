@@ -39,5 +39,6 @@ class ExampleSurveyDataset(Dataset):
 
 
 if __name__ == '__main__':
+    import random
     ds = ExampleSurveyDataset(n_exemplars=5)
-    print(ds._make_prompts(400))
+    print(ds._make_prompts(random.choice(ds.kept_indices)))
