@@ -43,7 +43,9 @@ class Dataset(abc.ABC):
     def _make_backstory(self, row):
         """
         Here subclass should use taken row to make the demographics
-        based backstory. This should not include DV information.
+        based backstory. This should not include DV information. This
+        method is only abstract because this method will help make
+        the _make_prompts method cleaner.
         """
         pass
 
