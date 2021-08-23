@@ -8,7 +8,7 @@ class PewDataset(Dataset):
         pew_fname = "../data/Pew Research Center Spring 2016 Global Attitudes Dataset WEB FINAL.sav"
         super().__init__(pew_fname, n_exemplars)
 
-    def _make_prompt(self, row, exemplars):
+    def _make_prompts(self, row, exemplar_str):
         return "This is a prompt"
 
     def _format(self, df):
