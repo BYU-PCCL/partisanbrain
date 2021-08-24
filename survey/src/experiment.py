@@ -22,23 +22,24 @@ class Experiment:
     def _process_prompt(self, prompt):
         """Process prompt with self._gpt_3_version version of GPT-3"""
         try:
-            response = None
             # TODO: Are these arguments correct?
             # TODO: Do we ever want max_tokens > 1?
-            response = openai.Completion.create(engine=self._gpt_3_engine,
-                                                prompt=prompt,
-                                                max_tokens=1,
-                                                logprobs=100)
+            return openai.Completion.create(engine=self._gpt_3_engine,
+                                            prompt=prompt,
+                                            max_tokens=1,
+                                            logprobs=100)
         # TODO: Catch more specific exception here
         except Exception as exc:
             print(exc)
-        return response
+            return None
 
     def run(self):
         """Get results from GPT-3 API"""
-        for (row_idx, row_prompts) in self._ds.prompts.items():
-            self._results[row_idx] = [self._process_prompt(p) for p in
-                                      row_prompts]
+        for (row_idx, row_dict) in self._ds.prompts.items():
+            self._results[row_idx] = {}
+            for (dv_name, prompt) in row_dict.items():
+                response = self._process_prompt(prompt)
+                self._results[row_idx][dv_name] = (prompt, response)
 
     def save_results(self, fname):
         """Save results obtained from run method"""
