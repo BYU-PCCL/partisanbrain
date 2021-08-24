@@ -16,7 +16,7 @@ class Dataset(abc.ABC):
         # and format them properly
         self._data = self._format(self._data)
 
-        # Choose exemplars and make exemplar string
+        # Choose exemplars
         exemplar_idxs = self._get_exemplar_idxs(n_exemplars)
         self._exemplars = self._data.loc[self._data.index.isin(exemplar_idxs)]
         self._data = self._data.loc[~self._data.index.isin(exemplar_idxs)]
@@ -28,7 +28,7 @@ class Dataset(abc.ABC):
         self._exemplar_backstories = [self._make_backstory(row) for (_, row)
                                       in self._exemplars.iterrows()]
 
-        # Make a mapping from row index to row's prompts
+        # Make a mapping from row index to row's prompts data
         self._prompts_dict = {}
         for idx in self.kept_indices:
             self._prompts_dict[idx] = self._make_prompts(idx)
@@ -85,12 +85,15 @@ class Dataset(abc.ABC):
     def _get_prompt_instructions(self):
         """
         Here subclass should return a dictionary where each key
-        is a column name present in self._data and each value
-        is a function used to handle that column's values. Note
-        that the column handling functions must be able to handle
-        None input. In the case of None the function should return the
-        DV string cut off before the value (e.g., "The political
-        party I associate most with is").
+        is a column name present in the formatted self._data and
+        each value is a tuple consisting of the prompt without
+        value and a function for handling value
+        (i.e., {column_name: (prompt_str, handler_func)}). For
+        example, if we are working with a DV called partisanship
+        the prompt string might be "The party I identify most
+        with is" (note no space on the end). The function might be
+        lambda x: x.upper() if we want values from out dataframe
+        to appear capitalized when in a prompt.
         """
         pass
 
