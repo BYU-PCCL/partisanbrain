@@ -8,14 +8,17 @@ class ExampleSurveyDataset(Dataset):
         super().__init__(survey_fname, n_exemplars)
 
     def _format(self, df):
+
         # Dropping all but relevant columns
         new_df = df[["Gender",
                      "Age",
                      "Which character shot first?",
                      ("Do you consider yourself to be a fan "
                       "of the Star Wars film franchise?")]]
+
         # Dropping rows with NA values
         new_df = new_df.dropna(axis=0)
+
         # Renaming columns for convenience
         new_df = new_df.rename({"Gender": "gender",
                                 "Age": "age",
@@ -23,8 +26,13 @@ class ExampleSurveyDataset(Dataset):
                                 ("Do you consider yourself to be a fan "
                                  "of the Star Wars film franchise?"): "fan"},
                                axis=1)
+
         # Removing "I don't understand this question" response
         new_df = new_df.loc[new_df["shot_first"].isin(["Han", "Greedo"])]
+
+        # Get only top 10 rows to keep things simple for testing
+        new_df = new_df.head(10)
+
         return new_df
 
     def _make_backstory(self, row):
