@@ -35,7 +35,7 @@ class Dataset(abc.ABC):
 
     @property
     def prompts(self):
-        """Mapping from row index to row's prompts"""
+        """{row_index: {dv_colname: prompt}}"""
         return self._prompts_dict
 
     @property
@@ -110,9 +110,9 @@ class Dataset(abc.ABC):
         return prompt
 
     def _make_prompts(self, row_idx):
-        prompts = []
+        prompts = {}
         for (col_name, _) in self._get_prompt_instructions().items():
-            prompts.append(self._make_prompt(row_idx, col_name))
+            prompts[col_name] = self._make_prompt(row_idx, col_name)
         return prompts
 
     def _get_exemplar_idxs(self, n):
