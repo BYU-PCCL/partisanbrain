@@ -39,7 +39,8 @@ class Experiment:
             self._results[row_idx] = {}
             for (dv_name, prompt) in row_dict.items():
                 response = self._process_prompt(prompt)
-                self._results[row_idx][dv_name] = (prompt, response)
+                target = self._ds.data.loc[row_idx][dv_name]
+                self._results[row_idx][dv_name] = (prompt, response, target)
 
     def save_results(self, fname):
         """Save results obtained from run method"""
