@@ -30,8 +30,8 @@ class ExampleSurveyDataset(Dataset):
         # Removing "I don't understand this question" response
         new_df = new_df.loc[new_df["shot_first"].isin(["Han", "Greedo"])]
 
-        # Get only top 10 rows to keep things simple for testing
-        new_df = new_df.head(10)
+        # Get only top 8 rows to keep things simple for testing
+        new_df = new_df.head(8)
 
         return new_df
 
@@ -50,4 +50,5 @@ if __name__ == '__main__':
     import random
     ds = ExampleSurveyDataset(n_exemplars=5)
     random_idx = random.choice(ds.kept_indices)
-    print(ds.prompts[random_idx])
+    print(ds.prompts)
+    # print(ds.prompts[random_idx])
