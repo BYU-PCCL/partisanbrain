@@ -3,7 +3,7 @@ import pandas as pd
 
 
 class Opener:
-    """Utility class for loading a file into pandas DataFrame"""
+    """Utility class for loading a file into a pandas DataFrame"""
 
     def __init__(self):
         self._opening_funcs = {
@@ -28,7 +28,9 @@ class Opener:
         opening_func is for a custom function to use to turn the file
         specified by fname into a pandas DataFrame. If not included,
         opening_func will be chosen from a list of reasonable
-        defaults.
+        defaults if there is one matching fname's file type.
+        File types with defaults are the keys in self._opening_funcs
+        above.
         """
 
         if opening_func is None:
