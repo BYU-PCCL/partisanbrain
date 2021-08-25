@@ -75,7 +75,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         # Randomly sample 500 + self._n_exemplars rows
         new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-        print(new_df["marital"].unique().tolist())
+        print(new_df["educ"].unique().tolist())
 
         return new_df
 
@@ -99,9 +99,16 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         if row["party"] == "Independent":
             backstory.append("In terms of political parties I am independent.")
         else:
-            backstory.append(f"In terms of political parties I am {row['party']}")
+            backstory.append("In terms of political parties "
+                             f"I am {row['party']}.")
 
-        # TODO: Education
+        # Education
+        if row["educ"] == "College graduate+":
+            backstory.append("I went to grad school.")
+        elif row["educ"] == "Some College":
+            backstory.append("I've completed some college.")
+        else:
+            backstory.append("I didn't go to college.")
 
         # Ideology
         if row["ideo"] in ["Conservative", "Very conservative"]:
@@ -114,7 +121,12 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         backstory.append(("In terms of political ideology, "
                           f"I'd consider myself to be {ideology}."))
 
-        # TODO: Income
+        # Income
+        if "to less than" in row["income"]:
+            low, high = row["income"].split(" to less than ")
+            backstory.append(f"My family income is between {low} and {high}.")
+        else:
+            backstory.append(f"My family income is {row['income']}.")
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
