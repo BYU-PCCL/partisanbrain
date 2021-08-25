@@ -49,9 +49,41 @@ class ExampleSurveyDataset(Dataset):
                 "fan": ("When asked if I'm a Star Wars fan I say",
                         lambda x: x.lower())}
 
+
 ####################################################################################
 # Josh
 ####################################################################################
+class PewAmericanTrendsWave78Dataset(Dataset):
+
+    def __init__(self, n_exemplars):
+        survey_fname = "data/ATP W78.sav"
+        super().__init__(survey_fname, n_exemplars)
+
+    def _format(self, df):
+        return df
+
+    def _make_backstory(self, row):
+        return "Backstory"
+
+    def _get_prompt_instructions(self):
+        return {}
+
+
+class PewAmericanTrendsWave67Dataset(Dataset):
+
+    def __init__(self, n_exemplars):
+        survey_fname = "data/StarWars.csv"
+        super().__init__(survey_fname, n_exemplars)
+
+    def _format(self, df):
+        return df
+
+    def _make_backstory(self, row):
+        return "Backstory"
+
+    def _get_prompt_instructions(self):
+        return {}
+
 
 ####################################################################################
 # Maren
