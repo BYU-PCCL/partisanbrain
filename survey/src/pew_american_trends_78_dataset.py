@@ -25,7 +25,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                  "F_RELIG",
                                  "F_RACETHNMOD",
                                  "F_CREGION",
-                                 "F_CDIVISION",
                                  "F_MARITAL"]
 
         dv_col_names = ["ECON1_W78",
@@ -51,7 +50,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                 "F_RELIG": "religion",
                                 "F_RACETHNMOD": "race",
                                 "F_CREGION": "census_reg",
-                                "F_CDIVISION": "census_div",
                                 "F_MARITAL": "marital",
                                 "ECON1_W78": "econ_today",
                                 "ECON1B_W78": "econ_year_away",
@@ -70,13 +68,14 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                               "Republican",
                                               "Independent"])]
         new_df = new_df[new_df["religion"] != "Other"]
+        new_df = new_df[new_df["race"] != "Other"]
 
         for col_name in list(new_df):
             new_df = new_df[new_df[col_name] != "Refused"]
 
         # Randomly sample 500 + self._n_exemplars rows
         new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-        print(new_df["religion"].unique().tolist())
+        print(new_df["marital"].unique().tolist())
 
         return new_df
 
@@ -104,7 +103,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         # TODO: Education
 
-        # TODO: Ideology
+        # Ideology
         if row["ideo"] in ["Conservative", "Very conservative"]:
             ideology = "conservative"
         elif row["ideo"] in ["Liberal", "Very liberal"]:
@@ -115,28 +114,41 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         backstory.append(("In terms of political ideology, "
                           f"I'd consider myself to be {ideology}."))
 
-
         # TODO: Income
 
-        # TODO: Religiosity
+        # Religiosity
         if row["religion"] == "Nothing in particular":
             backstory.append("I don't identify with any religion in particular.")
         else:
             if "Orthodox" in row["religion"]:
-                religion == "Orthodox"
+                religion = "Orthodox"
             elif "Mormon" in row["religion"]:
                 religion = "Mormon"
             elif row["religion"] in ["Atheist", "Agnostic"]:
                 religion = row["religion"].lower()
             else:
                 religion = row["religion"]
-            print(f"In terms of religion I am {religion}")
+            backstory.append(f"In terms of religion I am {religion}")
 
-        # TODO: Race/Ethnicity
+        # Race/Ethnicity
+        backstory.append(f"I'm {row['race'].replace(' non-Hispanic', '')}")
 
-        # TODO: Region
+        # Region
+        if row["census_reg"] == "Northeast":
+            backstory.append("I'm from the northeast of the United States.")
+        elif row["census_reg"] == "West":
+            backstory.append("I'm from the western United States")
+        else:
+            backstory.append(f"I'm from the {row['census_reg']}")
 
-        # TODO: Marital Status
+        # Marital Status
+        if row["marital"] == "Never been married":
+            backstory.append("I've never been married.")
+        elif row["marital"] == "Separated":
+            backstory.append(("I got married, but I'm now "
+                              "separated from my partner."))
+        else:
+            backstory.append(f"I'm {row['marital'].lower()}")
 
         return backstory
 
