@@ -162,11 +162,11 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         else:
             backstory.append(f"I'm {row['marital'].lower()}")
 
-        return backstory
+        return " ".join(backstory)
 
     def _get_prompt_instructions(self):
         return {}
 
 
 if __name__ == "__main__":
-    PewAmericanTrendsWave78Dataset(n_exemplars=5)
+    p = PewAmericanTrendsWave78Dataset(n_exemplars=5)
