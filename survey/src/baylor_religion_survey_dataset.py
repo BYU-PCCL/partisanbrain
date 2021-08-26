@@ -3,8 +3,6 @@ class BaylorReligionSurveyDataset(Dataset):
     def __init__(self, n_exemplars):
         survey_fname = "data/Baylor Religion Survey, Wave V (2017).SAV"
         super().__init__(survey_fname, n_exemplars)
-
-
         #issues:
         # no region demographic
         # L14_2F -> lost job DV is so weird
@@ -22,7 +20,7 @@ class BaylorReligionSurveyDataset(Dataset):
                      "RACE",
                      "D9"]
 
-        dv_col_names = ["L14_2F",
+        dv_col_names = ["T7G",
                         "MP4A",
                         "Q61D",
                         "MP4G",
@@ -55,7 +53,7 @@ class BaylorReligionSurveyDataset(Dataset):
                                 "Q1": "religion",
                                 "RACE": "race",
                                 "D9": "marital",
-                                "L14_2F": "lost_job",
+                                "T7G": "tech_oppor",
                                 "MP4A": "trans_restrooms",
                                 "Q61D": "gay_is_it_choice",
                                 "MP4G": "husband_salary",
@@ -82,12 +80,8 @@ class BaylorReligionSurveyDataset(Dataset):
         new_df = new_df[new_df["religion"] != "Other" OR "Don't know"]
         new_df = new_df[new_df["race"] != "No races chosen"]
 
-
-
-        # Randomly sample columns!
-
-        # Get only top 8 rows to keep things simple for testing
-        new_df = new_df.head(105)
+        # Randomly sample 500 + self._n_exemplars rows
+        new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
 
         return new_df
 
@@ -147,7 +141,7 @@ class BaylorReligionSurveyDataset(Dataset):
         if row["religion"] == "Quaker/Friends":
             backstory.append("In terms of religion, I am a Quaker. ")
         if row["religion"] == "Reformed Church in America/Dutch Reformed":
-            backstory.append("I am a member of the Reformed Church in America. ")
+            backstory.append("I am a member of the Dutch Reformed Church. ")
         if row["religion"] == "Non-denominational Christian":
             backstory.append("I am a Christian. ")
         if row["religion"] == "No religion":
@@ -173,8 +167,31 @@ class BaylorReligionSurveyDataset(Dataset):
 
 
     def _get_prompt_instructions(self):
-        return {"shot_first": (("Between Han and Greedo I think the one "
-                                "who shot first was"),
-                               lambda x: x),
+        return {"tech_oppor":(("Did any of these things occur in the PAST YEAR? "
+                            "What was its effect on you? Impact on you "
+                            "personally: Lost a job"),
+                            lambda x: {"Excellent": "excellent",
+                                        "Good": "good",
+                                        "Only fair": "fair",
+                                        "Poor": "poor"}[x]),
+                "trans_restrooms":((),
+                "gay_is_it_choice":((),
+                "husband_salary":((),
+                "women_childcare":((),
+                "men_suited_politics":((),
+                "refugees_terrorist_threat":((),
+                "mexican_immigrants_criminals":((),
+                "life_happiness":((),
+                "depressed_freq":((),
+                "days_of_exercise":((),
+                "police_racial_treatment":((),
+                "racial_violence":((),
+                "bible_beliefs":((),
+                "god_beliefs":((),
+                "god_concern_for_world":((),
+                "god_concern_for_individuals":((),
+                "church_attendance":((),
+                "prayer_in_school":((),
+                "gods_plan":((),
                 "fan": ("When asked if I'm a Star Wars fan I say",
                         lambda x: x.lower())}
