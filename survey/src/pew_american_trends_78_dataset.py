@@ -255,12 +255,8 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
 
 if __name__ == "__main__":
-    p = PewAmericanTrendsWave78Dataset(n_exemplars=5)
-    assert len(p.prompts) == 500
-    assert len(p.prompts[p.kept_indices[0]]) == 10
-
-    for thing in p.prompts[p.kept_indices[0]]:
-        print(thing)
-        print(p.prompts[p.kept_indices[0]][thing])
-        print()
-        print()
+    from experiment import Experiment
+    ds = PewAmericanTrendsWave78Dataset(n_exemplars=5)
+    e = Experiment(ds, gpt_3_engine="ada")
+    e.run()
+    e.save_results("pew_results.pkl")
