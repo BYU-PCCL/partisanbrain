@@ -8,9 +8,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         self._n_exemplars = n_exemplars
         super().__init__(survey_fname, n_exemplars)
 
-        # Issues
-        #   Removing "refused" is cutting a certain group of people
-
     def _format(self, df):
 
         # No need to filter rows for USA because all respondents from USA
@@ -130,7 +127,8 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
-            backstory.append("I don't identify with any religion in particular.")
+            backstory.append(("I don't identify with any religion "
+                              "in particular."))
         else:
             if "Orthodox" in row["religion"]:
                 religion = "Orthodox"
@@ -162,10 +160,74 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         else:
             backstory.append(f"I'm {row['marital'].lower()}")
 
+        # Date
+        backstory.append("It's November 2020.")
+
         return " ".join(backstory)
 
     def _get_prompt_instructions(self):
-        return {}
+        return {"econ_today": (("Between excellent, good, fair, and poor, "
+                                "I'd call the the economic conditions in "
+                                "the US"), lambda x: {"Excellent": "excellent",
+                                                      "Good": "good",
+                                                      "Only fair": "fair",
+                                                      "Poor": "poor"}(x)),
+                "econ_year_away": (("If I had to call the economic conditions "
+                                    "in the US I expect a year from now "
+                                    "better, worse, or same as now, I'd "
+                                    "call them"),
+                                   lambda x: {"Better": "better",
+                                              "Worse": "worse",
+                                              ("About the same "
+                                               "as now"): "same"}(x)),
+                "country_satisfied": (("If asked whether I'm satisfied or "
+                                       "dissatisfied with the way things are "
+                                       "going in this country today I would "
+                                       "say that I'm"),
+                                      lambda x: x.lower()),
+                "election_wellness": (("If asked whether I think the "
+                                       "elections this month in the United "
+                                       "States were run well or poorly, "
+                                       "I'd say they were run"),
+                                      lambda x: {"Very well": "well",
+                                                 "Somewhat well": "well",
+                                                 "Not too well": "poorly",
+                                                 ("Not at "
+                                                  "all well"): "poorly"}(x)),
+                "election_news": ("", lambda x: x),
+                "covid_assist_pack": (("Congress and President Trump passed "
+                                       "a $2 trillion economic assistance "
+                                       "package in March in response to "
+                                       "the economic impact of the "
+                                       "coronavirus outbreak. If asked "
+                                       "whether I think another economic "
+                                       "assistance package is necessary "
+                                       "or it is not necessary I'd say it is"),
+                                      lambda x: x.lower()),
+                "rep_dem_relationship": (("If asked if relations between "
+                                          "Republicans and Democrats in "
+                                          "Washington a year from now will "
+                                          "be better, worse, or same I'd "
+                                          "say they will be"),
+                                         lambda x: {"Get better": "better",
+                                                    "Get worse": "worse",
+                                                    ("Stay about "
+                                                     "the same"): "same"}(x)),
+                "covid_restrict": (("If asked if the number of "
+                                    "restrictions on public activity "
+                                    "because of the coronavirus "
+                                    "outbreak in my area should be "
+                                    "increased, decreased, or maintained, "
+                                    "I'd say it should be"),
+                                   lambda x: {("MORE restrictions "
+                                              "right now"): "increased",
+                                              ("FEWER restrictions "
+                                               "right now"): "decreased",
+                                              ("About the same number "
+                                               "of restrictions "
+                                               "right now"): "maintained"}(x)),
+                "rep_dem_division": ("", lambda x: x),
+                "more_votes_better": ("", lambda x: x)}
 
 
 if __name__ == "__main__":
