@@ -96,7 +96,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
             backstory.append("In terms of political parties I am independent.")
         else:
             backstory.append("In terms of political parties "
-                             f"I am {row['party']}.")
+                             f"I am a {row['party']}.")
 
         # Education
         if row["educ"] == "College graduate+":
@@ -107,22 +107,18 @@ class PewAmericanTrendsWave78Dataset(Dataset):
             backstory.append("I didn't go to college.")
 
         # Ideology
-        if row["ideo"] in ["Conservative", "Very conservative"]:
-            ideology = "conservative"
-        elif row["ideo"] in ["Liberal", "Very liberal"]:
-            ideology = "liberal"
-        else:
-            ideology = "neutral"
-
         backstory.append(("In terms of political ideology, "
-                          f"I'd consider myself to be {ideology}."))
+                          "I'd consider myself "
+                          f"to be {row['ideo'].lower()}."))
 
         # Income
         if "to less than" in row["income"]:
             low, high = row["income"].split(" to less than ")
-            backstory.append(f"My family income is between {low} and {high}.")
+            backstory.append(("My annual family income is "
+                              f"between {low} and {high}."))
         else:
-            backstory.append(f"My family income is {row['income']}.")
+            income = row['income'].lower()
+            backstory.append(f"My annual family income is {income}.")
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
@@ -137,18 +133,19 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                 religion = row["religion"].lower()
             else:
                 religion = row["religion"]
-            backstory.append(f"In terms of religion I am {religion}")
+            backstory.append(f"In terms of religion I am {religion}.")
 
         # Race/Ethnicity
-        backstory.append(f"I'm {row['race'].replace(' non-Hispanic', '')}")
+        race = row['race'].replace(' non-Hispanic', '').lower()
+        backstory.append(f"I'm {race}.")
 
         # Region
         if row["census_reg"] == "Northeast":
-            backstory.append("I'm from the northeast of the United States.")
+            backstory.append("I live in the northeast of the United States.")
         elif row["census_reg"] == "West":
-            backstory.append("I'm from the western United States")
+            backstory.append("I live in the western United States.")
         else:
-            backstory.append(f"I'm from the {row['census_reg']}")
+            backstory.append(f"I live in the {row['census_reg']}.")
 
         # Marital Status
         if row["marital"] == "Never been married":
@@ -157,7 +154,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
             backstory.append(("I got married, but I'm now "
                               "separated from my partner."))
         else:
-            backstory.append(f"I'm {row['marital'].lower()}")
+            backstory.append(f"I'm {row['marital'].lower()}.")
 
         # Date
         backstory.append("It's November 2020.")
@@ -173,15 +170,15 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                       "Poor": "poor"}[x]),
                 "econ_year_away": (("If I had to call the economic conditions "
                                     "in the US I expect a year from now "
-                                    "better, worse, or same as now, I'd "
-                                    "call them"),
+                                    "(compared to now) better, worse, or "
+                                    "same, I'd call them"),
                                    lambda x: {"Better": "better",
                                               "Worse": "worse",
                                               ("About the same "
                                                "as now"): "same"}[x]),
                 "country_satisfied": (("If asked whether I'm satisfied or "
                                        "dissatisfied with the way things are "
-                                       "going in this country today I would "
+                                       "going in this country today I'd "
                                        "say that I'm"),
                                       lambda x: x.lower()),
                 "election_wellness": (("If asked whether I think the "
@@ -196,7 +193,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                 "follow_election": (("If asked (yes or no) if I followed "
                                      "the results of the presidential "
                                      "election after polls closed on "
-                                     "Election Day I say"),
+                                     "Election Day I'd say"),
                                     lambda x: {("Followed them almost "
                                                 "constantly"): "yes",
                                                ("Checked in fairly "
@@ -212,7 +209,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                        "coronavirus outbreak. If asked "
                                        "whether I think another economic "
                                        "assistance package is necessary "
-                                       "or it is not necessary I'd say it is"),
+                                       "or is not necessary I'd say it is"),
                                       lambda x: x.lower()),
                 "rep_dem_relationship": (("If asked if relations between "
                                           "Republicans and Democrats in "
@@ -238,7 +235,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                "right now"): "maintained"}[x]),
                 "rep_dem_division": (("If asked if I'm at least somewhat "
                                       "concerned about divisions between "
-                                      "Republicans and Democrats (yes or no)"
+                                      "Republicans and Democrats (yes or no) "
                                       "I'd say"),
                                      lambda x: {"Very concerned": "yes",
                                                 "Somewhat concerned": "yes",
@@ -259,3 +256,11 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
 if __name__ == "__main__":
     p = PewAmericanTrendsWave78Dataset(n_exemplars=5)
+    assert len(p.prompts) == 500
+    assert len(p.prompts[p.kept_indices[0]]) == 10
+
+    for thing in p.prompts[p.kept_indices[0]]:
+        print(thing)
+        print(p.prompts[p.kept_indices[0]][thing])
+        print()
+        print()
