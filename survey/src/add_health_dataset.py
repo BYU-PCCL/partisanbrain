@@ -15,15 +15,13 @@ class AddHealthDataset(Dataset):
         # No need to filter rows for USA because all respondents from USA
 
         # Selecting relevant columns
-        demographic_col_names = ["H5OD1Y - S1Q1B BIRTH YEAR-W5",
-                                 "H5OD2B - S1Q2B GENDER-W5",
-                                 "H5OD11 - S1Q11 HIGHEST EDU ACHIEVED TO DATE-W5",
-                                 "H5SS9 - S10Q9 POLITICAL LEANINGS-W5",
-                                 "H5EC1 - S4Q1 INCOME PERS EARNINGS 16/17-W5",
-                                 "H5RE1 - S12Q1 WHAT IS YOUR PRESENT RELIGION-W5",
-                                 "H5OD4A - S1Q4", #race
-                                 "W5REGION - Respondent census region-W5",
-                                 "H5HR1 - S2Q1 CURRENT MARITAL STATUS-W5"]
+        # note: these codes are different than those in the spreadsheet. Those are wave 5, these are wave 4
+        demographic_col_names = ["H4OD1Y", #birth year
+                                 "BIO_SEX4",
+                                 "H4ED2", #education
+                                 "H4DA28", #political ideologu
+                                 "H4EC1", #household income
+                                 "H4RE1", #religion
 
         dv_col_names = ["H4DS20",
                         "H4CJ1",
@@ -49,35 +47,32 @@ class AddHealthDataset(Dataset):
         new_df = df[demographic_col_names + dv_col_names]
 
         # Renaming columnns for convenience
-        new_df = new_df.rename({"H5OD1Y - S1Q1B BIRTH YEAR-W5": "age",
-                                 "H5OD2B - S1Q2B GENDER-W5": "gender",
-                                 "H5OD11 - S1Q11 HIGHEST EDU ACHIEVED TO DATE-W5": "education",
-                                 "H5SS9 - S10Q9 POLITICAL LEANINGS-W5": "ideology",
-                                 "H5EC1 - S4Q1 INCOME PERS EARNINGS 16/17-W5": "income",
-                                 "H5RE1 - S12Q1 WHAT IS YOUR PRESENT RELIGION-W5": "religion",
-                                 "H5OD4A - S1Q4": "race",
-                                 "W5REGION - Respondent census region-W5": "region",
-                                 "H5HR1 - S2Q1 CURRENT MARITAL STATUS-W5": "marital",
-                                 "H4DS20": "shot_or_stabbed",
-                                 "H4CJ1": "arrested",
-                                 "H4DS11": "physical_fight",
-                                 "H4CJ10": "convicted_of_charges",
-                                 "H4DS5": "sell_drugs",
-                                 "H4HS9": "counseling",
-                                 "H4MH19": "sadness_family",
-                                 "H4PE6": "worrying",
-                                 "H4SE2": "suicide",
-                                 "H4PE23": "optimism",
-                                 "H4MH24": "happiness",
-                                 "H4GH8": "fast_food",
-                                 "H4DA1": "hours_of_tv",
-                                 "H4DA5": "individual_sports",
-                                 "H4TO1": "smoked_cigarette",
-                                 "H4MA3": "physical_child_abuse",
-                                 "H4TO34": "age_of_first_drink",
-                                 "H4ID8": "car_accidents",
-                                 "H4TO33": "drinking",
-                                 "H4RE10": "prayer_in_private"},
+        new_df = new_df.rename({"H40D1Y": "age",
+                                "BIO_SEX4": "gender",
+                                "H4ED2": "education",
+                                "H4DA28": "ideology",
+                                "H4EC1": "income",
+                                "H4RE1": "religion",
+                                "H4DS20": "shot_or_stabbed",
+                                "H4CJ1": "arrested",
+                                "H4DS11": "physical_fight",
+                                "H4CJ10": "convicted_of_charges",
+                                "H4DS5": "sell_drugs",
+                                "H4HS9": "counseling",
+                                "H4MH19": "sadness_family",
+                                "H4PE6": "worrying",
+                                "H4SE2": "suicide",
+                                "H4PE23": "optimism",
+                                "H4MH24": "happiness",
+                                "H4GH8": "fast_food",
+                                "H4DA1": "hours_of_tv",
+                                "H4DA5": "individual_sports",
+                                "H4TO1": "smoked_cigarette",
+                                "H4MA3": "physical_child_abuse",
+                                "H4TO34": "age_of_first_drink",
+                                "H4ID8": "car_accidents",
+                                "H4TO33": "drinking",
+                                "H4RE10": "prayer_in_private"},
                                axis=1)
 
         # Drop rows with unhelpful answers
