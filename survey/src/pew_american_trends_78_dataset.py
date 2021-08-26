@@ -8,9 +8,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         self._n_exemplars = n_exemplars
         super().__init__(survey_fname, n_exemplars)
 
-        # Issues
-        #   Removing "refused" is cutting a certain group of people
-
     def _format(self, df):
 
         # No need to filter rows for USA because all respondents from USA
@@ -31,7 +28,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                         "ECON1B_W78",
                         "SATIS_W78",
                         "VTADMIN_POST_US_W78",
-                        "ELECTRESULTPLAT_W78",
+                        "ELECTNTFOL_W78",
                         "COVID_2ASSISTLD_W78",
                         "POL12_W78",
                         "COVID_OPENMORE_W78",
@@ -55,7 +52,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                 "ECON1B_W78": "econ_year_away",
                                 "SATIS_W78": "country_satisfied",
                                 "VTADMIN_POST_US_W78": "election_wellness",
-                                "ELECTRESULTPLAT_W78": "election_news",
+                                "ELECTNTFOL_W78": "follow_election",
                                 "COVID_2ASSISTLD_W78": "covid_assist_pack",
                                 "POL12_W78": "rep_dem_relationship",
                                 "COVID_OPENMORE_W78": "covid_restrict",
@@ -75,7 +72,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         # Randomly sample 500 + self._n_exemplars rows
         new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-        print(new_df["marital"].unique().tolist())
 
         return new_df
 
@@ -99,26 +95,35 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         if row["party"] == "Independent":
             backstory.append("In terms of political parties I am independent.")
         else:
-            backstory.append(f"In terms of political parties I am {row['party']}")
+            backstory.append("In terms of political parties "
+                             f"I am a {row['party']}.")
 
-        # TODO: Education
+        # Education
+        if row["educ"] == "College graduate+":
+            backstory.append("I went to grad school.")
+        elif row["educ"] == "Some College":
+            backstory.append("I've completed some college.")
+        else:
+            backstory.append("I didn't go to college.")
 
         # Ideology
-        if row["ideo"] in ["Conservative", "Very conservative"]:
-            ideology = "conservative"
-        elif row["ideo"] in ["Liberal", "Very liberal"]:
-            ideology = "liberal"
-        else:
-            ideology = "neutral"
-
         backstory.append(("In terms of political ideology, "
-                          f"I'd consider myself to be {ideology}."))
+                          "I'd consider myself "
+                          f"to be {row['ideo'].lower()}."))
 
-        # TODO: Income
+        # Income
+        if "to less than" in row["income"]:
+            low, high = row["income"].split(" to less than ")
+            backstory.append(("My annual family income is "
+                              f"between {low} and {high}."))
+        else:
+            income = row['income'].lower()
+            backstory.append(f"My annual family income is {income}.")
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
-            backstory.append("I don't identify with any religion in particular.")
+            backstory.append(("I don't identify with any religion "
+                              "in particular."))
         else:
             if "Orthodox" in row["religion"]:
                 religion = "Orthodox"
@@ -128,18 +133,19 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                 religion = row["religion"].lower()
             else:
                 religion = row["religion"]
-            backstory.append(f"In terms of religion I am {religion}")
+            backstory.append(f"In terms of religion I am {religion}.")
 
         # Race/Ethnicity
-        backstory.append(f"I'm {row['race'].replace(' non-Hispanic', '')}")
+        race = row['race'].replace(' non-Hispanic', '').lower()
+        backstory.append(f"I'm {race}.")
 
         # Region
         if row["census_reg"] == "Northeast":
-            backstory.append("I'm from the northeast of the United States.")
+            backstory.append("I live in the northeast of the United States.")
         elif row["census_reg"] == "West":
-            backstory.append("I'm from the western United States")
+            backstory.append("I live in the western United States.")
         else:
-            backstory.append(f"I'm from the {row['census_reg']}")
+            backstory.append(f"I live in the {row['census_reg']}.")
 
         # Marital Status
         if row["marital"] == "Never been married":
@@ -148,13 +154,113 @@ class PewAmericanTrendsWave78Dataset(Dataset):
             backstory.append(("I got married, but I'm now "
                               "separated from my partner."))
         else:
-            backstory.append(f"I'm {row['marital'].lower()}")
+            backstory.append(f"I'm {row['marital'].lower()}.")
 
-        return backstory
+        # Date
+        backstory.append("It's November 2020.")
+
+        return " ".join(backstory)
 
     def _get_prompt_instructions(self):
-        return {}
+        return {"econ_today": (("Between excellent, good, fair, and poor, "
+                                "I'd call the the economic conditions in "
+                                "the US"), lambda x: {"Excellent": "excellent",
+                                                      "Good": "good",
+                                                      "Only fair": "fair",
+                                                      "Poor": "poor"}[x]),
+                "econ_year_away": (("If I had to call the economic conditions "
+                                    "in the US I expect a year from now "
+                                    "(compared to now) better, worse, or "
+                                    "same, I'd call them"),
+                                   lambda x: {"Better": "better",
+                                              "Worse": "worse",
+                                              ("About the same "
+                                               "as now"): "same"}[x]),
+                "country_satisfied": (("If asked whether I'm satisfied or "
+                                       "dissatisfied with the way things are "
+                                       "going in this country today I'd "
+                                       "say that I'm"),
+                                      lambda x: x.lower()),
+                "election_wellness": (("If asked whether I think the "
+                                       "elections this month in the United "
+                                       "States were run well or poorly, "
+                                       "I'd say they were run"),
+                                      lambda x: {"Very well": "well",
+                                                 "Somewhat well": "well",
+                                                 "Not too well": "poorly",
+                                                 ("Not at "
+                                                  "all well"): "poorly"}[x]),
+                "follow_election": (("If asked (yes or no) if I followed "
+                                     "the results of the presidential "
+                                     "election after polls closed on "
+                                     "Election Day I'd say"),
+                                    lambda x: {("Followed them almost "
+                                                "constantly"): "yes",
+                                               ("Checked in fairly "
+                                                "often"): "yes",
+                                               ("Checked in "
+                                                "occasionally"): "yes",
+                                               ("Tuned them out "
+                                                "entirely"): "no"}[x]),
+                "covid_assist_pack": (("Congress and President Trump passed "
+                                       "a $2 trillion economic assistance "
+                                       "package in March in response to "
+                                       "the economic impact of the "
+                                       "coronavirus outbreak. If asked "
+                                       "whether I think another economic "
+                                       "assistance package is necessary "
+                                       "or is not necessary I'd say it is"),
+                                      lambda x: x.lower()),
+                "rep_dem_relationship": (("If asked if relations between "
+                                          "Republicans and Democrats in "
+                                          "Washington a year from now will "
+                                          "be better, worse, or same I'd "
+                                          "say they will be"),
+                                         lambda x: {"Get better": "better",
+                                                    "Get worse": "worse",
+                                                    ("Stay about "
+                                                     "the same"): "same"}[x]),
+                "covid_restrict": (("If asked if the number of "
+                                    "restrictions on public activity "
+                                    "because of the coronavirus "
+                                    "outbreak in my area should be "
+                                    "increased, decreased, or maintained, "
+                                    "I'd say it should be"),
+                                   lambda x: {("MORE restrictions "
+                                              "right now"): "increased",
+                                              ("FEWER restrictions "
+                                               "right now"): "decreased",
+                                              ("About the same number "
+                                               "of restrictions "
+                                               "right now"): "maintained"}[x]),
+                "rep_dem_division": (("If asked if I'm at least somewhat "
+                                      "concerned about divisions between "
+                                      "Republicans and Democrats (yes or no) "
+                                      "I'd say"),
+                                     lambda x: {"Very concerned": "yes",
+                                                "Somewhat concerned": "yes",
+                                                "Not too concerned": "no",
+                                                ("Not at all "
+                                                 "concerned"): "no"}[x]),
+                "more_votes_better": (("If asked whether the United States "
+                                       "would be better off if more Americans "
+                                       "voted (yes or no) I'd say"),
+                                      lambda x: {("The country would not be "
+                                                  "better off if more "
+                                                  "Americans voted"): "yes",
+                                                 ("The country would be "
+                                                  "better off if more "
+                                                  "Americans "
+                                                  "voted"): "no"}[x])}
 
 
 if __name__ == "__main__":
-    PewAmericanTrendsWave78Dataset(n_exemplars=5)
+    p = PewAmericanTrendsWave78Dataset(n_exemplars=5)
+    assert len(p.prompts) == 500
+    assert len(p.prompts[p.kept_indices[0]]) == 10
+
+    for thing in p.prompts[p.kept_indices[0]]:
+        print(thing)
+        print(p.prompts[p.kept_indices[0]][thing])
+        print()
+        print()
