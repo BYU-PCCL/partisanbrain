@@ -12,42 +12,7 @@ class ExampleSurveyDataset(Dataset):
         # Reduce rows (e.g., down to US)
 
         # Dropping all but relevant columns
-        new_df = df[[
-                        #Demographics
-                     "V201507x",
-                     "V201018",
-                     "V201510",
-                     "V201200",
-                     "V201607",
-                     "V201458x",
-                     "V201549x",
-                     "V203003",
-                     "V201508",
-
-V201321
-V201401
-V201309
-V201130 (-V201132 "handling economy")
-V201235
-V201300
-V201318
-V201324
-V201325
-V201594
-V201312
-V201416
-V201133 (-V201135 "handling foreign relations")
- V201139 (-V201141 "handling immigration")
-V201350
-V201619
-V201620
-V201006
-V201223
-V201234
-                     "",
-                     "",
-                     "",
-                     "",
+        new_df = df[["Gender",
                      "Age",
                      "Which character shot first?",
                      ("Do you consider yourself to be a fan "
