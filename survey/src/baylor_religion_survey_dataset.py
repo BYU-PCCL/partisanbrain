@@ -7,6 +7,7 @@ class BaylorReligionSurveyDataset(Dataset):
 
         #issues:
         # no region demographic
+        # L14_2F -> lost job DV is so weird
 
     def _format(self, df):
 
@@ -44,13 +45,8 @@ class BaylorReligionSurveyDataset(Dataset):
 
         new_df = df[demographic_col_names + dv_col_names]
 
-        # Dropping rows with problematic values
-        new_df = new_df.dropna(axis=0)
-        # TODO : get rid of don't know or other religion rows
-
-
         # Renaming columns for convenience
-        new_df = new_df.rename({"Gender": "age",
+        new_df = new_df.rename({"AGE": "age",
                                 "Q77": "gender",
                                 "Q32": "party",
                                 "I-EDUC": "edu",
@@ -81,6 +77,13 @@ class BaylorReligionSurveyDataset(Dataset):
                                 ("R20F"): "gods_plan"},
                                axis=1)
 
+        # Dropping rows with problematic values
+        new_df = new_df.dropna(axis=0)
+        new_df = new_df[new_df["religion"] != "Other" OR "Don't know"]
+        new_df = new_df[new_df["race"] != "No races chosen"]
+
+
+
         # Randomly sample columns!
 
         # Get only top 8 rows to keep things simple for testing
@@ -95,10 +98,13 @@ class BaylorReligionSurveyDataset(Dataset):
         backstory.append(f"I am a {row['age']} years old. ")
 
         #GENDER
-        backstory.append(f"I am {row['gender'].lower()}. ")
+        if row["gender"] == "Other":
+            backstory.append("I don't identify as male or female. ")
+        else:
+            backstory.append(f"I am {row['gender'].lower()}. ")
 
         #POLITICAL PARTY
-        backstory.append(f"I am in the {row['party']} political party. ")
+        backstory.append(f"In terms of partisan politics, I am a {row['party']}. ")
 
         #EDUCATION
         if row["edu"] == "No high school degree":
@@ -119,7 +125,7 @@ class BaylorReligionSurveyDataset(Dataset):
         backstory.append(f"My family income is ${row['income']} per year. ")
 
         #RELIGION
-        #
+        #main cases
         if row["religion"] == "Assemblies of God" OR "Bible Church" OR "Brethren" OR "Christian & Missionary Alliance" OR "Christian Reformed" OR "Christian Science" OR "Congregational" OR "Holiness" OR "Lutheran" OR "Pentecostal" OR "Unitarian Universalist":
             backstory.append(f"I am a member of the {row['religion']} faith. ")
         if row["religion"] == "Baha'i" OR "Adventist" OR "African Methodist" OR "Anabaptist" OR "Baptist" OR "Buddhist" OR "Hindu" OR "Jewish" OR "Mennonite" OR "Methodist" OR "Muslim" OR "Presbyterian" OR "Seventh-Day Adventist" OR "Sikh":
@@ -148,14 +154,20 @@ class BaylorReligionSurveyDataset(Dataset):
             backstory.append("I am not religious. ")
 
 
-
+        #RACE
+        backstory.append(f"I am {row['race']}")
 
 
         #REGION
         #missing for baylor study
 
         #MARITAL STATUS
-        backstory.append(f"I'm {row['marital']}.")
+        if row["marital"] == "Single/never been married":
+            backstory.append("I am single.")
+        elif row["marital"] == "Domestic partnership/living with partner (not legally married)":
+            backstory.append("I am not married but I am living with my partner.")
+        else:
+            backstory.append(f"I'm {row['marital']}.")
 
         return backstory
 
