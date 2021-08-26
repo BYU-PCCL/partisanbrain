@@ -39,7 +39,9 @@ class Experiment:
             self._results[row_idx] = {}
             for (dv_name, prompt) in row_dict.items():
                 response = self._process_prompt(prompt)
-                target = self._ds.data.loc[row_idx][dv_name]
+                raw_target = self._ds.data.loc[row_idx][dv_name]
+                dv_proc_func = self._ds._get_prompt_instructions()[dv_name][1]
+                target = dv_proc_func(raw_target)
                 self._results[row_idx][dv_name] = (prompt, response, target)
 
     def save_results(self, fname):

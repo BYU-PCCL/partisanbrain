@@ -1,10 +1,10 @@
 from dataset import Dataset
 
 
-class PewAmericanTrendsWave78Dataset(Dataset):
+class PewAmericanTrendsWave67Dataset(Dataset):
 
     def __init__(self, n_exemplars):
-        survey_fname = "../data/ATP W78.sav"  # TODO: Remove the dots
+        survey_fname = "../data/ATP W67.sav"  # TODO: Remove the dots
         self._n_exemplars = n_exemplars
         super().__init__(survey_fname, n_exemplars)
 
