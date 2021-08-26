@@ -106,7 +106,7 @@ class Dataset(abc.ABC):
         prompt = ""
         for i in range(len(self._exemplars)):
             prompt += self._exemplar_backstories[i] + " "
-            prompt += exemplar_dv_strs[i] + "\n"
+            prompt += exemplar_dv_strs[i] + ".\n"
         prompt += row_backstory + " "
         prompt += prompt_str
 
@@ -114,7 +114,7 @@ class Dataset(abc.ABC):
 
     def _make_prompts(self, row_idx):
         prompts = {}
-        for (col_name, _) in self._get_prompt_instructions().items():
+        for col_name in self._get_prompt_instructions().keys():
             prompts[col_name] = self._make_prompt(row_idx, col_name)
         return prompts
 
