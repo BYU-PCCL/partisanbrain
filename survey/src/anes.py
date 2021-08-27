@@ -14,70 +14,60 @@ class AnesDataset(dataset.Dataset):
 
     def _format(self, df):
 
+        rename_dic = {
+                "V201507x": 'age',
+                "V202637" : "gender" ,
+                "V201018" : "party",
+                "V201510" : 'education',
+                "V201200" : "ideo",
+                "V201607" :  "income",
+                "V201458x": "religion",
+                "V201549x": 'race',
+                "V203003" : "region" ,
+                "V201508" : "marital",
+                "V201321" : "protect_environment", #Protect environment
+                "V201401" : "government_temperatures", #Government temps
+                "V201309" : "federal_spending_crime", #Federal spending crime
+                "V201130" : "trump_economy", #Trump economy
+                "V201235" : "government_waste", #Government waste
+                "V201300" : "social_security", #social security
+                "V201318" : "spending_poor", #spending poor
+                "V201324" : "economy_good", #Economy good
+                "V201594" : "economy_worse_better", #Economy worse or better
+                "V201312" : "welfare", #Welfare programs
+                "V201416" : "gay_marriage", #Gay marriage
+                "V201133" : "trump_foreign_relations", #Trump foreign relations
+                "V201139" : "trump_immigration", #Trump handling immigration
+                "V201350" : "military", #military international problems
+                "V201619" : "sleep", #Restless sleep
+                "V201620" : "health_insurance", #Health insurance
+                "V201006" : "political_campaigns", #Political campaigns
+                "V201223" : "voting_duty", #Voting duty
+                "V201234" : "government_elite", #government elite?
+        }
+
         # Dropping all but relevant columns
-        new_df = df[[
-                     "V201507x", #Age
-                     "V202637",
-                     "V201018", #Party
-                     "V201510",
-                     "V201200",
-                     "V201607",
-                     "V201458x",
-                     "V201549x",
-                     "V203003",
-                     "V201508",
-                     "V201321", #Protect environment
-                     "V201401",#Government temps
-                     "V201309",#Federal spending crime
-                     "V201130", #Trump economy
-                     "V201235", #Government waste
-                     "V201300", #social security
-                     "V201318", #spending poor
-                     "V201324", #Economy good
-                     "V201594", #Economy worse or better
-                     "V201312", #Welfare programs
-                     "V201416", #Gay marriage
-                     "V201133", #Trump foreign relations
-                     "V201139", #Trump handling immigration
-                     "V201350", #military international problems
-                     "V201619", #Restless sleep
-                     "V201620", #Health insurance
-                     "V201006", #Political campaigns
-                     "V201223", #Voting duty
-                     "V201234", #government elite?
-        ]]
+        new_df = df[list(rename_dic.keys())]
 
         # Dropping rows with NA values
         new_df = new_df.dropna(axis=0)
 
-
-
-
-        # Removing "I don't understand this question" response
-        new_df = new_df.loc[new_df["shot_first"].isin(["Han", "Greedo"])]
-
-        # Get only top 8 rows to keep things simple for testing
-        new_df = new_df.head(8)
+        # Renaming columns for convenience
+        new_df = new_df.rename(rename_dic, axis=1)
 
         return new_df
 
     def _make_backstory(self, row, format):
-        """
-        format needs to be in {'QA_exact', 'QA_colloq', 'FPBS_colloq'} 
-        """
-
 
         # Renaming columns for convenience
         code_dic = {
 
-                "V201507x": {
-                    'name': 'age',
+                "age": {
                     'q': 'What is your age?',
                     'a': {k:str(k) for k in range(80)}.update({'80': "80 or older"}),
                     'abs': {k:f"I am {k} years old." for k in range(80)}.update({'80': "I am 80 years old."}),
                 },
-                "V202637": {
-                    'name': "gender" ,
+                "gender": {
                     'q': "What's your gender (male or female)?",
                     'a': {
                         1: "Male",
@@ -88,8 +78,7 @@ class AnesDataset(dataset.Dataset):
                         2: "I am female.",
                     },
                 },
-                "V201018": {
-                    'name': "party",
+                "party": {
                     'q':"What political party are you registered with, if any (Republican party, Democratic party, independent)?",
                     'a': {
                         -9: "Refused",
@@ -106,8 +95,7 @@ class AnesDataset(dataset.Dataset):
                         4: "I'm an independent",
                     },
                 },
-                "V201510": {
-                    'name': 'education',
+                "education": {
                     'q': "What is the highest level of school you have completed or the highest degree you have received ('Less than high school credential', 'High school graduate - High school diploma or equivalent (e.g: GED)', 'Some college but no degree', 'Associate degree in college - occupational/vocational', 'Associate degree in college - academic', 'Bachelor’s degree (e.g. BA, AB, BS)', 'Master’s degree (e.g. MA, MS, MEng, MEd, MSW, MBA)', 'Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)')?",
                     'a': {
                         -9: "Refused",
@@ -133,8 +121,7 @@ class AnesDataset(dataset.Dataset):
                         8: "I went to grad school.",
                         },
                 },
-                "V201200": {
-                    'name': "ideo",
+                "ideo": {
                     'q': "Where would you place yourself on this scale, or haven’t you thought much about this ('Extremely liberal', 'Liberal', 'Slightly liberal', 'Moderate; middle of the road', 'Slightly conservative', 'Conservative', 'Extremely conservative', 'Haven’t thought much about this')?",
                     'a': {
                         1: "Extremely liberal",
@@ -158,8 +145,7 @@ class AnesDataset(dataset.Dataset):
                     },
                 },
                 #This is restricted so it doesn't matter
-                "V201607": {
-                    'name': "income",
+                "income": {
                     'q': "The next question is about [the total combined income of all "
                         "members of your family / your total income] during the past 12 "
                         "months. This includes money from jobs, net income from "
@@ -170,8 +156,7 @@ class AnesDataset(dataset.Dataset):
                         "TYPE THE NUMBER. YOUR BEST GUESS IS FINE.",
                     "abs": "I"
                 },
-                "V201458x": {
-                    'name': "religion",
+                "religion": {
                     'q': "What's your religion ('Mainline Protestant', 'Evangelical Protestant', 'Black Protestant', 'Undifferentiated Protestant', 'Roman Catholic', 'Other Christian', 'Jewish', 'Other religion', 'Not religious')?",
                     'a': {
                         1: "Mainline Protestant",
@@ -196,8 +181,7 @@ class AnesDataset(dataset.Dataset):
                         9: "I am not religious.",
                     },
                 },
-                "V201549x": {
-                    'name': 'race',
+                "race": {
                     'q': "What's your race/ethnicity ('White, non-Hispanic', 'Black, non-Hispanic', 'Hispanic', 'Asian or Native Hawaiian/other Pacific Islander, non-Hispanic alone', 'Native American/Alaska Native or other race, non-Hispanic alone', 'Multiple races, non-Hispanic')?",
                     'a': {
                         1: "White, non-Hispanic",
@@ -216,8 +200,7 @@ class AnesDataset(dataset.Dataset):
                         6: "I am Multiple races.",
                     },
                 },
-                "V203003": {
-                    'name': "region" ,
+                "region": {
                     'q': "Which census region do you live in (Northeast, Midwest, South, or West)?",
                     'a': {
                         1: "Northeast",
@@ -232,8 +215,7 @@ class AnesDataset(dataset.Dataset):
                         4: "I am from the West.",
                     },
                 },
-                "V201508": {
-                    'name': "marital",
+                "marital": {
                     'q': "Are you now married, widowed, divorced, separated or never married?",
                     'a': {
                         -9: "Refused",
@@ -272,210 +254,7 @@ class AnesDataset(dataset.Dataset):
         return backstory
 
     def _get_prompt_instructions(self):
-
-        if self.format == "QA":
-            return {
-                
-                "protect_environment": (("What about protecting the environment? Should federal "
-                                            "spending on protecting the environment be increased, "
-                                            "decreased, or kept the same?"),
-                                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
-                    }[x]
-                ),
-                "government_temperatures": (("Do you think the federal government should be doing more "
-                        "about rising temperatures, should be doing less, or is it currently "
-                        "doing the right amount?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Should be doing more",
-					2: "Should be doing less",
-					3: "Is currently doing the right amount",
-                    }[x]
-                ),
-                "federal_spending_crime": (("What about dealing with crime? Should federal spending on "
-                        "dealing with crime be increased, decreased, or kept the same?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
-                    }[x]
-                    ),
-                "trump_economy": (("Do you approve or disapprove of the way Donald Trump is handling "
-                                        "the economy?"),
-					                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
-                    }[x]
-					),
-                "government_waste": (("Do you think that people in government waste a lot of the money "
-                        "we pay in taxes, waste some of it, or don’t waste very much of "
-                        "it?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Waste a lot",
-					2: "Waste some",
-					3: "Don’t waste very much",
-                    }[x]
-                ),
-                "social_security": (("What about Social Security? Should federal spending on Social "
-                                        "Security be increased, decreased, or kept the same?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
-                    }[x]
-                ),
-                "spending_poor": (("What about aid to the poor? Should federal spending on aid to "
-                                        "the poor be increased, decreased, or kept the same?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
-                    }[x]
-                    ),
-                "economy_good": (("What do you think about the state of the economy these days in "
-                                    "the United States? Would you say the state of the economy is "
-                                    "very good,good, neither good nor bad, bad, or very bad?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Very good",
-					2: "Good",
-					3: "Neither good nor bad",
-					4: "Bad",
-					5: "Very bad",
-                    }[x]
-                ),
-                "economy_worse_better": (("Now thinking about the economy in the country as a whole, "
-                                            "would you say that over the past year the nation’s economy has "
-                                            "gotten better, stayed about the same, or gotten worse?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Gotten better",
-					2: "Stayed about the same",
-					3: "Gotten worse",
-                    }[x]
-                ),
-                "welfare": (("What about welfare programs? Should federal spending on "
-                            "welfare programs be increased, decreased, or kept the same?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
-                    }[x]
-                ),
-                "gay_marriage": (("Which comes closest to your view? You can just tell me the "
-                                    "number of your choice."),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Gay and lesbian couples should be allowed to legally marry",
-					2: "Gay and lesbian couples should be allowed to form civil unions but not legally marry",
-					3: "There should be no legal recognition of gay or lesbian couples’ relationship",
-                    }[x]
-                ),
-                "trump_foreign_relations": (("Do you approve or disapprove of the way Donald Trump is "
-                                                    "handlingrelations with foreign countries?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
-                    }[x]
-                ),
-                "trump_immigration": (("Do you approve or disapprove of the way Donald Trump is "
-                        "handling immigration?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
-                    }[x]
-                    ),
-                "military": (("How willing should the United States be to use military force to "
-                            "solve international problems?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Extremely willing",
-					2: "Very willing",
-					3: "Moderately willing",
-					4: "A little willing",
-					5: "Not at all willing ",
-                    }[x]
-                ),
-                "sleep": (("In the past week, how often has your sleep been restless?"),
-                lambda x: {
-					-9: "Refused",
-					-5: "Interview breakoff (sufficient partial IW)",
-					1: "All the time",
-					2: "Often",
-					3: "Sometimes",
-					4: "Rarely",
-					5: "Never",
-                    }[x]
-                    )
-                "health_insurance": (("Do you presently have any kind of health insurance?"),
-                lambda x: {
-					-9: "Refused",
-					-5: "Interview breakoff (sufficient partial IW)",
-					1: "Yes",
-					2: "No",
-                    }[x]
-                ),
-                "political_campaigns": (("Some people don’t pay much attention to political campaigns. "
-                        "How about you? Would you say that you have been very much "
-                        "interested, somewhat interested or not much interested in the "
-                        "political campaigns so far this year?"),
-                lambda x: {
-					-9: "Refused",
-					1: "Very much interested",
-					2: "Somewhat interested",
-					3: "Not much interested",
-                    }[x]
-                ),
-                "voting_duty": (("How strongly do you feel that voting is a duty?"),
-                lambda x: {
-					-9: "Refused",
-					-1: "Inapplicable",
-					1: "Very strongly",
-					2: "Moderately strongly",
-					3: "A little strongly",
-                    }[x]
-                ),
-                "government_elite": (("Would you say the government is pretty much run by a few big "
-                        "interests looking out for themselves or that it is run for the "
-                        "benefit of all the people?"),
-                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Run by a few big interests",
-					2: "For the benefit of all the people",
-                    }[x]
-                ),
-            }
-
-        elif self.format == "FPBS":
-            return {
-                
+        return {
                 "protect_environment": (( "If you ask me whether federal spending on protecting the environment should be (increased, decreased, or kept the same), I would answer that it should be"),
                                 lambda x: {
 					1: " increased",
