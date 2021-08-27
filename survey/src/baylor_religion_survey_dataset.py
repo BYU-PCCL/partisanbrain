@@ -79,6 +79,7 @@ class BaylorReligionSurveyDataset(Dataset):
         new_df = new_df.dropna(axis=0)
         new_df = new_df[new_df["religion"] != "Other" OR "Don't know"]
         new_df = new_df[new_df["race"] != "No races chosen"]
+        new_df = new_df[new_df]["bible_beliefs"] != "I don't know."
 
         # Randomly sample 500 + self._n_exemplars rows
         new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
@@ -167,31 +168,168 @@ class BaylorReligionSurveyDataset(Dataset):
 
 
     def _get_prompt_instructions(self):
-        return {"tech_oppor":(("Did any of these things occur in the PAST YEAR? "
-                            "What was its effect on you? Impact on you "
-                            "personally: Lost a job"),
-                            lambda x: {"Excellent": "excellent",
-                                        "Good": "good",
-                                        "Only fair": "fair",
-                                        "Poor": "poor"}[x]),
-                "trans_restrooms":((),
-                "gay_is_it_choice":((),
-                "husband_salary":((),
-                "women_childcare":((),
-                "men_suited_politics":((),
-                "refugees_terrorist_threat":((),
-                "mexican_immigrants_criminals":((),
-                "life_happiness":((),
-                "depressed_freq":((),
-                "days_of_exercise":((),
-                "police_racial_treatment":((),
-                "racial_violence":((),
-                "bible_beliefs":((),
-                "god_beliefs":((),
-                "god_concern_for_world":((),
-                "god_concern_for_individuals":((),
-                "church_attendance":((),
-                "prayer_in_school":((),
-                "gods_plan":((),
-                "fan": ("When asked if I'm a Star Wars fan I say",
-                        lambda x: x.lower())}
+        return {"tech_oppor":(("To what extent do you agree with the following? "
+                                "Technology gives me new and better employment "
+                                "opportunities."),
+                                lambda x: {"Strongly agree": "agree",
+                                           "Agree": "agree",
+                                           "Disagree": "disagree",
+                                           "Strongly Disagree": "disagree"}[x]),
+                "trans_restrooms":(("Please rate the extent to which you agree "
+                                    "or disagree with the following statements: "
+                                    "Transgender people should be allowed to "
+                                    "use the public restroom of their choice."),
+                                    lambda x: {"Strongly agree": "agree",
+                                               "Agree": "agree",
+                                               "Disagree": "disagree",
+                                               "Strongly Disagree": "disagree"}[x]),
+                "gay_is_it_choice":(("Please rate the extent to which you agree "
+                                     "or disagree with the following "
+                                     "statements: People choose to be "
+                                     "gay/lesbian."),
+                                     lambda x: {"Strongly agree": "agree",
+                                                "Agree": "agree",
+                                                "Disagree": "disagree",
+                                                "Strongly Disagree": "disagree"}[x]),
+                "husband_salary":(("Please rate the extent to which you agree "
+                                   "or disagree with the following statements: "
+                                   "A husband should earn a larger salary than "
+                                   "his wife."),
+                                   lambda x: {"Strongly agree": "agree",
+                                              "Agree": "agree",
+                                              "Disagree": "disagree",
+                                              "Strongly Disagree": "disagree"}[x]),
+                "women_childcare":(("Please rate the extent to which you agree "
+                                    "or disagree with the following "
+                                    "statements: It is God's will that women "
+                                    "care for children."),
+                                    lambda x: {"Strongly agree": "agree",
+                                               "Agree": "agree",
+                                               "Disagree": "disagree",
+                                               "Strongly Disagree": "disagree"}[x]),
+                "men_suited_politics":(("Please rate the extent to which you "
+                                        "agree or disagree with the following "
+                                        "statements: Men are better suited "
+                                        "emotionally for politics than women."),
+                                        lambda x: {"Strongly agree": "agree",
+                                                   "Agree": "agree",
+                                                   "Disagree": "disagree",
+                                                   "Strongly Disagree": "disagree"}[x]),
+                "refugees_terrorist_threat":(("Please rate the extent to which "
+                                              "you agree or disagree with the "
+                                              "following statements: Refugees "
+                                              "from the Middle East pose a "
+                                              "terrorist threat to the United "
+                                              "States."),
+                                              lambda x: {"Strongly agree": "agree",
+                                                         "Agree": "agree",
+                                                         "Disagree": "disagree",
+                                                         "Strongly Disagree": "disagree"}[x]),
+                "mexican_immigrants_criminals":(("Please rate the extent to "
+                                                 "which you agree or disagree "
+                                                 "with the following "
+                                                 "statements: Illegal "
+                                                 "immigrants from Mexico are "
+                                                 "mostly dangerous criminals."),
+                                                 lambda x: {"Strongly agree": "agree",
+                                                            "Agree": "agree",
+                                                            "Disagree": "disagree",
+                                                            "Strongly Disagree": "disagree"}[x]),
+                "life_happiness":(("In general, how happy are you with your "
+                                   "life as a whole these days?"),
+                                   lambda x: {"Not too happy": "sad",
+                                              "Pretty happy": "happy"
+                                              "Very happy": "happy"}[x]),
+                "depressed_freq":(("In the past WEEK, about how often have you "
+                                   "had the following feelings? I felt "
+                                   "depressed."),
+                                   lambda x: {"Never": "never",
+                                              "Hardly ever": "rarely",
+                                              "Some of the time": "sometimes"
+                                              "Most or all of the time": "frequently"}[x]),
+                "days_of_exercise":(("How many DAYS per WEEK do you do exercise "
+                                     "for at least 30 minutes?"),
+                                     lambda x: x),
+                "police_racial_treatment":(("Please rate the extent to which "
+                                            "you agree or disagree with the "
+                                            "following statements: Police "
+                                            "officers in the United States "
+                                            "treat blacks the same as whites."),
+                                            lambda x: {"Strongly agree": "agree",
+                                                       "Agree": "agree",
+                                                       "Disagree": "disagree",
+                                                       "Strongly Disagree": "disagree"}[x]),
+                "racial_violence":(("Please rate the extent to which you agree "
+                                    "or disagree with the following statements: "
+                                    "Police officers in the United States shoot "
+                                    "blacks more often because they are more "
+                                    "violent than whites."),
+                                    lambda x: {"Strongly agree": "agree",
+                                               "Agree": "agree",
+                                               "Disagree": "disagree",
+                                               "Strongly Disagree": "disagree"}[x]),
+                "bible_beliefs":(("Which one statement comes closest to your "
+                                  "personal beliefs about the Bible? (Please "
+                                  "mark only one box.)"),
+                                  lambda x: {"The Bible means exactly what it says. It should be "
+                                             "taken literally, word-for-word, on all subjects.": "",
+                                             "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "",
+                                             "The Bible contains some human error.": "",
+                                             "The Bible is an ancient book of history and legends.": ""}[x]),
+                "god_beliefs":(("Which one statement comes closest to your "
+                                "personal beliefs about God? (Please mark only "
+                                "one box.)"),
+                                lambda x: {"I have no doubts that God exists": "",
+                                           "I believe in God, but with some doubts": "",
+                                           "I sometimes believe in God": "",
+                                           "I believe in a higher power of cosmic force": "",
+                                           "I don't know and there is no way to find out": "",
+                                           "I do not believe in God": "",
+                                           "I have no opinion": ""}[x]),
+                "god_concern_for_world":(("Based on your personal understanding "
+                                          "of God, please rate the extent to "
+                                          "which you agree or disagree with "
+                                          "the following statements: God is "
+                                          "concerned with the well-being of the "
+                                          "world."),
+                                          lambda x: {"Strongly agree": "agree",
+                                                     "Agree": "agree",
+                                                     "Disagree": "disagree",
+                                                     "Strongly Disagree": "disagree"}[x]),
+                "god_concern_for_individuals":(("Based on your personal "
+                                                "understanding of God, please "
+                                                "rate the extent to which you "
+                                                "agree or disagree with the "
+                                                "following statements: God is "
+                                                "concerned with my personal "
+                                                "well-being."),
+                                                lambda x: {"Strongly agree": "agree",
+                                                           "Agree": "agree",
+                                                           "Disagree": "disagree",
+                                                           "Strongly Disagree": "disagree"}[x]),
+                "church_attendance":(("How often do you attend religious "
+                                      "services at a place of worship?"),
+                                      lambda x: {"Never": "never",
+                                                 "Less than once a year": "rarely",
+                                                 "Once or twice a year": "annually",
+                                                 "Several times a year": "sometimes",
+                                                 "Once a month": "monthly",
+                                                 "2 to 3 times a month": "biweekly",
+                                                 "About once a week": "weekly",
+                                                 "Several times a week": ""}[x]), #dailyish??? Not sure which word to use here??
+                "prayer_in_school":(("Please rate the extent to which you agree "
+                                     "or disagree with the following "
+                                     "statements: The federal government "
+                                     "should allow prayer in public schools."),
+                                     lambda x: {"Strongly agree": "agree",
+                                                "Agree": "agree",
+                                                "Disagree": "disagree",
+                                                "Strongly Disagree": "disagree"}[x]),
+                "gods_plan":(("Please rate the extent to which you agree or "
+                              "disagree with the following statements: When "
+                              "good or bad things happen to me, I see it as "
+                              "part of God's plan for me."),
+                              lambda x: {"Strongly agree": "agree",
+                                         "Agree": "agree",
+                                         "Disagree": "disagree",
+                                         "Strongly Disagree": "disagree"}[x]),
