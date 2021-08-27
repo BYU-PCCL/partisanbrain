@@ -291,21 +291,21 @@ class AnesDataset(dataset.Dataset):
                         "about rising temperatures, should be doing less, or is it currently "
                         "doing the right amount?"),
                 lambda x: {
-					-9: "Refused"
-					-8: "Don’t know"
-					1: "Should be doing more"
-					2: "Should be doing less"
+					-9: "Refused",
+					-8: "Don’t know",
+					1: "Should be doing more",
+					2: "Should be doing less",
 					3: "Is currently doing the right amount",
                     }[x]
                 ),
                 "federal_spending_crime": (("What about dealing with crime? Should federal spending on "
                         "dealing with crime be increased, decreased, or kept the same?"),
                 lambda x: {
-					-9: "Refused"
-					-8: "Don’t know"
-					1: "Increased"
-					2: "Decreased"
-					3: "Kept the same"
+					-9: "Refused",
+					-8: "Don’t know",
+					1: "Increased",
+					2: "Decreased",
+					3: "Kept the same",
                     }[x]
                     ),
                 "trump_economy": (("Do you approve or disapprove of the way Donald Trump is handling "
@@ -392,7 +392,7 @@ class AnesDataset(dataset.Dataset):
 					3: "There should be no legal recognition of gay or lesbian couples’ relationship",
                     }[x]
                 ),
-                "trump_foreign_relations": (("Do you approve or disapprove of the way Donald Trump is
+                "trump_foreign_relations": (("Do you approve or disapprove of the way Donald Trump is "
                                                     "handlingrelations with foreign countries?"),
                 lambda x: {
 					-9: "Refused",
@@ -476,199 +476,141 @@ class AnesDataset(dataset.Dataset):
         elif self.format == "FPBS":
             return {
                 
-                "protect_environment": (("What about protecting the environment? Should federal "
-                                            "spending on protecting the environment be increased, "
-                                            "decreased, or kept the same?"),
+                "protect_environment": (( "If you ask me whether federal spending on protecting the environment should be (increased, decreased, or kept the same), I would answer that it should be"),
                                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
+					1: " increased",
+					2: " decreased",
+					3: " kept the same",
                     }[x]
                 ),
-                "government_temperatures": (("Do you think the federal government should be doing more "
-                        "about rising temperatures, should be doing less, or is it currently "
-                        "doing the right amount?"),
+                "government_temperatures": (("If you were to ask me whether the federal government should be doing (more, less, or same) about rising temperatures than it is currently, I would answer that it should be doing"),
                 lambda x: {
-					-9: "Refused"
-					-8: "Don’t know"
-					1: "Should be doing more"
-					2: "Should be doing less"
-					3: "Is currently doing the right amount",
+					1: " more",
+					2: " less",
+					3: " same",
                     }[x]
                 ),
-                "federal_spending_crime": (("What about dealing with crime? Should federal spending on "
-                        "dealing with crime be increased, decreased, or kept the same?"),
+                "federal_spending_crime": (("If you ask me whether the federal government should spend (more, less, or same) on crime, I would answer that it should spend"),
                 lambda x: {
-					-9: "Refused"
-					-8: "Don’t know"
-					1: "Increased"
-					2: "Decreased"
-					3: "Kept the same"
+					1: " more",
+					2: " less",
+					3: " same",
                     }[x]
                     ),
-                "trump_economy": (("Do you approve or disapprove of the way Donald Trump is handling "
-                                        "the economy?"),
+                "trump_economy": (("If asked whether I (approve or disapprove) of the way the way Donald Trump is handling the economy, I would answer that I"),
 					                lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
+					-8: " don’t know",
+					1: " approve",
+					2: " disapprove",
                     }[x]
 					),
-                "government_waste": (("Do you think that people in government waste a lot of the money "
-                        "we pay in taxes, waste some of it, or don’t waste very much of "
-                        "it?"),
+                "government_waste": (("If asked whether people in government waste (lots, some, little) of the money we pay in taxes, I would answer that I think they waste"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Waste a lot",
-					2: "Waste some",
-					3: "Don’t waste very much",
+					1: " lots",
+					2: " some",
+					3: " little",
                     }[x]
                 ),
-                "social_security": (("What about Social Security? Should federal spending on Social "
-                                        "Security be increased, decreased, or kept the same?"),
+                "social_security": (("If asked whether the federal government should spend (more, less, same) on Social Security, I would answer that it should spend" ),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
+					1: " more",
+					2: " less",
+					3: " same",
                     }[x]
                 ),
-                "spending_poor": (("What about aid to the poor? Should federal spending on aid to "
-                                        "the poor be increased, decreased, or kept the same?"),
+                "spending_poor": (("If asked whether the federal government should spend (more, less, or same) on aid to the poor, I would answer that it should spend"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
+					1: " more",
+					2: " less",
+					3: " same",
                     }[x]
                     ),
-                "economy_good": (("What do you think about the state of the economy these days in "
-                                    "the United States? Would you say the state of the economy is "
-                                    "very good,good, neither good nor bad, bad, or very bad?"),
+                "economy_good": (("If asked whether the state of the economy these days is (excellent, good, neither, bad, or terrible), I would answer that it is"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Very good",
-					2: "Good",
-					3: "Neither good nor bad",
-					4: "Bad",
-					5: "Very bad",
+					1: " excellent",
+					2: " good",
+					3: " neither",
+					4: " bad",
+					5: " terrible",
                     }[x]
                 ),
-                "economy_worse_better": (("Now thinking about the economy in the country as a whole, "
-                                            "would you say that over the past year the nation’s economy has "
-                                            "gotten better, stayed about the same, or gotten worse?"),
+                "economy_worse_better": (("If asked whether the economy in the country as a whole over the past year has (improved, worsened, or stayed about the same), I would answer that it has"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Gotten better",
-					2: "Stayed about the same",
-					3: "Gotten worse",
+					1: " improved",
+					2: " stayed about the same",
+					3: " worsened",
                     }[x]
                 ),
-                "welfare": (("What about welfare programs? Should federal spending on "
-                            "welfare programs be increased, decreased, or kept the same?"),
+                "welfare": (("If asked whether the federal government should spend (more, less, or same) on welfare programs, I would answer that it should spend"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Increased",
-					2: "Decreased",
-					3: "Kept the same",
+					1: " more",
+					2: " less",
+					3: " same",
                     }[x]
                 ),
-                "gay_marriage": (("Which comes closest to your view? You can just tell me the "
-                                    "number of your choice."),
+                "gay_marriage": (("If asked whether gay and lesbian couples should be allowed to enter into (marriage, civil union, or neither), I would say that they should be allowed to enter into"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Gay and lesbian couples should be allowed to legally marry",
-					2: "Gay and lesbian couples should be allowed to form civil unions but not legally marry",
-					3: "There should be no legal recognition of gay or lesbian couples’ relationship",
+					1: " marriage",
+					2: " civil union",
+					3: " neither",
                     }[x]
                 ),
-                "trump_foreign_relations": (("Do you approve or disapprove of the way Donald Trump is
-                                                    "handlingrelations with foreign countries?"),
+                "trump_foreign_relations": (("If asked whether I (approve, disapprove, or don't know) of the way Donald Trump is handling relations with foreign countries, I would answer that I"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
+					-8: " don’t know",
+					1: " approve",
+					2: " disapprove",
                     }[x]
                 ),
-                "trump_immigration": (("Do you approve or disapprove of the way Donald Trump is "
-                        "handling immigration?"),
+                "trump_immigration": (("If asked whether I (approve, disapprove, or don't know) of the way Donald Trump is handling immigration, I would answer that I"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Approve",
-					2: "Disapprove",
+					-8: " don’t know",
+					1: " approve",
+					2: " disapprove",
                     }[x]
                     ),
-                "military": (("How willing should the United States be to use military force to "
-                            "solve international problems?"),
+                "military": (("If asked whether the United States should be (extremely, very, moderately, a little, or not at all) willing to use military force to solve international problems, I would answer that it should be"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Extremely willing",
-					2: "Very willing",
-					3: "Moderately willing",
-					4: "A little willing",
-					5: "Not at all willing ",
+					1: " extremely",
+					2: " very",
+					3: " moderately",
+					4: " a little",
+					5: " not at all",
                     }[x]
                 ),
-                "sleep": (("In the past week, how often has your sleep been restless?"),
+                "sleep": (("If asked whether in the past week my sleep has been restless (all the time, often, sometimes, rarely, or never), I would answer that it has been restless"),
                 lambda x: {
-					-9: "Refused",
-					-5: "Interview breakoff (sufficient partial IW)",
-					1: "All the time",
-					2: "Often",
-					3: "Sometimes",
-					4: "Rarely",
-					5: "Never",
-                    }[x]
-                    )
-                "health_insurance": (("Do you presently have any kind of health insurance?"),
-                lambda x: {
-					-9: "Refused",
-					-5: "Interview breakoff (sufficient partial IW)",
-					1: "Yes",
-					2: "No",
+					1: " all the time",
+					2: " often",
+					3: " sometimes",
+					4: " rarely",
+					5: " never",
                     }[x]
                 ),
-                "political_campaigns": (("Some people don’t pay much attention to political campaigns. "
-                        "How about you? Would you say that you have been very much "
-                        "interested, somewhat interested or not much interested in the "
-                        "political campaigns so far this year?"),
+                "health_insurance": (("If asked whether I (do or don't) presently have any kind of health insurance, I answer that I"),
                 lambda x: {
-					-9: "Refused",
-					1: "Very much interested",
-					2: "Somewhat interested",
-					3: "Not much interested",
+					1: " do",
+					2: " don't",
                     }[x]
                 ),
-                "voting_duty": (("How strongly do you feel that voting is a duty?"),
+                "political_campaigns": (("If asked whether I have been (very much, somewhat, or not much) interested in political campaigns so far this year, I answer that I have been"),
                 lambda x: {
-					-9: "Refused",
-					-1: "Inapplicable",
-					1: "Very strongly",
-					2: "Moderately strongly",
-					3: "A little strongly",
+					1: " very much",
+					2: " somewhat",
+					3: " not much",
                     }[x]
                 ),
-                "government_elite": (("Would you say the government is pretty much run by a few big "
-                        "interests looking out for themselves or that it is run for the "
-                        "benefit of all the people?"),
+                "voting_duty": (("If asked whether I feel (very, moderately, a little) strongly that voting is a duty, I answer that I feel"),
                 lambda x: {
-					-9: "Refused",
-					-8: "Don’t know",
-					1: "Run by a few big interests",
-					2: "For the benefit of all the people",
+					1: " very",
+					2: " moderately",
+					3: " a little",
+                    }[x]
+                ),
+                "government_elite": (("If asked whether government is run by the (people or big interests), I answer that government is run by the"),
+                lambda x: {
+					1: " big interests",
+					2: " people",
                     }[x]
                 ),
             }
