@@ -1,79 +1,58 @@
 from dataset import Dataset
+from dataset import PromptSpecs
 
 
 class PewAmericanTrendsWave78Dataset(Dataset):
 
-    def __init__(self, n_exemplars):
+    def __init__(self):
         survey_fname = "../data/ATP W78.sav"  # TODO: Remove the dots
-        self._n_exemplars = n_exemplars
-        super().__init__(survey_fname, n_exemplars)
+        super().__init__(survey_fname)
 
-    def _format(self, df):
+    def _get_dv_filter_funcs(self):
+        return {"econ_today": lambda x: x[x != "Refused"],
+                "econ_year_away": lambda x: x,
+                "country_satisfied": lambda x: x,
+                "election_wellness": lambda x: x}
 
-        # No need to filter rows for USA because all respondents from USA
-
-        # Selecting relevant columns
-        demographic_col_names = ["F_AGECAT",
-                                 "F_GENDER",
-                                 "F_PARTY_FINAL",
-                                 "F_EDUCCAT",
-                                 "F_IDEO",
-                                 "F_INC_SDT1",
-                                 "F_RELIG",
-                                 "F_RACETHNMOD",
-                                 "F_CREGION",
-                                 "F_MARITAL"]
-
-        dv_col_names = ["ECON1_W78",
-                        "ECON1B_W78",
-                        "SATIS_W78",
-                        "VTADMIN_POST_US_W78",
-                        "ELECTNTFOL_W78",
-                        "COVID_2ASSISTLD_W78",
-                        "POL12_W78",
-                        "COVID_OPENMORE_W78",
-                        "DIVISIONSCONC_W78",
-                        "VOTELIST_US_W78"]
-
-        new_df = df[demographic_col_names + dv_col_names]
-
-        # Renaming columnns for convenience
-        new_df = new_df.rename({"F_AGECAT": "age",
-                                "F_GENDER": "gender",
-                                "F_PARTY_FINAL": "party",
-                                "F_EDUCCAT": "educ",
-                                "F_IDEO": "ideo",
-                                "F_INC_SDT1": "income",
-                                "F_RELIG": "religion",
-                                "F_RACETHNMOD": "race",
-                                "F_CREGION": "census_reg",
-                                "F_MARITAL": "marital",
-                                "ECON1_W78": "econ_today",
-                                "ECON1B_W78": "econ_year_away",
-                                "SATIS_W78": "country_satisfied",
-                                "VTADMIN_POST_US_W78": "election_wellness",
-                                "ELECTNTFOL_W78": "follow_election",
-                                "COVID_2ASSISTLD_W78": "covid_assist_pack",
-                                "POL12_W78": "rep_dem_relationship",
-                                "COVID_OPENMORE_W78": "covid_restrict",
-                                "DIVISIONSCONC_W78": "rep_dem_division",
-                                "VOTELIST_US_W78": "more_votes_better"},
-                               axis=1)
-
-        # Drop rows with unhelpful answers
-        new_df = new_df[new_df["party"].isin(["Democrat",
-                                              "Republican",
-                                              "Independent"])]
+    def _filter_demographics(self, df):
+        new_df = df[df["party"].isin(["Democrat",
+                                      "Republican",
+                                      "Independent"])]
         new_df = new_df[new_df["religion"] != "Other"]
         new_df = new_df[new_df["race"] != "Other"]
 
         for col_name in list(new_df):
             new_df = new_df[new_df[col_name] != "Refused"]
-
-        # Randomly sample 500 + self._n_exemplars rows
-        new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-
         return new_df
+
+    def _filter_to_usa(self, df):
+        """Return a new dictionary where all respondents are from USA"""
+        return df
+
+    def _get_dv_col_names(self):
+        return {"ECON1_W78": "econ_today",
+                "ECON1B_W78": "econ_year_away",
+                "SATIS_W78": "country_satisfied",
+                "VTADMIN_POST_US_W78": "election_wellness"}
+        # return {"VTADMIN_POST_US_W78": "election_wellness",
+        #         "ELECTNTFOL_W78": "follow_election",
+        #         "COVID_2ASSISTLD_W78": "covid_assist_pack",
+        #         "POL12_W78": "rep_dem_relationship",
+        #         "COVID_OPENMORE_W78": "covid_restrict",
+        #         "DIVISIONSCONC_W78": "rep_dem_division",
+        #         "VOTELIST_US_W78": "more_votes_better"}
+
+    def _get_demographic_col_names(self):
+        return {"F_AGECAT": "age",
+                "F_GENDER": "gender",
+                "F_PARTY_FINAL": "party",
+                "F_EDUCCAT": "educ",
+                "F_IDEO": "ideo",
+                "F_INC_SDT1": "income",
+                "F_RELIG": "religion",
+                "F_RACETHNMOD": "race",
+                "F_CREGION": "census_reg",
+                "F_MARITAL": "marital"}
 
     def _make_backstory(self, row):
         backstory = []
@@ -161,102 +140,54 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         return " ".join(backstory)
 
-    def _get_prompt_instructions(self):
-        return {"econ_today": (("Between excellent, good, fair, and poor, "
-                                "I'd call the the economic conditions in "
-                                "the US"), lambda x: {"Excellent": "excellent",
+    def _get_col_prompt_specs(self):
+        return {"econ_today": PromptSpecs(question=("How would you rate "
+                                                    "economic conditions "
+                                                    "in this country today?"),
+                                          answer_prefix="conditions are",
+                                          answer_map={"Excellent": "excellent",
                                                       "Good": "good",
                                                       "Only fair": "fair",
-                                                      "Poor": "poor"}[x]),
-                "econ_year_away": (("If I had to call the economic conditions "
-                                    "in the US I expect a year from now "
-                                    "(compared to now) better, worse, or "
-                                    "same, I'd call them"),
-                                   lambda x: {"Better": "better",
-                                              "Worse": "worse",
-                                              ("About the same "
-                                               "as now"): "same"}[x]),
-                "country_satisfied": (("If asked whether I'm satisfied or "
-                                       "dissatisfied with the way things are "
-                                       "going in this country today I'd "
-                                       "say that I'm"),
-                                      lambda x: x.lower()),
-                "election_wellness": (("If asked whether I think the "
-                                       "elections this month in the United "
-                                       "States were run well or poorly, "
-                                       "I'd say they were run"),
-                                      lambda x: {"Very well": "well",
-                                                 "Somewhat well": "well",
-                                                 "Not too well": "poorly",
-                                                 ("Not at "
-                                                  "all well"): "poorly"}[x]),
-                "follow_election": (("If asked (yes or no) if I followed "
-                                     "the results of the presidential "
-                                     "election after polls closed on "
-                                     "Election Day I'd say"),
-                                    lambda x: {("Followed them almost "
-                                                "constantly"): "yes",
-                                               ("Checked in fairly "
-                                                "often"): "yes",
-                                               ("Checked in "
-                                                "occasionally"): "yes",
-                                               ("Tuned them out "
-                                                "entirely"): "no"}[x]),
-                "covid_assist_pack": (("Congress and President Trump passed "
-                                       "a $2 trillion economic assistance "
-                                       "package in March in response to "
-                                       "the economic impact of the "
-                                       "coronavirus outbreak. If asked "
-                                       "whether I think another economic "
-                                       "assistance package is necessary "
-                                       "or is not necessary I'd say it is"),
-                                      lambda x: x.lower()),
-                "rep_dem_relationship": (("If asked if relations between "
-                                          "Republicans and Democrats in "
-                                          "Washington a year from now will "
-                                          "be better, worse, or same I'd "
-                                          "say they will be"),
-                                         lambda x: {"Get better": "better",
-                                                    "Get worse": "worse",
-                                                    ("Stay about "
-                                                     "the same"): "same"}[x]),
-                "covid_restrict": (("If asked if the number of "
-                                    "restrictions on public activity "
-                                    "because of the coronavirus "
-                                    "outbreak in my area should be "
-                                    "increased, decreased, or maintained, "
-                                    "I'd say it should be"),
-                                   lambda x: {("MORE restrictions "
-                                              "right now"): "increased",
-                                              ("FEWER restrictions "
-                                               "right now"): "decreased",
-                                              ("About the same number "
-                                               "of restrictions "
-                                               "right now"): "maintained"}[x]),
-                "rep_dem_division": (("If asked if I'm at least somewhat "
-                                      "concerned about divisions between "
-                                      "Republicans and Democrats (yes or no) "
-                                      "I'd say"),
-                                     lambda x: {"Very concerned": "yes",
-                                                "Somewhat concerned": "yes",
-                                                "Not too concerned": "no",
-                                                ("Not at all "
-                                                 "concerned"): "no"}[x]),
-                "more_votes_better": (("If asked whether the United States "
-                                       "would be better off if more Americans "
-                                       "voted (yes or no) I'd say"),
-                                      lambda x: {("The country would not be "
-                                                  "better off if more "
-                                                  "Americans voted"): "yes",
-                                                 ("The country would be "
-                                                  "better off if more "
-                                                  "Americans "
-                                                  "voted"): "no"}[x])}
+                                                      "Poor": "poor"}),
+                "econ_year_away": PromptSpecs(("How do you expect economic "
+                                               "conditions in the United "
+                                               "States a year from now will "
+                                               "be compared to economic "
+                                               "conditions in the United "
+                                               "States now?"),
+                                              "I think conditions will be",
+                                              {"Better": "better",
+                                               "Worse": "worse",
+                                               "About the same as now":
+                                               "same as now"}),
+                "country_satisfied": PromptSpecs(("All in all, are you "
+                                                  "satisfied or dissatisfied "
+                                                  "with the way things are "
+                                                  "going in the United States "
+                                                  "today?"),
+                                                 "I'm",
+                                                 {"Satisfied": "satisfied",
+                                                  "Dissatisfied":
+                                                  "dissatisfied"}),
+                "election_wellness": PromptSpecs(("Do you think elections "
+                                                  "this November in the "
+                                                  "United States were run "
+                                                  "and administered well "
+                                                  "or poorly?"),
+                                                 ("I think they were run and "
+                                                  "administered"),
+                                                 {"Very well": "well",
+                                                  "Somewhat well": "well",
+                                                  "Not too well": "poorly",
+                                                  "Not at all well":
+                                                  "poorly"})}
 
 
 if __name__ == "__main__":
-    from experiment import Experiment
-    ds = PewAmericanTrendsWave78Dataset(n_exemplars=5)
-    e = Experiment(ds, gpt_3_engine="ada")
-    e.run()
-    e.save_results("pew_results.pkl")
+    ds = PewAmericanTrendsWave78Dataset()
+    # Uncomment this to see a sample of your prompts
+    # First prompt for each DV
+    for dv_name in ds.dvs.keys():
+        dv_prompts = ds.prompts[dv_name]
+        print(dv_prompts[list(dv_prompts.keys())[0]])
+        print()
