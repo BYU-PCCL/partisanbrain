@@ -8,12 +8,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         survey_fname = "../data/ATP W78.sav"  # TODO: Remove the dots
         super().__init__(survey_fname)
 
-    def _get_dv_filter_funcs(self):
-        return {"econ_today": lambda x: x[x != "Refused"],
-                "econ_year_away": lambda x: x,
-                "country_satisfied": lambda x: x,
-                "election_wellness": lambda x: x}
-
     def _filter_demographics(self, df):
         new_df = df[df["party"].isin(["Democrat",
                                       "Republican",
@@ -33,14 +27,13 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         return {"ECON1_W78": "econ_today",
                 "ECON1B_W78": "econ_year_away",
                 "SATIS_W78": "country_satisfied",
-                "VTADMIN_POST_US_W78": "election_wellness"}
-        # return {"VTADMIN_POST_US_W78": "election_wellness",
-        #         "ELECTNTFOL_W78": "follow_election",
-        #         "COVID_2ASSISTLD_W78": "covid_assist_pack",
-        #         "POL12_W78": "rep_dem_relationship",
-        #         "COVID_OPENMORE_W78": "covid_restrict",
-        #         "DIVISIONSCONC_W78": "rep_dem_division",
-        #         "VOTELIST_US_W78": "more_votes_better"}
+                "VTADMIN_POST_US_W78": "election_wellness",
+                "ELECTNTFOL_W78": "follow_election",
+                "COVID_2ASSISTLD_W78": "covid_assist_pack",
+                "POL12_W78": "rep_dem_relationship",
+                "COVID_OPENMORE_W78": "covid_restrict",
+                "DIVISIONSCONC_W78": "rep_dem_division",
+                "VOTELIST_US_W78": "more_votes_better"}
 
     def _get_demographic_col_names(self):
         return {"F_AGECAT": "age",
@@ -180,7 +173,84 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                   "Somewhat well": "well",
                                                   "Not too well": "poorly",
                                                   "Not at all well":
-                                                  "poorly"})}
+                                                  "poorly"}),
+                "follow_election": PromptSpecs(("Did you follow the results "
+                                                "of the presidential election "
+                                                "after polls closed on "
+                                                "Election Day?"),
+                                               "",
+                                               {("Followed them almost "
+                                                 "constantly"): "Yes",
+                                                ("Checked in fairly "
+                                                 "often"): "Yes",
+                                                ("Checked in "
+                                                 "occasionally"): "Yes",
+                                                ("Tuned them out "
+                                                 "entirely"): "No"}),
+                "covid_assist_pack": PromptSpecs(("Congress and President "
+                                                  "Trump passed a  trillion "
+                                                  "economic assistance "
+                                                  "package in March in "
+                                                  "response to the "
+                                                  "economic impact of the "
+                                                  "coronavirus outbreak. Do "
+                                                  "you think another economic "
+                                                  "assistance package is "
+                                                  "necessary?"),
+                                                 "I think it is",
+                                                 {"Necessary": "necessary",
+                                                  "Not necessary":
+                                                  "not necessary"}),
+                "rep_dem_relationship": PromptSpecs(("Do you think relations "
+                                                     "between Republicans and "
+                                                     "Democrats in Washington "
+                                                     "a year from now will "
+                                                     "be better, worse, or "
+                                                     "same as now?"),
+                                                    "I think they'll be",
+                                                    {"Get better": "better",
+                                                     "Get worse": "worse",
+                                                     ("Stay about "
+                                                      "the same"):
+                                                        "same as now"}),
+                "covid_restrict": PromptSpecs(("Thinking about restrictions "
+                                               "on public activity because "
+                                               "of the coronavirus outbreak "
+                                               "in your area, do you think "
+                                               "the number of restrictions "
+                                               "should be increased, "
+                                               "decreased, or "
+                                               "maintained?"),
+                                              ("I think the number of "
+                                               "restrictions should be"),
+                                              {("MORE restrictions "
+                                                "right now"): "increased",
+                                               ("FEWER restrictions "
+                                                "right now"): "decreased",
+                                               ("About the same number "
+                                                "of restrictions "
+                                                "right now"): "maintained"}),
+                "rep_dem_division": PromptSpecs(("Are you at least somewhat "
+                                                 "concerned about divisions "
+                                                 "between Republicans and "
+                                                 "Democrats?"),
+                                                "",
+                                                {"Very concerned": "Yes",
+                                                 "Somewhat concerned": "Yes",
+                                                 "Not too concerned": "No",
+                                                 ("Not at all "
+                                                  "concerned"): "No"}),
+                "more_votes_better": PromptSpecs(("Do you the United States "
+                                                  "would be better off if "
+                                                  "more Americans voted?"),
+                                                 "",
+                                                 {("The country would not be "
+                                                   "better off if more "
+                                                   "Americans voted"): "Yes",
+                                                  ("The country would be "
+                                                   "better off if more "
+                                                   "Americans "
+                                                   "voted"): "No"})}
 
 
 if __name__ == "__main__":
