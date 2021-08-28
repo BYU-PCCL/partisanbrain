@@ -34,7 +34,7 @@ class CCESDataset(Dataset):
         }
 
     def _filter_demographics(self, df):
-        new_df = df[df["CL_party"] != 9]
+        new_df = df[~df["CL_party"].isin([9,13])]
         return new_df
 
     def _filter_to_usa(self, df):
@@ -97,7 +97,6 @@ class CCESDataset(Dataset):
                 10: "I am a member of the Reform Party.",
                 11: "I am a member of the Republican Party.",
                 12: "I am a member of the Socialist Party.",
-                13: "I don't know which political party I belong to.",
                 14: "I am a member of the Working Families Party.",
                 },
             "educ": {
