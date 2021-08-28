@@ -10,7 +10,8 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
     def _get_dv_filter_funcs(self):
         return {"econ_today": lambda x: x[x != "Refused"],
-                "econ_year_away": lambda x: x}
+                "econ_year_away": lambda x: x,
+                "country_satisfied": lambda x: x}
 
     def _filter_demographics(self, df):
         new_df = df[df["party"].isin(["Democrat",
@@ -29,7 +30,8 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
     def _get_dv_col_names(self):
         return {"ECON1_W78": "econ_today",
-                "ECON1B_W78": "econ_year_away"}
+                "ECON1B_W78": "econ_year_away",
+                "SATIS_W78": "country_satisfied"}
         # return {"ECON1_W78": "econ_today",
         #         "ECON1B_W78": "econ_year_away",
         #         "SATIS_W78": "country_satisfied",
@@ -158,14 +160,23 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                               {"Better": "better",
                                                "Worse": "worse",
                                                "About the same as now":
-                                               "same as now"})}
+                                               "same as now"}),
+                "country_satisfied": PromptSpecs(("All in all, are you "
+                                                  "satisfied or dissatisfied "
+                                                  "with the way things are "
+                                                  "going in the United States "
+                                                  "today?"),
+                                                 "I'm",
+                                                 {"Satisfied": "satisfied",
+                                                  "Dissatisfied":
+                                                  "dissatisfied"})}
 
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave78Dataset()
     # Uncomment this to see a sample of your prompts
     # First prompt for each DV
-    for dv_name in ds.dvs.keys():
-        dv_prompts = ds.prompts[dv_name]
-        print(dv_prompts[list(dv_prompts.keys())[0]])
-        print()
+    # for dv_name in ds.dvs.keys():
+    #     dv_prompts = ds.prompts[dv_name]
+    #     print(dv_prompts[list(dv_prompts.keys())[0]])
+    #     print()
