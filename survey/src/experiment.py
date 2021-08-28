@@ -1,6 +1,7 @@
 import openai
 import os
 import pickle
+import tqdm
 
 # Authenticate with openai
 openai.api_key = os.getenv("GPT_3_API_KEY")
@@ -35,22 +36,16 @@ class Experiment:
 
     def run(self):
         """Get results from GPT-3 API"""
-        for (row_idx, row_dict) in self._ds.prompts.items():
+        for (row_idx, row_dict) in tqdm.tqdm(self._ds.prompts.items()):
             self._results[row_idx] = {}
             for (dv_name, prompt) in row_dict.items():
                 response = self._process_prompt(prompt)
-                target = self._ds.data.loc[row_idx][dv_name]
+                raw_target = self._ds.data.loc[row_idx][dv_name]
+                dv_proc_func = self._ds._get_prompt_instructions()[dv_name][1]
+                target = dv_proc_func(raw_target)
                 self._results[row_idx][dv_name] = (prompt, response, target)
 
     def save_results(self, fname):
         """Save results obtained from run method"""
         with open(fname, "wb") as f:
             pickle.dump(self._results, f)
-
-
-if __name__ == '__main__':
-    from survey_datasets import ExampleSurveyDataset
-    ds = ExampleSurveyDataset(n_exemplars=5)
-    e = Experiment(ds, gpt_3_engine="ada")
-    e.run()
-    e.save_results("star_wars_results.pkl")
