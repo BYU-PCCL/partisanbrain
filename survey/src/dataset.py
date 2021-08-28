@@ -67,8 +67,9 @@ class Dataset(abc.ABC):
         self._prompts_dict = {}
         for dv in dv_col_names.values():
 
-            # Filter the series for col_name
-            self._dvs[dv] = self._get_dv_filter_funcs()[dv](self._dvs[dv])
+            # Filter the dv series
+            ok_keys = self._get_col_prompt_specs()[dv].answer_map.keys()
+            self._dvs[dv] = self._dvs[dv][self._dvs[dv].isin(list(ok_keys))]
             self._dvs[dv] = self._dvs[dv].dropna()
 
             # Sample
@@ -127,10 +128,6 @@ class Dataset(abc.ABC):
         Return a dictionary with column names as keys and convenience
         names as values
         """
-        pass
-
-    @abc.abstractclassmethod
-    def _get_dv_filter_funcs(self):
         pass
 
     @abc.abstractmethod
