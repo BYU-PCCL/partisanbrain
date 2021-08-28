@@ -75,11 +75,11 @@ class Dataset(abc.ABC):
 
             # Warn if self._dvs[dv] has values not represented in the
             # keys of the dv's associated answer_map
+            self._dvs[dv] = self._dvs[dv].dropna()
             unique_vals = self._dvs[dv].unique()
             missing_vals = set(unique_vals) - set(ok_keys)
 
             self._dvs[dv] = self._dvs[dv][self._dvs[dv].isin(list(ok_keys))]
-            self._dvs[dv] = self._dvs[dv].dropna()
             for val in missing_vals:
                 warnings.warn((f"The dv {dv} has value \"{val}\" not "
                                "represented in its associated "
