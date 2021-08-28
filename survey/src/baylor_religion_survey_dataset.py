@@ -11,97 +11,52 @@ class BaylorReligionSurveyDataset(Dataset):
         # no region demographic
 
     def _get_dv_filter_funcs(self):
-        return {"econ_today": lambda x: x[x != "Refused"],
-                "econ_year_away": lambda x: x,
-                "country_satisfied": lambda x: x,
-                "election_wellness": lambda x: x}
+        return {"bible_beliefs": lambda x: x[x != "I don't know."]}
 
 
     def _filter_demographics(self, df):
-        return 
+        new_df = new_df[new_df["religion"] != "Other" OR "Don't know"]
+        new_df = new_df[new_df["race"] != "No races chosen"]
+
+        return
 
     def _filter_to_usa(self, df):
         """Return a new dictionary where all respondents are from USA"""
         return df
 
-    def _format(self, df):
+    def _get_dv_col_names(self):
+        return {"T7G": "tech_oppor",
+                "MP4A": "trans_restrooms",
+                "Q61D": "gay_is_it_choice",
+                "MP4G": "husband_salary",
+                "MP4F": "women_childcare",
+                "MP4D": "men_suited_politics",
+                "MP4J": "refugees_terrorist_threat",
+                "MP4K": "mexican_immigrants_criminals",
+                "Q45": "life_happiness",
+                "H13E": "depressed_freq",
+                "H12": "days_of_exercise",
+                "MP4H": "police_racial_treatment",
+                "MP4I": "racial_violence",
+                "Q17": "bible_beliefs",
+                "Q18": "god_beliefs",
+                "Q19A": "god_concern_for_world",
+                "Q19D": "god_concern_for_individuals",
+                "Q4": "church_attendance",
+                "MP12F": "prayer_in_school",
+                "R20F": "gods_plan"}
 
-        # Dropping all but relevant columns
-        demographic_col_names = ["AGE",
-                     "Q77",
-                     "Q32",
-                     "I-EDUC",
-                     "Q31",
-                     "Q95",
-                     "Q1",
-                     "RACE",
-                     "D9"]
+    def _get_demographic_col_names(self):
+        return {"AGE": "age",
+                "Q77": "gender",
+                "Q32": "party",
+                "I-EDUC": "edu",
+                "Q31": "ideology",
+                "Q95": "income",
+                "Q1": "religion",
+                "RACE": "race",
+                "D9": "marital"}
 
-        dv_col_names = ["T7G",
-                        "MP4A",
-                        "Q61D",
-                        "MP4G",
-                        "MP4F",
-                        "MP4D",
-                        "MP4J",
-                        "MP4K",
-                        "Q45",
-                        "H13E",
-                        "H12",
-                        "MP4H",
-                        "MP4I",
-                        "Q17",
-                        "Q18",
-                        "Q19A",
-                        "Q19D",
-                        "Q4",
-                        "MP12F",
-                        "R20F"]
-
-        new_df = df[demographic_col_names + dv_col_names]
-
-        # Renaming columns for convenience
-        new_df = new_df.rename({"AGE": "age",
-                                "Q77": "gender",
-                                "Q32": "party",
-                                "I-EDUC": "edu",
-                                "Q31": "ideology",
-                                "Q95": "income",
-                                "Q1": "religion",
-                                "RACE": "race",
-                                "D9": "marital",
-                                "T7G": "tech_oppor",
-                                "MP4A": "trans_restrooms",
-                                "Q61D": "gay_is_it_choice",
-                                "MP4G": "husband_salary",
-                                "MP4F": "women_childcare",
-                                "MP4D": "men_suited_politics",
-                                "MP4J": "refugees_terrorist_threat",
-                                "MP4K": "mexican_immigrants_criminals",
-                                "Q45": "life_happiness",
-                                "H13E": "depressed_freq",
-                                "H12": "days_of_exercise",
-                                "MP4H": "police_racial_treatment",
-                                "MP4I": "racial_violence",
-                                "Q17": "bible_beliefs",
-                                "Q18": "god_beliefs",
-                                "Q19A": "god_concern_for_world",
-                                "Q19D": "god_concern_for_individuals",
-                                "Q4": "church_attendance",
-                                "MP12F": "prayer_in_school",
-                                ("R20F"): "gods_plan"},
-                               axis=1)
-
-        # Dropping rows with problematic values
-        new_df = new_df.dropna(axis=0)
-        new_df = new_df[new_df["religion"] != "Other" OR "Don't know"]
-        new_df = new_df[new_df["race"] != "No races chosen"]
-        new_df = new_df[new_df]["bible_beliefs"] != "I don't know."
-
-        # Randomly sample 500 + self._n_exemplars rows
-        new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-
-        return new_df
 
     def _make_backstory(self, row):
         backstory = []
@@ -184,165 +139,206 @@ class BaylorReligionSurveyDataset(Dataset):
         return backstory
 
 
-    def _get_prompt_instructions(self):
-        return {"tech_oppor":(("To what extent do you agree with the following? "
+    def _get_col_prompt_specs(self):
+        return{"tech_oppor": PromptSpecs(question=("To what extent do you agree with the following? "
                                 "Technology gives me new and better employment "
                                 "opportunities."),
-                                lambda x: {"Strongly agree": "agree",
+                                answer_prefix="I ",
+                                answer_map={"Strongly agree": "agree",
                                            "Agree": "agree",
                                            "Disagree": "disagree",
-                                           "Strongly Disagree": "disagree"}[x]),
-                "trans_restrooms":(("Please rate the extent to which you agree "
+                                           "Strongly Disagree": "disagree"}),
+                "trans_restrooms": PromptSpecs(question=("Please rate the extent to which you agree "
                                     "or disagree with the following statements: "
                                     "Transgender people should be allowed to "
                                     "use the public restroom of their choice."),
-                                    lambda x: {"Strongly agree": "agree",
-                                               "Agree": "agree",
-                                               "Disagree": "disagree",
-                                               "Strongly Disagree": "disagree"}[x]),
-                "gay_is_it_choice":(("Please rate the extent to which you agree "
+                                    "I ",
+                                    {"Strongly agree": "agree",
+                                    "Agree": "agree",
+                                    "Disagree": "disagree",
+                                    "Strongly Disagree": "disagree"}),
+                "gay_is_it_choice": PromptSpecs(question=("Please rate the extent to which you agree "
                                      "or disagree with the following "
                                      "statements: People choose to be "
                                      "gay/lesbian."),
-                                     lambda x: {"Strongly agree": "agree",
-                                                "Agree": "agree",
-                                                "Disagree": "disagree",
-                                                "Strongly Disagree": "disagree"}[x]),
-                "husband_salary":(("Please rate the extent to which you agree "
+                                     "I ",
+                                     {"Strongly agree": "agree",
+                                     "Agree": "agree",
+                                     "Disagree": "disagree",
+                                     "Strongly Disagree": "disagree"}),
+                "husband_salary": PromptSpecs(question=("Please rate the extent to which you agree "
                                    "or disagree with the following statements: "
                                    "A husband should earn a larger salary than "
                                    "his wife."),
-                                   lambda x: {"Strongly agree": "agree",
-                                              "Agree": "agree",
-                                              "Disagree": "disagree",
-                                              "Strongly Disagree": "disagree"}[x]),
-                "women_childcare":(("Please rate the extent to which you agree "
+                                   "I ",
+                                   {"Strongly agree": "agree",
+                                   "Agree": "agree",
+                                   "Disagree": "disagree",
+                                   "Strongly Disagree": "disagree"}),
+                "women_childcare": PromptSpecs(question=("Please rate the extent to which you agree "
                                     "or disagree with the following "
                                     "statements: It is God's will that women "
                                     "care for children."),
-                                    lambda x: {"Strongly agree": "agree",
-                                               "Agree": "agree",
-                                               "Disagree": "disagree",
-                                               "Strongly Disagree": "disagree"}[x]),
-                "men_suited_politics":(("Please rate the extent to which you "
+                                    "I ",
+                                    {"Strongly agree": "agree",
+                                    "Agree": "agree",
+                                    "Disagree": "disagree",
+                                    "Strongly Disagree": "disagree"}),
+                "men_suited_politics": PromptSpecs(question=("Please rate the extent to which you "
                                         "agree or disagree with the following "
                                         "statements: Men are better suited "
                                         "emotionally for politics than women."),
-                                        lambda x: {"Strongly agree": "agree",
-                                                   "Agree": "agree",
-                                                   "Disagree": "disagree",
-                                                   "Strongly Disagree": "disagree"}[x]),
-                "refugees_terrorist_threat":(("Please rate the extent to which "
+                                        "I ",
+                                        {"Strongly agree": "agree",
+                                        "Agree": "agree",
+                                        "Disagree": "disagree",
+                                        "Strongly Disagree": "disagree"}),
+                "refugees_terrorist_threat": PromptSpecs(question=("Please rate the extent to which "
                                               "you agree or disagree with the "
                                               "following statements: Refugees "
                                               "from the Middle East pose a "
                                               "terrorist threat to the United "
                                               "States."),
-                                              lambda x: {"Strongly agree": "agree",
-                                                         "Agree": "agree",
-                                                         "Disagree": "disagree",
-                                                         "Strongly Disagree": "disagree"}[x]),
-                "mexican_immigrants_criminals":(("Please rate the extent to "
+                                              "I ",
+                                              {"Strongly agree": "agree",
+                                              "Agree": "agree",
+                                              "Disagree": "disagree",
+                                              "Strongly Disagree": "disagree"}),
+                "mexican_immigrants_criminals":PromptSpecs(question=("Please rate the extent to "
                                                  "which you agree or disagree "
                                                  "with the following "
                                                  "statements: Illegal "
                                                  "immigrants from Mexico are "
                                                  "mostly dangerous criminals."),
-                                                 lambda x: {"Strongly agree": "agree",
-                                                            "Agree": "agree",
-                                                            "Disagree": "disagree",
-                                                            "Strongly Disagree": "disagree"}[x]),
-                "life_happiness":(("In general, how happy are you with your "
+                                                 "I ",
+                                                 {"Strongly agree": "agree",
+                                                 "Agree": "agree",
+                                                 "Disagree": "disagree",
+                                                 "Strongly Disagree": "disagree"}),
+                "life_happiness": PromptSpecs(question=("In general, how happy are you with your "
                                    "life as a whole these days?"),
-                                   lambda x: {"Not too happy": "sad",
-                                              "Pretty happy": "happy"
-                                              "Very happy": "happy"}[x]),
-                "depressed_freq":(("In the past WEEK, about how often have you "
+                                   "In general I am "
+                                   {"Not too happy": "sad",
+                                    "Pretty happy": "happy"
+                                    "Very happy": "happy"}),
+                "depressed_freq": PromptSpecs(question=("In the past WEEK, about how often have you "
                                    "had the following feelings? I felt "
                                    "depressed."),
-                                   lambda x: {"Never": "never",
-                                              "Hardly ever": "rarely",
-                                              "Some of the time": "sometimes"
-                                              "Most or all of the time": "frequently"}[x]),
-                "days_of_exercise":(("How many DAYS per WEEK do you do exercise "
+                                   "In the last week I have felt depressed "
+                                   {"Never": "never",
+                                    "Hardly ever": "rarely",
+                                    "Some of the time": "sometimes"
+                                    "Most or all of the time": "frequently"}),
+                "days_of_exercise": PromptSpecs(question=("How many DAYS per WEEK do you do exercise "
                                      "for at least 30 minutes?"),
-                                     lambda x: x),
-                "police_racial_treatment":(("Please rate the extent to which "
+                                     "I exercise this many times: "
+                                     {"0": "zero",
+                                     "1": "one",
+                                     "2": "two",
+                                     "3": "three",
+                                     "4": "four",
+                                     "5": "five",
+                                     "6": "six",
+                                     "7": "seven"}),
+                "police_racial_treatment": PromptSpecs(question=("Please rate the extent to which "
                                             "you agree or disagree with the "
                                             "following statements: Police "
                                             "officers in the United States "
                                             "treat blacks the same as whites."),
-                                            lambda x: {"Strongly agree": "agree",
-                                                       "Agree": "agree",
-                                                       "Disagree": "disagree",
-                                                       "Strongly Disagree": "disagree"}[x]),
-                "racial_violence":(("Please rate the extent to which you agree "
+                                            "I ",
+                                            {"Strongly agree": "agree",
+                                            "Agree": "agree",
+                                            "Disagree": "disagree",
+                                            "Strongly Disagree": "disagree"}),
+                "racial_violence": PromptSpecs(question=("Please rate the extent to which you agree "
                                     "or disagree with the following statements: "
                                     "Police officers in the United States shoot "
                                     "blacks more often because they are more "
                                     "violent than whites."),
-                                    lambda x: {"Strongly agree": "agree",
-                                               "Agree": "agree",
-                                               "Disagree": "disagree",
-                                               "Strongly Disagree": "disagree"}[x]),
-                "bible_beliefs":(("I think the Bible is"),
-                                  lambda x: {"The Bible means exactly what it says. It should be "
-                                             "taken literally, word-for-word, on all subjects.": "literal",
-                                             "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "true but not literal",
-                                             "The Bible contains some human error.": "flawed",
-                                             "The Bible is an ancient book of history and legends.": "legend"}[x]),
-                "god_beliefs":(("I think the existence of God is"),
-                                lambda x: {"I have no doubts that God exists": "real",
+                                    "I ",
+                                    {"Strongly agree": "agree",
+                                    "Agree": "agree",
+                                    "Disagree": "disagree",
+                                    "Strongly Disagree": "disagree"}),
+                "bible_beliefs": PromptSpecs(question=("I think the Bible is"),
+                                    "I believe the bible is "
+                                  {"The Bible means exactly what it says. It should be "
+                                    "taken literally, word-for-word, on all subjects.": "literal",
+                                    "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "true but not literal",
+                                    "The Bible contains some human error.": "flawed",
+                                    "The Bible is an ancient book of history and legends.": "legend"}[x]),
+                "god_beliefs": PromptSpecs(question=("I think the existence of God is"),
+                                           "I think that God's existence is "
+                                          {"I have no doubts that God exists": "real",
                                            "I believe in God, but with some doubts": "real",
                                            "I sometimes believe in God": "possible",
                                            "I believe in a higher power of cosmic force": "complicated, not simple",
                                            "I don't know and there is no way to find out": "unknown",
                                            "I do not believe in God": "false",
                                            "I have no opinion": "unimportant"}[x]),
-                "god_concern_for_world":(("Based on your personal understanding "
+                "god_concern_for_world": PromptSpecs(question=("Based on your personal understanding "
                                           "of God, please rate the extent to "
                                           "which you agree or disagree with "
                                           "the following statements: God is "
                                           "concerned with the well-being of the "
                                           "world."),
-                                          lambda x: {"Strongly agree": "agree",
-                                                     "Agree": "agree",
-                                                     "Disagree": "disagree",
-                                                     "Strongly Disagree": "disagree"}[x]),
-                "god_concern_for_individuals":(("Based on your personal "
+                                          "I ",
+                                          {"Strongly agree": "agree",
+                                          "Agree": "agree",
+                                          "Disagree": "disagree",
+                                          "Strongly Disagree": "disagree"}),
+                "god_concern_for_individuals": PromptSpecs(question=("Based on your personal "
                                                 "understanding of God, please "
                                                 "rate the extent to which you "
                                                 "agree or disagree with the "
                                                 "following statements: God is "
                                                 "concerned with my personal "
                                                 "well-being."),
-                                                lambda x: {"Strongly agree": "agree",
-                                                           "Agree": "agree",
-                                                           "Disagree": "disagree",
-                                                           "Strongly Disagree": "disagree"}[x]),
-                "church_attendance":(("How often do you attend religious "
+                                                "I ",
+                                                {"Strongly agree": "agree",
+                                                "Agree": "agree",
+                                                "Disagree": "disagree",
+                                                "Strongly Disagree": "disagree"}),
+                "church_attendance": PromptSpecs(question=("How often do you attend religious "
                                       "services at a place of worship?"),
-                                      lambda x: {"Never": "never",
-                                                 "Less than once a year": "rarely",
-                                                 "Once or twice a year": "annually",
-                                                 "Several times a year": "sometimes",
-                                                 "Once a month": "monthly",
-                                                 "2 to 3 times a month": "biweekly",
-                                                 "About once a week": "weekly",
-                                                 "Several times a week": "frequently"}[x]),
-                "prayer_in_school":(("Please rate the extent to which you agree "
+                                      "I attend religious services "
+                                      {"Never": "never",
+                                      "Less than once a year": "rarely",
+                                      "Once or twice a year": "annually",
+                                      "Several times a year": "sometimes",
+                                      "Once a month": "monthly",
+                                      "2 to 3 times a month": "biweekly",
+                                      "About once a week": "weekly",
+                                      "Several times a week": "frequently"}[x]),
+                "prayer_in_school": PromptSpecs(question=("Please rate the extent to which you agree "
                                      "or disagree with the following "
                                      "statements: The federal government "
                                      "should allow prayer in public schools."),
-                                     lambda x: {"Strongly agree": "agree",
-                                                "Agree": "agree",
-                                                "Disagree": "disagree",
-                                                "Strongly Disagree": "disagree"}[x]),
-                "gods_plan":(("Please rate the extent to which you agree or "
+                                     "I ",
+                                     {"Strongly agree": "agree",
+                                     "Agree": "agree",
+                                     "Disagree": "disagree",
+                                     "Strongly Disagree": "disagree"}),
+                "gods_plan": PromptSpecs(question=("Please rate the extent to which you agree or "
                               "disagree with the following statements: When "
                               "good or bad things happen to me, I see it as "
                               "part of God's plan for me."),
-                              lambda x: {"Strongly agree": "agree",
-                                         "Agree": "agree",
-                                         "Disagree": "disagree",
-                                         "Strongly Disagree": "disagree"}[x]),
+                              "I ",
+                              {"Strongly agree": "agree",
+                              "Agree": "agree",
+                              "Disagree": "disagree",
+                              "Strongly Disagree": "disagree"}),
+}
+
+    if __name__ == "__main__":
+        ds = BaylorReligionSurveyDataset()
+        # Uncomment this to see a sample of your prompts
+        # First prompt for each DV
+        for dv_name in ds.dvs.keys():
+            dv_prompts = ds.prompts[dv_name]
+            print(dv_prompts[list(dv_prompts.keys())[0]])
+            print()
+
+
+
+            
