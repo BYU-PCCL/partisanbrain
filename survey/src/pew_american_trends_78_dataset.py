@@ -1,5 +1,5 @@
-from new_dataset import Dataset
-from new_dataset import PromptSpecs
+from dataset import Dataset
+from dataset import PromptSpecs
 
 
 class PewAmericanTrendsWave78Dataset(Dataset):
