@@ -164,7 +164,10 @@ class Dataset(abc.ABC):
         specs = self._get_col_prompt_specs()[col_name]
 
         prompt = "If asked to choose either "
-        answer_opts = set(specs.answer_map.values())
+        answer_opts = []
+        for opt in specs.answer_map.values():
+            if opt not in answer_opts:
+                answer_opts.append(opt)
 
         # There should be a space after prefix if it exists
         prefix = f"\"{specs.answer_prefix}"
