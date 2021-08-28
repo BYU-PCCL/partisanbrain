@@ -164,8 +164,14 @@ class Dataset(abc.ABC):
         specs = self._get_col_prompt_specs()[col_name]
 
         prompt = "If asked to choose either "
-        answer_opts = specs.answer_map.values()
-        answers = [f"\"{specs.answer_prefix} {v}\"" for v in answer_opts]
+        answer_opts = set(specs.answer_map.values())
+
+        # There should be a space after prefix if it exists
+        prefix = f"\"{specs.answer_prefix}"
+        if len(specs.answer_prefix):
+            prefix = "\"" + specs.answer_prefix + " "
+
+        answers = [prefix + v + "\"" for v in answer_opts]
         prompt += " OR ".join(answers)
         prompt += " in response to the question, "
         prompt += f"\"{specs.question}\""
