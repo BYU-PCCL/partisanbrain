@@ -268,24 +268,20 @@ class BaylorReligionSurveyDataset(Dataset):
                                                "Agree": "agree",
                                                "Disagree": "disagree",
                                                "Strongly Disagree": "disagree"}[x]),
-                "bible_beliefs":(("Which one statement comes closest to your "
-                                  "personal beliefs about the Bible? (Please "
-                                  "mark only one box.)"),
+                "bible_beliefs":(("I think the Bible is"),
                                   lambda x: {"The Bible means exactly what it says. It should be "
-                                             "taken literally, word-for-word, on all subjects.": "",
-                                             "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "",
-                                             "The Bible contains some human error.": "",
-                                             "The Bible is an ancient book of history and legends.": ""}[x]),
-                "god_beliefs":(("Which one statement comes closest to your "
-                                "personal beliefs about God? (Please mark only "
-                                "one box.)"),
-                                lambda x: {"I have no doubts that God exists": "",
-                                           "I believe in God, but with some doubts": "",
-                                           "I sometimes believe in God": "",
-                                           "I believe in a higher power of cosmic force": "",
-                                           "I don't know and there is no way to find out": "",
-                                           "I do not believe in God": "",
-                                           "I have no opinion": ""}[x]),
+                                             "taken literally, word-for-word, on all subjects.": "literal",
+                                             "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "true but not literal",
+                                             "The Bible contains some human error.": "flawed",
+                                             "The Bible is an ancient book of history and legends.": "legend"}[x]),
+                "god_beliefs":(("I think the existence of God is"),
+                                lambda x: {"I have no doubts that God exists": "real",
+                                           "I believe in God, but with some doubts": "real",
+                                           "I sometimes believe in God": "possible",
+                                           "I believe in a higher power of cosmic force": "complicated, not simple",
+                                           "I don't know and there is no way to find out": "unknown",
+                                           "I do not believe in God": "false",
+                                           "I have no opinion": "unimportant"}[x]),
                 "god_concern_for_world":(("Based on your personal understanding "
                                           "of God, please rate the extent to "
                                           "which you agree or disagree with "
@@ -316,7 +312,7 @@ class BaylorReligionSurveyDataset(Dataset):
                                                  "Once a month": "monthly",
                                                  "2 to 3 times a month": "biweekly",
                                                  "About once a week": "weekly",
-                                                 "Several times a week": ""}[x]), #dailyish??? Not sure which word to use here??
+                                                 "Several times a week": "frequently"}[x]),
                 "prayer_in_school":(("Please rate the extent to which you agree "
                                      "or disagree with the following "
                                      "statements: The federal government "
