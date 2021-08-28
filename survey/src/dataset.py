@@ -1,4 +1,4 @@
-from .opener import Opener
+from opener import Opener
 
 import abc
 import warnings
@@ -77,13 +77,13 @@ class Dataset(abc.ABC):
             # keys of the dv's associated answer_map
             unique_vals = self._dvs[dv].unique()
             missing_vals = set(unique_vals) - set(ok_keys)
+
+            self._dvs[dv] = self._dvs[dv][self._dvs[dv].isin(list(ok_keys))]
+            self._dvs[dv] = self._dvs[dv].dropna()
             for val in missing_vals:
                 warnings.warn((f"The dv {dv} has value \"{val}\" not "
                                "represented in its associated "
                                "answer_map"))
-
-            self._dvs[dv] = self._dvs[dv][self._dvs[dv].isin(list(ok_keys))]
-            self._dvs[dv] = self._dvs[dv].dropna()
 
             # Sample
             if len(self._dvs[dv]) >= self._samples:
