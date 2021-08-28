@@ -29,10 +29,12 @@ class Dataset(abc.ABC):
 
     def __init__(self,
                  fname,
+                 min_samples=800,
                  opening_func=None,
                  samples=1000,
                  sampling_random_state=0):
 
+        self._min_samples = min_samples
         self._samples = samples
         self._seed = sampling_random_state
 
@@ -84,10 +86,15 @@ class Dataset(abc.ABC):
             self._dvs[dv] = self._dvs[dv].dropna()
 
             # Sample
-            try:
+            if len(self._dvs[dv]) >= self._samples:
                 self._dvs[dv] = self._dvs[dv].sample(n=self._samples,
                                                      random_state=self._seed)
-            except ValueError:
+            elif len(self._dvs[dv]) >= self._min_samples:
+                warnings.warn((f"DV {dv} only has {len(self._dvs[dv])} "
+                               "samples. Sampling anyways because {dv} has "
+                               f"at least {self._min_samples} (min_samples) "
+                               "values."))
+            else:
                 raise ValueError((f"DV {dv} only has {len(self._dvs[dv])} "
                                   "values, which is not enough "
                                   "to allow for sampling responses from "
