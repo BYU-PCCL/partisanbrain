@@ -1,37 +1,89 @@
 from opener import Opener
 
 import abc
-import random
+
+
+class PromptSpecs:
+
+    def __init__(self, question, answer_prefix, answer_map):
+        self._question = question
+        self._answer_prefix = answer_prefix
+        self._answer_map = answer_map
+
+    @property
+    def question(self):
+        return self._question
+
+    @property
+    def answer_prefix(self):
+        return self._answer_prefix
+
+    @property
+    def answer_map(self):
+        return self._answer_map
 
 
 class Dataset(abc.ABC):
     """Base class for datasets."""
 
-    def __init__(self, fname, n_exemplars, opening_func=None):
+    def __init__(self,
+                 fname,
+                 opening_func=None,
+                 samples=1000,
+                 sampling_random_state=0):
+
+        self._samples = samples
+        self._seed = sampling_random_state
 
         # Load data into pandas DataFrame
-        self._data = Opener().open(fname, opening_func=opening_func)
+        data = Opener().open(fname, opening_func=opening_func)
 
-        # Filter down to relevant rows and columns
-        # and format them properly
-        self._data = self._format(self._data)
+        # Filter down to rows where respondents are from USA
+        data = self._filter_to_usa(data)
 
-        # Choose exemplars
-        exemplar_idxs = self._get_exemplar_idxs(n_exemplars)
-        self._exemplars = self._data.loc[self._data.index.isin(exemplar_idxs)]
-        self._data = self._data.loc[~self._data.index.isin(exemplar_idxs)]
+        # Make demographics table
+        demographic_col_names = self._get_demographic_col_names()
+        self._demographics = data[list(demographic_col_names.keys())]
+        self._demographics = self._demographics.rename(demographic_col_names,
+                                                       axis=1)
 
-        # Get row and exemplar backstories (so they only need
-        # to be calculated once)
+        # Filter out rows from demographics that have uninformative
+        # or missing values
+        self._demographics = self._filter_demographics(self._demographics)
+        self._demographics = self._demographics.dropna(axis=0)
+
+        # Get row backstories (so they only need to be calculated once)
         self._row_backstories = {idx: self._make_backstory(row) for (idx, row)
-                                 in self._data.iterrows()}
-        self._exemplar_backstories = [self._make_backstory(row) for (_, row)
-                                      in self._exemplars.iterrows()]
+                                 in self._demographics.iterrows()}
+
+        # Get DV dataframe
+        dv_col_names = self._get_dv_col_names()
+        dvs = data[list(dv_col_names.keys())]
+        dvs = dvs.rename(dv_col_names, axis=1)
+        dvs = dvs.iloc[self.kept_indices]
+        self._dvs = {cn: dvs[cn] for cn in dv_col_names.values()}
 
         # Make a mapping from row index to row's prompts data
         self._prompts_dict = {}
-        for idx in self.kept_indices:
-            self._prompts_dict[idx] = self._make_prompts(idx)
+        for dv in dv_col_names.values():
+
+            # Filter the series for col_name
+            self._dvs[dv] = self._get_dv_filter_funcs()[dv](self._dvs[dv])
+            self._dvs[dv] = self._dvs[dv].dropna()
+
+            # Sample
+            try:
+                self._dvs[dv] = self._dvs[dv].sample(n=self._samples,
+                                                     random_state=self._seed)
+            except ValueError:
+                raise ValueError((f"DV {dv} only has {len(self._dvs[dv])} "
+                                  "values, which is not enough "
+                                  "to allow for sampling responses from "
+                                  f"{self._samples} respondents"))
+
+            self._prompts_dict[dv] = {}
+            for idx in self._dvs[dv].index:
+                self._prompts_dict[dv][idx] = self._make_prompt(idx, dv)
 
     @property
     def prompts(self):
@@ -39,36 +91,46 @@ class Dataset(abc.ABC):
         return self._prompts_dict
 
     @property
+    def dvs(self):
+        """{dv_name: dv_series}"""
+        return self._dvs
+
+    @property
     def kept_indices(self):
-        return self._data.index.tolist()
-
-    @property
-    def data(self):
-        return self._data
-
-    @property
-    def exemplars(self):
-        return self._exemplars
+        return self._demographics.index.tolist()
 
     @property
     def row_backstories(self):
         return self._row_backstories
 
-    @property
-    def exemplar_backstories(self):
-        return self._exemplar_backstories
+    @abc.abstractclassmethod
+    def _filter_demographics(self, df):
+        """Filter out rows with unhelpful values"""
+        pass
 
-    @abc.abstractmethod
-    def _format(self, df):
+    @abc.abstractclassmethod
+    def _filter_to_usa(self, df):
+        """Return a new dictionary where all respondents are from USA"""
+        pass
+
+    @abc.abstractclassmethod
+    def _get_demographic_col_names(self):
         """
-        Here subclass should implement filtering rows and
-        columns, handling NA, and anything else related to
-        the dataframe. Return the resulting dataframe. DO
-        NOT modify df in place - return a new dataframe. ALL
-        modifying of column values (binning, etc.) should
-        happen here (not in the _make_backstory or _make_prompts
-        methods).
+        Return a dictionary with column names as keys and convenience
+        names as values
         """
+        pass
+
+    @abc.abstractclassmethod
+    def _get_dv_col_names(self):
+        """
+        Return a dictionary with column names as keys and convenience
+        names as values
+        """
+        pass
+
+    @abc.abstractclassmethod
+    def _get_dv_filter_funcs(self):
         pass
 
     @abc.abstractmethod
@@ -82,7 +144,7 @@ class Dataset(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _get_prompt_instructions(self):
+    def _get_col_prompt_specs(self):
         """
         Here subclass should return a dictionary where each key
         is a column name present in the formatted self._data and
@@ -99,24 +161,14 @@ class Dataset(abc.ABC):
 
     def _make_prompt(self, row_idx, col_name):
         row_backstory = self._row_backstories[row_idx]
-        prompt_str, dv_func = self._get_prompt_instructions()[col_name]
+        specs = self._get_col_prompt_specs()[col_name]
 
-        exemplar_dv_strs = [prompt_str + " " + dv_func(e[col_name]) for (_, e)
-                            in self._exemplars.iterrows()]
-        prompt = ""
-        for i in range(len(self._exemplars)):
-            prompt += self._exemplar_backstories[i] + " "
-            prompt += exemplar_dv_strs[i] + ".\n"
-        prompt += row_backstory + " "
-        prompt += prompt_str
+        prompt = "If asked to choose either "
+        answer_opts = specs.answer_map.values()
+        answers = [f"\"{specs.answer_prefix} {v}\"" for v in answer_opts]
+        prompt += " OR ".join(answers)
+        prompt += " in response to the question, "
+        prompt += f"\"{specs.question}\""
+        prompt += f" I'd choose \"{specs.answer_prefix}"
 
-        return prompt
-
-    def _make_prompts(self, row_idx):
-        prompts = {}
-        for col_name in self._get_prompt_instructions().keys():
-            prompts[col_name] = self._make_prompt(row_idx, col_name)
-        return prompts
-
-    def _get_exemplar_idxs(self, n):
-        return random.sample(self.kept_indices, n)
+        return f"{row_backstory} {prompt}"
