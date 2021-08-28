@@ -26,8 +26,8 @@ class PRRIDataset(Dataset):
         dv_col_names = ["Q20A",
                         "Q20B",
                         "Q29",
-                        "Q27D",
-                        "Q19",
+                        "Q27P",
+                        "Q18C",
                         "Q30",
                         "Q31",
                         "Q35C",
@@ -38,10 +38,10 @@ class PRRIDataset(Dataset):
                         "Q22",
                         "Q26E",
                         "Q26F",
-                        "Q27B",
-                        "Q27I",
-                        "Q27L",
-                        "Q27G",
+                        "Q27O",
+                        "Q27R",
+                        "Q33",
+                        "Q27N",
                         "Q20D"]
 
         new_df = df[demographic_col_names + dv_col_names]
@@ -62,8 +62,8 @@ class PRRIDataset(Dataset):
                                 "Q20A": "electing_women",
                                 "Q20B": "electing_LGBTQIA",
                                 "Q29": "do_more_for_LGBTQIA",
-                                "Q27D": "slavery_effects",
-                                "Q19": "putin_opinion",
+                                "Q27P": "immigrant_preference",
+                                "Q18C": "putin_opinion",
                                 "Q30": "view_on_immigration",
                                 "Q31": "perspective_on_immigration",
                                 "Q35C": "laws_preventing_refugees",
@@ -74,28 +74,28 @@ class PRRIDataset(Dataset):
                                 "Q22": "police_brutality_pattern",
                                 "Q26E": "asian_discrimination",
                                 "Q26F": "hispanic_discrimination",
-                                "Q27B": "effect_of_effort_for_blacks",
-                                "Q27I": "racial_issues_isolated",
-                                "Q27L": "gender_discrimination_toward_men",
-                                "Q27G": "fear_other_races",
-                                "Q20D": "elect_non_religious"},
+                                "Q27O": "white_vs_black_discrimination",
+                                "Q27R": "stranger_in_own_country",
+                                "Q33" : "demographic_change_opinion",
+                                "Q27N": "use_of_racism",
+                                "Q20D": "elect_non_christian"},
                                 axis=1)
 
         # Dropping rows with problematic values
+        problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
         new_df = new_df[new_df["religion"] != "Something else"]
-        new_df = new_df[new_df["religion"] != "Skipped on web"]
-        new_df = new_df[new_df["religion"] != "Don't know (VOL.)"]
-        new_df = new_df[new_df["religion"] != "Refused"]
-
         new_df = new_df[new_df["party"].isin(["A Democrat",
                                               "A Republican",
                                               "An Independent"])]
 
-        new_df = new_df[new_df["ideology"] != "Refused"]
-        new_df = new_df[new_df["ideology"] != "Don't know (VOL.)"]
-        new_df = new_df[new_df["ideology"] != "Skipped on web"]
-
         new_df = new_df[new_df["race_ethnicity"] != "Other, non-Hispanic"]
+
+        new_df = new_df[new_df["immigrant_citizenship"] != "None of these"]
+
+        for col_name in list(new_df):
+            new_df = new_df[~new_df[col_name].isin(problematic_values)]
+
+        new_df = new_df.dropna()
 
         return new_df
 
@@ -202,16 +202,132 @@ class PRRIDataset(Dataset):
             backstory.append(f"I'm {row['marital_status'].lower()}.")
 
         # Date
-        backstory.append("It's November 2020.")
+        backstory.append("It is between September and October 2018.")
 
         return " ".join(backstory)
 
     def _get_prompt_instructions(self):
-        return {"shot_first": (("Between Han and Greedo I think the one "
-                                "who shot first was"),
-                               lambda x: x),
-                "fan": ("When asked if I'm a Star Wars fan I say",
-                        lambda x: x.lower())}
-
-PRRIDataset(n_exemplars=5)
-
+        return {"electing_women": (("I think electing more women to office would make things"),
+                               lambda x: {"Better": "better",
+                                          "Worse": "worse",
+                                          "Not much different": "same"}),
+                "electing_LGBTQIA": ("I think electing more lesbian, gay, bisexual, and "
+                                     "transgender people would make things",
+                                lambda x: {"Better": "better",
+                                          "Worse": "worse",
+                                          "Not much different": "same"}),
+                "do_more_for_LGBTQIA": (("If asked (yes or no) whether the US has done enough "
+                                        "to give gay and lesbian people equal rights, I'd say"),
+                                lambda x: {"Our country has made the changes needed to give "
+                                           "gay and lesbian people equal rights with other "
+                                           "Americans": "yes",
+                                           "Our country needs to continue making changes to "
+                                           "give gay and lesbian people equal rights with other "
+                                           "Americans": "no"}),
+                "immigrant_preference": (("If asked (yes or no) whether I think we should give preference "
+                                         "to immigrants from Western Europe, who share our values I'd say"),
+                                lambda x: {"Completely agree": "yes",
+                                           "Mostly agree" : "yes",
+                                           "Mostly disagree": "no",
+                                           "Completely disagree": "no"}),
+                "putin_opinion": (("If asked (yes or no) about my opinion of Russian President "
+                                   "Vladimir Putin I'd say"),
+                                lambda x: {"Completely agree": "yes",
+                                           "Mostly agree" : "yes",
+                                           "Mostly disagree": "no",
+                                           "Completely disagree": "no"}),
+                "view_on_immigration": (("I think the growing number of newcomers from other "
+                                         " countries is "),
+                                lambda x: {"Threatens traditional American "
+                                           "customs and values": "bad",
+                                           "Strengthens American society" : "good"}),
+                "perspective_on_immigration": (("My overall perspective on immigration is that it is"),
+                                lambda x: {"Immigrants today strengthen our country "
+                                           "because of their hard work and talents": "good",
+                                           "Immigrants today are a burden on our "
+                                           "country because they take our jobs, housing, "
+                                           "nd healthcare": "bad"}),
+                "laws_preventing_refugees": (("If asked (yes or no) whether the US should "
+                                              "pass laws preventing refugees from entering "
+                                              "I'd say"),
+                                lambda x: {"Strongly favor": "yes",
+                                           "Favor" : "yes",
+                                           "Oppose": "no",
+                                           "Strongly oppose": "no"}),
+                "immigrant_citizenship": (("I think that the US immigration system should deal "
+                                           "with immigrants who are currently living in the US "
+                                           "illegally by"),
+                                lambda x: {"Allow them a way to become citizens provided "
+                                           "they meet certain requirements": "Allow them "
+                                           "to become citizens",
+                                           "Allow them to become permanent legal residents, "
+                                           "but not citizens" : "Allow them to become residents, "
+                                           "not citizens",
+                                           "Identify and deport them": "deport them"}),
+                "voting_frequency": (("If asked how frequently I vote I'd say"),
+                                lambda x: {"Always": "always",
+                                           "Nearly always" : "sometimes",
+                                           "In about half of elections": "sometimes",
+                                           "Seldom": "sometimes",
+                                           "Never": "never"}),
+                "trump_job_opinion": (("If asked (yes or no) whether I approve of the job Donald "
+                                       "Trump is doing as president I would say"),
+                                lambda x: {"Strongly approve": "yes",
+                                           "Somewhat approve" : "yes",
+                                           "Somewhat disapprove": "no",
+                                           "Strongly disapprove": "no"}),
+                "electing_minorities": (("I think electing people from racial and ethnic minority "
+                                         "groups would make things"),
+                                lambda x: {"Better": "better",
+                                          "Worse": "worse",
+                                          "Not much different": "same"}),
+                "police_brutality_pattern": (("If asked whether the recent killings of African American "
+                                              "men by police are isolated incidents or a "
+                                              "broader pattern I'd say"),
+                                lambda x: {"Isolated incidents": "isolated incidents",
+                                          "Part of a broader pattern": "broader pattern"}),
+                "asian_discrimination": (("If asked (yes or no) whether I think there is "
+                                          "a lot of discrimination against asians in the US "
+                                          "today I'd say"),
+                                lambda x: {"Yes, there is a lot of discrimination": "yes",
+                                          "No, not a lot of discrimination": "no"}),
+                "hispanic_discrimination": (("If asked (yes or no) whether I think there is "
+                                          "a lot of discrimination against hispanics in the US "
+                                          "today I'd say"),
+                                lambda x: {"Yes, there is a lot of discrimination": "yes",
+                                          "No, not a lot of discrimination": "no"}),
+                "white_vs_black_discrimination": (("If asked (yes or no) whether I think that "
+                                          "discrimination against whites has become as big a "
+                                          "problem as discrimination against blacks in the US "
+                                          "I'd say"),
+                                lambda x: {"Completely agree": "yes",
+                                          "Mostly agree": "yes",
+                                          "Mostly disagree": "no",
+                                          "Completely disagree": "no"}),
+                "stranger_in_own_country": (("If asked (yes or no) whether I think the US has "
+                                          "changed so much that I feel like a stranger in my own "
+                                          "country I'd say"),
+                                lambda x: {"Completely agree": "yes",
+                                          "Mostly agree": "yes",
+                                          "Mostly disagree": "no",
+                                          "Completely disagree": "no"}),
+                "demographic_change_opinion": (("By 2045, minorities will together be a majority "
+                                                " in the US. If asked whether I think the impact "
+                                                "of the coming demographic change will be positive "
+                                                "or negative I'd say"),
+                                lambda x: {"Mostly positive": "positive",
+                                          "Mostly negative": "negative"}),
+                "use_of_racism": (("If asked (yes or no) whether I think that minorities "
+                                          "in the US use racism as an excuse more than they "
+                                          "should I'd say"),
+                                lambda x: {"Completely agree": "yes",
+                                          "Mostly agree": "yes",
+                                          "Mostly disagree": "no",
+                                          "Completely disagree": "no"}),
+                
+                "elect_non_christian": (("I think electing more non christian people to "
+                                         "office would make things"),
+                               lambda x: {"Better": "better",
+                                          "Worse": "worse",
+                                          "Not much different": "same"})}
+    
