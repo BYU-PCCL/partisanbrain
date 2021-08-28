@@ -80,6 +80,7 @@ class AddHealthDataset(Dataset):
 
         for col_name in list(new_df):
             new_df = new_df[new_df[col_name] != "Refused"]
+            new_df = new_df[new_df[col_name] != "Don't know"]
 
         # Randomly sample 500 + self._n_exemplars rows
         new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
@@ -90,29 +91,21 @@ class AddHealthDataset(Dataset):
         backstory = []
 
         # Age
-        if row["age"] == "65+":
-            backstory.append("I am at least 65 years old.")
-        else:
-            low, high = row["age"].split("-")
-            backstory.append(f"I am between {low} and {high} years old.")
+        backstory.append(f"I was born in {row['age']}")
 
         # Gender
-        if row["gender"] == "In some other way":
-            backstory.append("I don't identify as male or female.")
-        else:
-            backstory.append(f"I am {row['gender'].lower()}.")
+
+        backstory.append(f"I am {row['gender'].lower()}.")
 
         # Party
-        if row["party"] == "Independent":
-            backstory.append("In terms of political parties I am independent.")
-        else:
-            backstory.append("In terms of political parties "
-                             f"I am a {row['party']}.")
+        #missing
 
         # Education
-        if row["educ"] == "College graduate+":
+        if row["education"] == "Some graduate school" OR "Completed a master's degree" OR "Some graduate training beyond a master's degree" OR "Completed a doctoral degree" OR "Some post baccalaureate professional education (e.g., law school, med school, nurse)" OR "Completed post baccalaureate professional education (e.g., law school, med school, nurse)":
             backstory.append("I went to grad school.")
-        elif row["educ"] == "Some College":
+        elif row["education"] == "Completed college (bachelor's degree)":
+            backstory.append("I completed college.")
+        elif row["education"] == "Some College":
             backstory.append("I've completed some college.")
         else:
             backstory.append("I didn't go to college.")
@@ -120,52 +113,39 @@ class AddHealthDataset(Dataset):
         # Ideology
         backstory.append(("In terms of political ideology, "
                           "I'd consider myself "
-                          f"to be {row['ideo'].lower()}."))
+                          f"to be {row['ideology'].lower()}."))
 
         # Income
-        if "to less than" in row["income"]:
-            low, high = row["income"].split(" to less than ")
+        if "to " in row["income"]:
+            low, high = row["income"].split(" to ")
             backstory.append(("My annual family income is "
                               f"between {low} and {high}."))
+        elif row["income"] == "Less than $5,000":
+            backstory.append("My annual family income is less than $5000.")
         else:
-            income = row['income'].lower()
-            backstory.append(f"My annual family income is {income}.")
+            backstory.append("My annual family income is more than $150,000.")
 
         # Religiosity
-        if row["religion"] == "Nothing in particular":
+        if row["religion"] == "None/atheist/agnostic":
             backstory.append(("I don't identify with any religion "
                               "in particular."))
         else:
-            if "Orthodox" in row["religion"]:
-                religion = "Orthodox"
-            elif "Mormon" in row["religion"]:
-                religion = "Mormon"
-            elif row["religion"] in ["Atheist", "Agnostic"]:
-                religion = row["religion"].lower()
+            if "Protestant (such as Assemblies of God, Baptist, Lutheran, Methodist, Presbyterian, etc.)" in row["religion"]:
+                religion = "Protestant"
+            elif "Other Christian" in row["religion"]:
+                religion = "Christian"
             else:
                 religion = row["religion"]
             backstory.append(f"In terms of religion I am {religion}.")
 
         # Race/Ethnicity
-        race = row['race'].replace(' non-Hispanic', '').lower()
-        backstory.append(f"I'm {race}.")
+        # Missing
 
         # Region
-        if row["census_reg"] == "Northeast":
-            backstory.append("I live in the northeast of the United States.")
-        elif row["census_reg"] == "West":
-            backstory.append("I live in the western United States.")
-        else:
-            backstory.append(f"I live in the {row['census_reg']}.")
+        # Missing
 
         # Marital Status
-        if row["marital"] == "Never been married":
-            backstory.append("I've never been married.")
-        elif row["marital"] == "Separated":
-            backstory.append(("I got married, but I'm now "
-                              "separated from my partner."))
-        else:
-            backstory.append(f"I'm {row['marital'].lower()}.")
+        #Missing
 
         # Date
         backstory.append("It's November 2020.")
@@ -173,77 +153,40 @@ class AddHealthDataset(Dataset):
         return " ".join(backstory)
 
     def _get_prompt_instructions(self):
-        return {"econ_today": (("Between excellent, good, fair, and poor, "
-                                "I'd call the the economic conditions in "
-                                "the US"), lambda x: {"Excellent": "excellent",
-                                                      "Good": "good",
-                                                      "Only fair": "fair",
-                                                      "Poor": "poor"}[x]),
-                "econ_year_away": (("If I had to call the economic conditions "
-                                    "in the US I expect a year from now "
-                                    "(compared to now) better, worse, or "
-                                    "same, I'd call them"),
-                                   lambda x: {"Better": "better",
-                                              "Worse": "worse",
-                                              ("About the same "
-                                               "as now"): "same"}[x]),
-                "country_satisfied": (("If asked whether I'm satisfied or "
-                                       "dissatisfied with the way things are "
-                                       "going in this country today I'd "
-                                       "say that I'm"),
+        return {"shot_or_stabbed": (("Which of the following things happened in "
+                                     "the past 12 months: You shot or stabbed "
+                                     "someone?"), lambda x: x.lower()),
+                "arrested": (("Have you ever been arrested?"),
+                                   lambda x: x.lower()),
+                "physical_fight": (("In the past 12 months, how often did you "
+                                    "get into a serious physical fight?"),
                                       lambda x: x.lower()),
-                "election_wellness": (("If asked whether I think the "
-                                       "elections this month in the United "
-                                       "States were run well or poorly, "
-                                       "I'd say they were run"),
-                                      lambda x: {"Very well": "well",
-                                                 "Somewhat well": "well",
-                                                 "Not too well": "poorly",
-                                                 ("Not at "
-                                                  "all well"): "poorly"}[x]),
-                "follow_election": (("If asked (yes or no) if I followed "
-                                     "the results of the presidential "
-                                     "election after polls closed on "
-                                     "Election Day I'd say"),
-                                    lambda x: {("Followed them almost "
-                                                "constantly"): "yes",
-                                               ("Checked in fairly "
-                                                "often"): "yes",
-                                               ("Checked in "
-                                                "occasionally"): "yes",
-                                               ("Tuned them out "
-                                                "entirely"): "no"}[x]),
-                "covid_assist_pack": (("Congress and President Trump passed "
-                                       "a $2 trillion economic assistance "
-                                       "package in March in response to "
-                                       "the economic impact of the "
-                                       "coronavirus outbreak. If asked "
-                                       "whether I think another economic "
-                                       "assistance package is necessary "
-                                       "or is not necessary I'd say it is"),
+                "convicted_of_charges": (("Have you ever been convicted of or "
+                                          "pled guilty to any charges other "
+                                          "than a minor traffic violation?"),
                                       lambda x: x.lower()),
-                "rep_dem_relationship": (("If asked if relations between "
-                                          "Republicans and Democrats in "
-                                          "Washington a year from now will "
-                                          "be better, worse, or same I'd "
-                                          "say they will be"),
-                                         lambda x: {"Get better": "better",
-                                                    "Get worse": "worse",
-                                                    ("Stay about "
-                                                     "the same"): "same"}[x]),
-                "covid_restrict": (("If asked if the number of "
-                                    "restrictions on public activity "
-                                    "because of the coronavirus "
-                                    "outbreak in my area should be "
-                                    "increased, decreased, or maintained, "
-                                    "I'd say it should be"),
-                                   lambda x: {("MORE restrictions "
-                                              "right now"): "increased",
-                                              ("FEWER restrictions "
-                                               "right now"): "decreased",
-                                              ("About the same number "
-                                               "of restrictions "
-                                               "right now"): "maintained"}[x]),
+                "sell_drugs": (("In the past 12 months, how often did you sell "
+                                "marijuana or other drugs?"),
+                                    lambda x: x.lower()),
+                "sadness_family": (("How often was each of the following things "
+                                    "true during the past seven days: You could "
+                                    "not shake off the blues, even with help "
+                                    "from your family and your friends."),
+                                      lambda x: {("Never or rarely "): "never",
+                                                 ("Sometimes "): "sometimes",
+                                                 ("A lot of the time "): "frequently",
+                                                 ("Most of the time or all of the time "): "most of the time"}[x]),
+                "counseling": (("In the past 12 months have you received "
+                                "psychological or emotional counseling?"),
+                                         lambda x: x.lower()),
+                "worrying": (("How much do you agree with each statement about "
+                              "you as you generally are now, not as you wish "
+                              "to be in the future? I worry about things."),
+                                   lambda x: {"Strongly agree": "agree",
+                                              "Agree": "agree",
+                                              "Neither agree nor disagree ": "neither"
+                                              "Disagree": "disagree",
+                                              "Strongly Disagree": "disagree"}[x]),
                 "rep_dem_division": (("If asked if I'm at least somewhat "
                                       "concerned about divisions between "
                                       "Republicans and Democrats (yes or no) "
