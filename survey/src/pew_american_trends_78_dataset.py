@@ -11,7 +11,8 @@ class PewAmericanTrendsWave78Dataset(Dataset):
     def _get_dv_filter_funcs(self):
         return {"econ_today": lambda x: x[x != "Refused"],
                 "econ_year_away": lambda x: x,
-                "country_satisfied": lambda x: x}
+                "country_satisfied": lambda x: x,
+                "election_wellness": lambda x: x}
 
     def _filter_demographics(self, df):
         new_df = df[df["party"].isin(["Democrat",
@@ -31,11 +32,9 @@ class PewAmericanTrendsWave78Dataset(Dataset):
     def _get_dv_col_names(self):
         return {"ECON1_W78": "econ_today",
                 "ECON1B_W78": "econ_year_away",
-                "SATIS_W78": "country_satisfied"}
-        # return {"ECON1_W78": "econ_today",
-        #         "ECON1B_W78": "econ_year_away",
-        #         "SATIS_W78": "country_satisfied",
-        #         "VTADMIN_POST_US_W78": "election_wellness",
+                "SATIS_W78": "country_satisfied",
+                "VTADMIN_POST_US_W78": "election_wellness"}
+        # return {"VTADMIN_POST_US_W78": "election_wellness",
         #         "ELECTNTFOL_W78": "follow_election",
         #         "COVID_2ASSISTLD_W78": "covid_assist_pack",
         #         "POL12_W78": "rep_dem_relationship",
@@ -169,14 +168,26 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                  "I'm",
                                                  {"Satisfied": "satisfied",
                                                   "Dissatisfied":
-                                                  "dissatisfied"})}
+                                                  "dissatisfied"}),
+                "election_wellness": PromptSpecs(("Do you think elections "
+                                                  "this November in the "
+                                                  "United States were run "
+                                                  "and administered well "
+                                                  "or poorly?"),
+                                                 ("I think they were run and "
+                                                  "administered"),
+                                                 {"Very well": "well",
+                                                  "Somewhat well": "well",
+                                                  "Not too well": "poorly",
+                                                  "Not at all well":
+                                                  "poorly"})}
 
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave78Dataset()
     # Uncomment this to see a sample of your prompts
     # First prompt for each DV
-    # for dv_name in ds.dvs.keys():
-    #     dv_prompts = ds.prompts[dv_name]
-    #     print(dv_prompts[list(dv_prompts.keys())[0]])
-    #     print()
+    for dv_name in ds.dvs.keys():
+        dv_prompts = ds.prompts[dv_name]
+        print(dv_prompts[list(dv_prompts.keys())[0]])
+        print()
