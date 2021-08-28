@@ -1,11 +1,28 @@
+from dataset import Dataset
+from dataset import PromptSpecs
+
+
 class BaylorReligionSurveyDataset(Dataset):
 
-    def __init__(self, n_exemplars):
+    def __init__(self):
         survey_fname = "data/Baylor Religion Survey, Wave V (2017).SAV"
-        super().__init__(survey_fname, n_exemplars)
+        super().__init__(survey_fname)
         #issues:
         # no region demographic
-        # L14_2F -> lost job DV is so weird
+
+    def _get_dv_filter_funcs(self):
+        return {"econ_today": lambda x: x[x != "Refused"],
+                "econ_year_away": lambda x: x,
+                "country_satisfied": lambda x: x,
+                "election_wellness": lambda x: x}
+
+
+    def _filter_demographics(self, df):
+        return 
+
+    def _filter_to_usa(self, df):
+        """Return a new dictionary where all respondents are from USA"""
+        return df
 
     def _format(self, df):
 
