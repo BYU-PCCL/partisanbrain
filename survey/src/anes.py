@@ -1,67 +1,97 @@
 import sys
 sys.path.append('src')
 import dataset
+from dataset import PromptSpecs
 from pdb import set_trace as bp
 import pandas as pd
+
 
 class AnesDataset(dataset.Dataset):
     def __init__(self, n_exemplars):
         survey_fname = "data/anes/anes_timeseries_2020_csv_20210719.csv"
-        #Read this into a pandas df
-        df = pd.read_csv(survey_fname)
-        bp()
         super().__init__(survey_fname, n_exemplars)
 
-    def _format(self, df):
-
-        rename_dic = {
-                "V201507x": 'age',
-                "V202637" : "gender" ,
-                "V201018" : "party",
-                "V201510" : 'education',
-                "V201200" : "ideo",
-                "V201607" :  "income",
-                "V201458x": "religion",
-                "V201549x": 'race',
-                "V203003" : "region" ,
-                "V201508" : "marital",
-                "V201321" : "protect_environment", #Protect environment
-                "V201401" : "government_temperatures", #Government temps
-                "V201309" : "federal_spending_crime", #Federal spending crime
-                "V201130" : "trump_economy", #Trump economy
-                "V201235" : "government_waste", #Government waste
-                "V201300" : "social_security", #social security
-                "V201318" : "spending_poor", #spending poor
-                "V201324" : "economy_good", #Economy good
-                "V201594" : "economy_worse_better", #Economy worse or better
-                "V201312" : "welfare", #Welfare programs
-                "V201416" : "gay_marriage", #Gay marriage
-                "V201133" : "trump_foreign_relations", #Trump foreign relations
-                "V201139" : "trump_immigration", #Trump handling immigration
-                "V201350" : "military", #military international problems
-                "V201619" : "sleep", #Restless sleep
-                "V201620" : "health_insurance", #Health insurance
-                "V201006" : "political_campaigns", #Political campaigns
-                "V201223" : "voting_duty", #Voting duty
-                "V201234" : "government_elite", #government elite?
+    def _get_dv_filter_funcs(self):
+        return {
+                "V201321" : lambda x: x,
+                "V201401" : lambda x: x,
+                "V201309" : lambda x: x,
+                "V201130" : lambda x: x,
+                "V201235" : lambda x: x,
+                "V201300" : lambda x: x,
+                "V201318" : lambda x: x,
+                "V201324" : lambda x: x,
+                "V201325" : lambda x: x,
+                "V201594" : lambda x: x,
+                "V201312" : lambda x: x,
+                "V201416" : lambda x: x,
+                "V201133" : lambda x: x,
+                "V201139" : lambda x: x,
+                "V201350" : lambda x: x,
+                "V201619" : lambda x: x,
+                "V201620" : lambda x: x,
+                "V201006" : lambda x: x,
+                "V201223" : lambda x: x,
+                "V201234" : lambda x: x,
         }
 
-        # Dropping all but relevant columns
-        new_df = df[list(rename_dic.keys())]
-
-        # Dropping rows with NA values
-        new_df = new_df.dropna(axis=0)
-
-        # Renaming columns for convenience
-        new_df = new_df.rename(rename_dic, axis=1)
-
+    def _filter_demographics(self, df):
+        df = df[~df['age'].isin([-9])]
+        df = df[~df['gender'].isin([-8,-7,-6,-5,-1])]
+        df = df[~df['party'].isin(-9,-8,-1,5)]
+        df = df[~df['education'].isin([-9,-8,95])]
+        df = df[~df['ideo'].isin([-9,-8])]
+        df = df[~df['religion'].isin([-1])]
+        df = df[~df['race'].isin([-9,-8])]
+        new_df = df[~df['marital'].isin([-9,-8])]
         return new_df
+
+    def _filter_to_usa(self, df):
+        """Return a new dictionary where all respondents are from USA"""
+        return df
+
+    def _get_dv_col_names(self):
+        return {
+            "V201321" : "protect_environment", #Protect environment
+            "V201401" : "government_temperatures", #Government temps
+            "V201309" : "federal_spending_crime", #Federal spending crime
+            "V201130" : "trump_economy", #Trump economy
+            "V201235" : "government_waste", #Government waste
+            "V201300" : "social_security", #social security
+            "V201318" : "spending_poor", #spending poor
+            "V201324" : "economy_good", #Economy good
+            "V201325" : "economy_worse_better", #Economy worse or better
+            "V201594" : "family_worse_better", #Economy worse or better
+            "V201312" : "welfare", #Welfare programs
+            "V201416" : "gay_marriage", #Gay marriage
+            "V201133" : "trump_foreign_relations", #Trump foreign relations
+            "V201139" : "trump_immigration", #Trump handling immigration
+            "V201350" : "military", #military international problems
+            "V201619" : "sleep", #Restless sleep
+            "V201620" : "health_insurance", #Health insurance
+            "V201006" : "political_campaigns", #Political campaigns
+            "V201223" : "voting_duty", #Voting duty
+            "V201234" : "government_elite", #government elite?
+        }
+
+    def _get_demographic_col_names(self):
+        return {
+            "V201507x": 'age',
+            "V202637" : "gender" ,
+            "V201018" : "party",
+            "V201510" : 'education',
+            "V201200" : "ideo",
+            # "V201607" :  "income", RESTRICTED
+            "V201458x": "religion",
+            "V201549x": 'race',
+            "V203003" : "region" ,
+            "V201508" : "marital",
+        }
 
     def _make_backstory(self, row, format):
 
         # Renaming columns for convenience
         code_dic = {
-
                 "age": {
                     'q': 'What is your age?',
                     'a': {k:str(k) for k in range(80)}.update({'80': "80 or older"}),
@@ -87,19 +117,16 @@ class AnesDataset(dataset.Dataset):
                         1: "Democratic party",
                         2: "Republican party",
                         4: "None or ‘independent’",
-                        5: "Other {SPECIFY}",
                     },
                     'abs': {
                         1: "I'm a Democrat.",
                         2: "I'm a Republican.",
-                        4: "I'm an independent",
+                        4: "I'm an independent, politically speaking.",
                     },
                 },
                 "education": {
                     'q': "What is the highest level of school you have completed or the highest degree you have received ('Less than high school credential', 'High school graduate - High school diploma or equivalent (e.g: GED)', 'Some college but no degree', 'Associate degree in college - occupational/vocational', 'Associate degree in college - academic', 'Bachelor’s degree (e.g. BA, AB, BS)', 'Master’s degree (e.g. MA, MS, MEng, MEd, MSW, MBA)', 'Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)')?",
                     'a': {
-                        -9: "Refused",
-                        -8: "Don’t know",
                         1: "Less than high school credential",
                         2: "High school graduate - High school diploma or equivalent (e.g: GED)",
                         3: "Some college but no degree",
@@ -108,7 +135,6 @@ class AnesDataset(dataset.Dataset):
                         6: "Bachelor’s degree (e.g. BA, AB, BS)",
                         7: "Master’s degree (e.g. MA, MS, MEng, MEd, MSW, MBA)",
                         8: "Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)",
-                        95: "Other \{SPECIFY\}}",
                         },
                     'abs': {
                         1: "I didn't graduate from high school.",
@@ -134,13 +160,13 @@ class AnesDataset(dataset.Dataset):
                         99: "Haven’t thought much about this",
                     },
                     'abs': {
-                        1: "i am extremely liberal.",
-                        2: "i am liberal.",
-                        3: "i am slightly liberal.",
-                        4: "i am moderate; middle of the road.",
-                        5: "i am slightly conservative.",
-                        6: "i am conservative.",
-                        7: "i am extremely conservative.",
+                        1: "I am extremely liberal.",
+                        2: "I am liberal.",
+                        3: "I am slightly liberal.",
+                        4: "I am moderate; middle of the road.",
+                        5: "I am slightly conservative.",
+                        6: "I am conservative.",
+                        7: "I am extremely conservative.",
                         99: "I don't think much about politics.",
                     },
                 },
@@ -154,7 +180,7 @@ class AnesDataset(dataset.Dataset):
                         "members of your family who are 15 years of age or older. What "
                         "was the total income of your family during the past 12 months? "
                         "TYPE THE NUMBER. YOUR BEST GUESS IS FINE.",
-                    "abs": "I"
+                    "abs": ""
                 },
                 "religion": {
                     'q': "What's your religion ('Mainline Protestant', 'Evangelical Protestant', 'Black Protestant', 'Undifferentiated Protestant', 'Roman Catholic', 'Other Christian', 'Jewish', 'Other religion', 'Not religious')?",
@@ -241,19 +267,203 @@ class AnesDataset(dataset.Dataset):
 
 
         backstory = ""
+        date_statement = "It's November 2020."
         if "format" == "QA":
             #For every Demographic question, ask the question asked in the survey.
             for code, dic in code_dic.items():
                 backstory+= f"Q: {dic['q']}\nA: {dic['a'][row[code]]}\n\n"
         elif "format" == "FPBS":
-
-            for code, dic in code_dic.items():
-                backstory+= f"{dic['abs'][row[code]]} "
+            backstory = " ".join([dic['abs'][row[code]] for code,dic in code_dic.items()] + date_statement)
         else:
             raise Exception("Invalid format")
         return backstory
 
     def _get_prompt_instructions(self):
+        return { 
+            "protect_environment": PromptSpecs(
+                question="What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?",
+                answer_prefix="spending on protecting the environment should be",
+                answer_map={
+                    1: "increased",
+                    1: "decreased",
+                    1: "kept the same",
+                }
+                ), 
+            "government_temperatures": PromptSpecs(
+                question="Do you think the federal government should be doing more about rising temperatures, should be doing less, or is it currently doing the right amount?",
+                answer_prefix="the federal government should do",
+                answer_map={
+                    1: "more",
+                    1: "less",
+                    1: "same",
+                }
+                ), 
+            "federal_spending_crime": PromptSpecs(
+                question="What about dealing with crime? Should federal spending on dealing with crime be increased, decreased, or kept the same?",
+                answer_prefix="federal spending on dealing with crime should be",
+                answer_map={
+                    1: "increased",
+                    1: "decreased",
+                    1: "kept the same",
+                }
+                ), 
+            "trump_economy": PromptSpecs(
+                question="Do you approve or disapprove of the way Donald Trump is handling the economy?",
+                answer_prefix="I",
+                answer_map={
+                    1: "approve",
+                    2: "disapprove",
+                }
+                ), 
+            "government_waste": PromptSpecs(
+                question="Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or don’t waste very much of it?",
+                answer_prefix="people in government waste",
+                answer_map={
+                    1: "lots of the money we pay in taxes",
+                    2: "some of the money we pay in taxes",
+                    3: "little of the money we pay in taxes",
+                }
+                ), 
+            "social_security": PromptSpecs(
+                question="What about Social Security? Should federal spending on Social Security be increased, decreased, or kept the same?",
+                answer_prefix="federal spending on Social Security should",
+                answer_map={
+                    1: "increase",
+                    2: "decrease",
+                    3: "stay the same",
+                }
+                ), 
+            "spending_poor": PromptSpecs( 
+                question="What about aid to the poor? Should federal spending on aid to the poor be increased, decreased, or kept the same?",
+                answer_prefix="federal spending on aid to the poor should",
+                answer_map={
+                    1: "increase",
+                    2: "decrease",
+                    3: "stay the same",
+                }
+                ), 
+            "economy_good": PromptSpecs(
+                question="What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?",
+                answer_prefix="the state of the economy is",
+                answer_map={
+                    1: "excellent",
+                    2: "good",
+                    3: "neither good nor bad",
+                    4: "bad",
+                    5: "terrible",
+                }
+                ), 
+            "economy_worse_better": PromptSpecs(
+                question="Now thinking about the economy in the country as a whole, would you say that over the past year the nation’s economy has improved, stayed the same, or worsened?",
+                answer_prefix="the nation's economy has",
+                answer_map={
+                    1: "improved",
+                    2: "stayed the same",
+                    3: "worsened",
+                }
+                ), 
+            "family_worse_better": PromptSpecs(
+                question="So far as you and your family are concerned, how worried are you about your current financial situation?",
+                answer_prefix="my worry is",
+                answer_map={
+                    1: "extreme",
+                    2: "high",
+                    3: "moderate",
+                    4: "low",
+                    5: "zero",
+                }
+                ), 
+            "welfare": PromptSpecs(
+                question="What about welfare programs? Should federal spending on welfare programs be increased, decreased, or kept the same?",
+                answer_prefix="federal spending on welfare should be",
+                answer_map={
+                    1: "increased",
+                    2: "decreased",
+                    3: "kept the same",
+                }
+                ), 
+            "gay_marriage": PromptSpecs(
+                question="Which comes closest to your view on gay marriage? You can just tell me the number of your choice.",
+                answer_prefix="gay and lesbian couples should be able to",
+                answer_map={
+                    1: "marry",
+                    2: "form civil unions",
+                    3: "neither",
+                }
+                ), 
+            "trump_foreign_relations": PromptSpecs(
+                question="Do you approve or disapprove of the way Donald Trump is handling relations with foreign countries?",
+                answer_prefix="I",
+                answer_map={
+                    1: "approve",
+                    2: "disapprove",
+                }
+                ), 
+            "trump_immigration": PromptSpecs(
+                question="Do you approve or disapprove of the way Donald Trump is handling immigration?",
+                answer_prefix="I",
+                answer_map={
+                    1: "approve",
+                    2: "disapprove",
+                }
+                ), 
+            "military": PromptSpecs(
+                question="How willing should the United States be to use military force to solve international problems?",
+                answer_prefix="",
+                answer_map={
+                    1: "extremely willing to use military force",
+                    2: "very willing to use military force",
+                    3: "moderately willing to use military force",
+                    4: "slightly willing to use military force",
+                    5: "not willing to use military force",
+                }
+                ), 
+            "sleep": PromptSpecs(
+                question="In the past week, how often has your sleep been restless?",
+                answer_prefix="my sleep has been restless",
+                answer_map={
+                    1: "all the time",
+                    2: "often",
+                    3: "sometimes",
+                    4: "rarely",
+                    5: "never",
+                }
+                ), 
+            "health_insurance": PromptSpecs(
+                question="Do you presently have any kind of health insurance?",
+                answer_prefix="I",
+                answer_map={
+                    1: "do have health insurance",
+                    1: "don't have health insurance",
+                }
+                ), 
+            "political_campaigns": PromptSpecs(
+                question="Some people don’t pay much attention to political campaigns.  How about you? Would you say that you have been very much interested, somewhat interested or not much interested in the political campaigns so far this year?",
+                answer_prefix="I have been",
+                answer_map={
+                    1: "very much interested",
+                    2: "somewhat interested",
+                    3: "not much interested",
+                }
+                ), 
+            "voting_duty": PromptSpecs(
+                question="How strongly do you feel that voting is a duty?",
+                answer_prefix="I feel",
+                answer_map={
+                    1: "very strongly that voting is a duty",
+                    2: "moderately strongly that voting is a duty",
+                    3: "a little strongly that voting is a duty",
+                }
+                ), 
+            "government_elite": PromptSpecs(
+                question="Would you say the government is pretty much run by a few big interests looking out for themselves or that it is run for the benefit of all the people?",
+                answer_prefix="the government is pretty much run",
+                answer_map={
+                    1: "by the big interests looking out for themselves",
+                    2: "for the benefit of all the people",
+                }
+                ), 
+        }
         return {
                 "protect_environment": (( "If you ask me whether federal spending on protecting the environment should be (increased, decreased, or kept the same), I would answer that it should be"),
                                 lambda x: {
