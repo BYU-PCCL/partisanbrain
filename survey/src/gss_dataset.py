@@ -1,47 +1,27 @@
-from .dataset import Dataset
-import os # TODO remove this
+from .dataset import Dataset, PromptSpecs
 
 
 class GSSDataset(Dataset):
 
-    def __init__(self, n_exemplars):
-        survey_fname = "data/GSS2018.sav" # TODO Get rid of the ../ before pushing
-        super().__init__(survey_fname, n_exemplars)
+    def __init__(self, samples):
+        survey_fname = "data/GSS2018.sav"
+        super().__init__(survey_fname, samples=samples)
 
-    def _format(self, df):
+    def _filter_demographics(self, df):
+        new_df = df.loc[~df['partisanship'].isin(['OTHER PARTY'])]
+        new_df = new_df.loc[~new_df['religiosity'].isin(['INTER-NONDENOMINATIONAL',
+                                                         'OTHER EASTERN',
+                                                         'OTHER',
+                                                         'NATIVE AMERICAN'])]
+        new_df = new_df.loc[~new_df['race'].isin(['SOME OTHER RACE'])]
 
-        # Reduce rows (e.g., down to US)
+        return new_df
 
-        # Dropping all but relevant columns
-        demographics = [
-            'AGE', 'SEX', 'PARTYID', 'EDUC',
-            'POLVIEWS', 'INCOME', 'RELIG', 'RACECEN1',
-            'REGION', 'MARITAL',
-        ]
-        questions = [
-            'NATENVIR', 'NATENRGY', 'CAPPUN', 'POLHITOK',
-            'GRASS', 'WKSEXISM', 'FEPOL', 'HLTHMNTL',
-            'MENTLOTH', 'FAMMHNEG', 'DIAGNOSD', 'OTHMHNEG',
-            'HLTHPHYS', 'VOTE16', 'SPKRAC', 'BIBLE',
-            'PRAYER', 'CONCLERG', 'RELITEN', 'POSTLIFE'
-        ]
-        new_df = df[demographics + questions]
+    def _filter_to_usa(self, df):
+        return df
 
-        # Dropping rows with NA values
-        # new_df = new_df.dropna(axis=0) # TODO Josh needs to fix this
-
-        # Renaming columns for convenience
-        new_names = {
-            'AGE': 'age',
-            'SEX': 'gender',
-            'PARTYID': 'partisanship',
-            'EDUC': 'education',
-            'POLVIEWS': 'ideology',
-            'INCOME': 'income',
-            'RELIG': 'religiosity',
-            'RACECEN1': 'race',
-            'REGION': 'region',
-            'MARITAL': 'marital',
+    def _get_dv_col_names(self):
+        return {
             'NATENVIR': 'environment',
             'NATENRGY': 'green_energy',
             'CAPPUN': 'death_penalty',
@@ -64,18 +44,19 @@ class GSSDataset(Dataset):
             'POSTLIFE': 'afterlife',
         }
 
-
-        new_df = new_df.rename(new_names, axis=1)
-
-        # Removing "I don't understand this question" response
-        new_df = new_df.loc[~new_df['partisanship'].isin(['OTHER PARTY'])]
-        new_df = new_df.loc[~new_df['religiosity'].isin(['INTER-NONDENOMINATIONAL',
-                                                         'OTHER EASTERN',
-                                                         'OTHER',
-                                                         'NATIVE AMERICAN'])]
-        new_df = new_df.loc[~new_df['race'].isin(['SOME OTHER RACE'])]
-
-        return new_df.sample(50)
+    def _get_demographic_col_names(self):
+        return {
+            'AGE': 'age',
+            'SEX': 'gender',
+            'PARTYID': 'partisanship',
+            'EDUC': 'education',
+            'POLVIEWS': 'ideology',
+            'INCOME': 'income',
+            'RELIG': 'religiosity',
+            'RACECEN1': 'race',
+            'REGION': 'region',
+            'MARITAL': 'marital',
+        }
 
     def _make_backstory(self, row):
         backstory = []
@@ -228,20 +209,20 @@ class GSSDataset(Dataset):
         marital_status = marital_status_dict[row['marital']]
         backstory.append(f"I {marital_status}.")
 
-        return backstory
+        return " ".join(backstory)
 
-    def _get_prompt_instructions(self):
+    def _get_col_prompt_specs(self):
         return {
             'environment': PromptSpecs(
-                question="Are we spending too much, too little, or about the right amount on improving and protecting the environment?",
-                answer_prefix="we are spending",
+                question="Is our spending excessive, inadequate, or about the right amount on improving and protecting the environment?",
+                answer_prefix="our spending is",
                 answer_map={'TOO LITTLE': 'inadequate', 'ABOUT RIGHT': 'about right', 'TOO MUCH': 'excessive'}
             ),
             'green_energy': PromptSpecs(
-                question="Are we spending too much, too little, or about the right amount on developing alternative energy sources?",
-                answer_prefix="we are spending",
-                answer_map={'TOO LITTLE': 'inadequate', 'ABOUT RIGHT': 'about right', 'TOO MUCH': 'excessive'}
-            ),            
+                question="Is our spending excessive, inadequate, or about the right amount on developing alternative energy sources?",
+                answer_prefix="our spending is",
+                answer_map={'Too little': 'inadequate', 'About right': 'about right', 'Too much': 'excessive'}
+            ),
             'death_penalty': PromptSpecs(
                 question="Do you favor or oppose the death penalty for persons convicted of murder?",
                 answer_prefix="I",
@@ -249,15 +230,15 @@ class GSSDataset(Dataset):
             ),
             'police_violence': PromptSpecs(
                 question="Are there any situations you can imagine in which you would approve of a policeman striking an adult male citizen?",
-                answer_prefix="I",
-                answer_map={'FAVOR': 'favor', 'OPPOSE': 'oppose'}
+                answer_prefix="",
+                answer_map={'NO': 'no', 'YES': 'yes'}
             ),
             'marijuana': PromptSpecs(
-                question="Do you think the use of marijuana should be made legal or not?",
+                question="Do you think the use of marijuana should be legal or illegal?",
                 answer_prefix="marijuana should be ",
                 answer_map={'LEGAL': 'legal', 'NOT LEGAL': 'illegal'}
             ),
-            'gender_discrimination': PromptSpecs( # TODO Do I need an answer_prefix?
+            'gender_discrimination': PromptSpecs(
                 question="Do you feel in any way discriminated against on your job because of your gender?",
                 answer_prefix="",
                 answer_map={'YES': 'yes', 'NO': 'no'}
@@ -288,7 +269,7 @@ class GSSDataset(Dataset):
             'fam_mental_health_views': PromptSpecs(
                 question="Thinking about your family, to what extent do they hold negative attitudes about people with mental health problems?",
                 answer_prefix="their attitudes are",
-                answer_map={'Somewhat': 'somewhat', 'Not at all': 'not at all', 'Not very much': 'a little', 'Very much': 'very much'}
+                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'slightly negative', 'Very much': 'very negative'}
             ),
             'mental_health_diagnosis': PromptSpecs(
                 question="Have you ever been diagnosed with a mental health problem?",
@@ -299,7 +280,7 @@ class GSSDataset(Dataset):
                 question=("Thinking about other people you know personally outside of your family, to what extent do they hold negative attitudes "
                           "about people with mental health problems?"),
                 answer_prefix="their attitudes are",
-                answer_map={'Somewhat': 'somewhat', 'Not at all': 'not at all', 'Not very much': 'a little', 'Very much': 'very much'}
+                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'slightly negative', 'Very much': 'very negative'}
             ),
             'physical_health_rating': PromptSpecs(
                 question="In general, how would you rate your physical health?",
@@ -310,21 +291,21 @@ class GSSDataset(Dataset):
                 question=("In 2016, you remember that Clinton ran for President on the Democratic ticket against Trump for the Republicans. "
                           "Do you remember for sure whether or not you voted in that election?"),
                 answer_prefix="I",
-                answer_map={'Voted': 'voted', 'Did not vote': 'did not vote', 'Ineligible': 'am ineligible'}
+                answer_map={'Voted': 'voted', 'Did not vote': "didn't vote", 'Ineligible': 'am ineligible'}
             ),
             'racist_speech': PromptSpecs(
                 question=("Consider a person who believes that Blacks are genetically inferior. If such a person wanted to make a speech "
-                          "in your community claiming that Blacks are inferior, should he be allowed to speak, or not?"),
-                answer_prefix="it should ",
-                answer_map={'ALLOWED': 'be allowed', 'NOT ALLOWED': 'not be allowed'}
+                          "in your community claiming that Blacks are inferior, should he be allowed to speak?"),
+                answer_prefix="",
+                answer_map={'ALLOWED': 'yes', 'NOT ALLOWED': 'no'}
             ),
             'bible_beliefs': PromptSpecs(
                 question=("Which of these statements comes closest to describing your feelings about the Bible? The Bible is the actual "
                           "word of God and is to be taken literally, word for word. The Bible is the inspired word of God but not "
                           "everything in it should be taken literally, word for word. The Bible is an ancient book of fables, "
                           "legends, history, and moral precepts recorded by man."),
-                answer_prefix="the Bible is ",
-                answer_map={'INSPIRED WORD': 'inspired word', 'BOOK OF FABLES': 'a book of fables', 'WORD OF GOD': 'the word of god', 'OTHER': 'none of those'}
+                answer_prefix="the Bible is",
+                answer_map={'INSPIRED WORD': 'inspired word', 'BOOK OF FABLES': 'a book of fables', 'WORD OF GOD': 'the word of god'}
             ),
             'church_power': PromptSpecs(
                 question=("The United States Supreme Court has ruled that no state or local government may require the reading of the "
@@ -334,15 +315,15 @@ class GSSDataset(Dataset):
                 answer_map={'APPROVE': 'approve', 'DISAPPROVE': 'disapprove'}
             ),
             'rel_leader_confidence': PromptSpecs(
-                question=("As far as the people running organized religion are concerned, would you say you have a great deal of "
-                          "confidence, only some confidence, or hardly any confidence at all in them?"),
+                question=("As far as the people running organized religion are concerned, would you say you have a lots of "
+                          "confidence, some confidence, or hardly any confidence at all in them?"),
                 answer_prefix="I have",
-                answer_map={'HARDLY ANY': 'hardly any', 'A GREAT DEAL': 'a great deal', 'ONLY SOME': 'only some'}
+                answer_map={'HARDLY ANY': 'hardly any confidence', 'A GREAT DEAL': 'lots of confidence', 'ONLY SOME': 'some confidence'}
             ),
             'religious_rating': PromptSpecs(
                 question=("How religious are you?"),
                 answer_prefix="I am",
-                answer_map={'NO RELIGION': 'not at all', 'STRONG': 'strongly', 'NOT VERY STRONG': 'a little', 'SOMEWHAT STRONG': 'somewhat'}
+                answer_map={'NO RELIGION': 'not religious', 'STRONG': 'very religious', 'NOT VERY STRONG': 'slightly religious', 'SOMEWHAT STRONG': 'somewhat religious'}
             ),
             'afterlife': PromptSpecs(
                 question=("Do you believe there is a life after death?"),
@@ -352,4 +333,4 @@ class GSSDataset(Dataset):
         }
 
 if __name__ == '__main__':
-    GSSDataset(n_exemplars=5)
+    GSSDataset()
