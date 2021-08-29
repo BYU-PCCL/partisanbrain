@@ -1,262 +1,316 @@
 from dataset import Dataset
+from dataset import PromptSpecs
 
 
 class PewAmericanTrendsWave67Dataset(Dataset):
 
-    def __init__(self, n_exemplars):
-        survey_fname = "../data/ATP W67.sav"  # TODO: Remove the dots
-        self._n_exemplars = n_exemplars
-        super().__init__(survey_fname, n_exemplars)
+    def __init__(self):
+        # This is the desired survey_fname format - "data/name"
+        survey_fname = "data/ATP W67.sav"
+        # Do not copy samples=500 for other survey subclasses
+        # It is unique to the Pew American Trends datasets
+        super().__init__(survey_fname,
+                         samples=500)
 
-    def _format(self, df):
+    def _filter_to_usa(self, df):
+        # Since everyone in Pew American Trends Wave 78
+        # is from the US we don't need to do anything here
+        return df
 
-        # No need to filter rows for USA because all respondents from USA
+    def _get_demographic_col_names(self):
+        return {"F_AGECAT": "age",
+                "F_SEX": "gender",
+                "F_PARTY_FINAL": "party",
+                "F_EDUCCAT2": "educ",
+                "F_IDEO": "ideo",
+                "F_INCOME": "income",
+                "F_RELIG": "religion",
+                "F_RACETHN": "race_1",
+                "F_RACECMB": "race_2",
+                "F_CREGION": "census_reg",
+                "F_MARITAL": "marital"}
 
-        # Selecting relevant columns
-        demographic_col_names = ["F_AGECAT",
-                                 "F_GENDER",
-                                 "F_PARTY_FINAL",
-                                 "F_EDUCCAT",
-                                 "F_IDEO",
-                                 "F_INC_SDT1",
-                                 "F_RELIG",
-                                 "F_RACETHNMOD",
-                                 "F_CREGION",
-                                 "F_MARITAL"]
+    def _get_dv_col_names(self):
+        return {"ENV2_c_W67": "coal",
+                "ENV2_d_W67": "solar",
+                "ENV2_f_W67": "wind",
+                "CCPOLICY_a_W67": "trees",
+                "ENVIR8_e_W67": "gov_climate",
+                "EN7_W67": "human_act_climate",
+                "CLIM9_W67": "climate_local",
+                "RQ1_F1A_W67": "med_researcher_view",
+                "PQ1_F2A_W67": "med_doc_view",
+                "CLIN_TRIAL1_W67": "clin_trial"
+                }
 
-        dv_col_names = ["ECON1_W78",
-                        "ECON1B_W78",
-                        "SATIS_W78",
-                        "VTADMIN_POST_US_W78",
-                        "ELECTNTFOL_W78",
-                        "COVID_2ASSISTLD_W78",
-                        "POL12_W78",
-                        "COVID_OPENMORE_W78",
-                        "DIVISIONSCONC_W78",
-                        "VOTELIST_US_W78"]
-
-        new_df = df[demographic_col_names + dv_col_names]
-
-        # Renaming columnns for convenience
-        new_df = new_df.rename({"F_AGECAT": "age",
-                                "F_GENDER": "gender",
-                                "F_PARTY_FINAL": "party",
-                                "F_EDUCCAT": "educ",
-                                "F_IDEO": "ideo",
-                                "F_INC_SDT1": "income",
-                                "F_RELIG": "religion",
-                                "F_RACETHNMOD": "race",
-                                "F_CREGION": "census_reg",
-                                "F_MARITAL": "marital",
-                                "ECON1_W78": "econ_today",
-                                "ECON1B_W78": "econ_year_away",
-                                "SATIS_W78": "country_satisfied",
-                                "VTADMIN_POST_US_W78": "election_wellness",
-                                "ELECTNTFOL_W78": "follow_election",
-                                "COVID_2ASSISTLD_W78": "covid_assist_pack",
-                                "POL12_W78": "rep_dem_relationship",
-                                "COVID_OPENMORE_W78": "covid_restrict",
-                                "DIVISIONSCONC_W78": "rep_dem_division",
-                                "VOTELIST_US_W78": "more_votes_better"},
-                               axis=1)
-
-        # Drop rows with unhelpful answers
-        new_df = new_df[new_df["party"].isin(["Democrat",
-                                              "Republican",
-                                              "Independent"])]
+    def _filter_demographics(self, df):
+        new_df = df[df["party"].isin(["Democrat",
+                                      "Republican",
+                                      "Independent"])]
         new_df = new_df[new_df["religion"] != "Other"]
-        new_df = new_df[new_df["race"] != "Other"]
+        new_df = new_df[new_df["race_1"] != "Other"]
+        new_df = new_df[new_df["race_2"] != "Or some other race"]
+        new_df = new_df[new_df["race_2"] != "Mixed Race"]
 
         for col_name in list(new_df):
             new_df = new_df[new_df[col_name] != "Refused"]
-
-        # Randomly sample 500 + self._n_exemplars rows
-        new_df = new_df.sample(n=500+self._n_exemplars, random_state=0)
-
         return new_df
 
     def _make_backstory(self, row):
         backstory = []
 
         # Age
-        if row["age"] == "65+":
-            backstory.append("I am at least 65 years old.")
-        else:
-            low, high = row["age"].split("-")
-            backstory.append(f"I am between {low} and {high} years old.")
+        age_map = {
+            "18-29": "I am between 18 and 29 years old.",
+            "30-49": "I am between 30 and 49 years old.",
+            "50-64": "I am between 50 and 64 years old.",
+            "65+": "I am at least 65 years old."
+        }
+        backstory.append(age_map[row["age"]])
 
         # Gender
-        if row["gender"] == "In some other way":
-            backstory.append("I don't identify as male or female.")
-        else:
-            backstory.append(f"I am {row['gender'].lower()}.")
+        gender_map = {
+            "Female": "I am female.",
+            "Male": "I am male."
+        }
+        backstory.append(gender_map[row["gender"]])
 
         # Party
-        if row["party"] == "Independent":
-            backstory.append("In terms of political parties I am independent.")
-        else:
-            backstory.append("In terms of political parties "
-                             f"I am a {row['party']}.")
+        pfx = "In terms of political parties"
+        party_map = {
+            "Democrat": f"{pfx} I'm a Democrat.",
+            "Republican": f"{pfx} I'm a Republican.",
+            "Independent": f"{pfx} I'm independent."
+        }
+        backstory.append(party_map[row["party"]])
 
         # Education
-        if row["educ"] == "College graduate+":
-            backstory.append("I went to grad school.")
-        elif row["educ"] == "Some College":
-            backstory.append("I've completed some college.")
-        else:
-            backstory.append("I didn't go to college.")
+        pfx = "In terms of educational attainment,"
+        educ_map = {
+            "Less than high school": (f"{pfx} I have less than a high "
+                                      "school education."),
+            "High school graduate": (f"{pfx} I'm a high school graduate."),
+            "Some college, no degree": (f"{pfx} I've completed some "
+                                        "college but haven't earned a "
+                                        "college degree."),
+            "Associate's degree": (f"{pfx} I've earned an "
+                                   "Associate's degree."),
+            "College graduate/some post grad": (f"{pfx} I've graduated "
+                                                "from college."),
+            "Postgraduate": (f"{pfx} I've earned a postgraduate degree.")
+        }
+        backstory.append(educ_map[row["educ"]])
 
         # Ideology
-        backstory.append(("In terms of political ideology, "
-                          "I'd consider myself "
-                          f"to be {row['ideo'].lower()}."))
+        pfx = "In terms of political ideology,"
+        ideo_map = {
+            "Conservative": f"{pfx} I am conservative.",
+            "Liberal": f"{pfx} I am liberal.",
+            "Moderate": f"{pfx} I am moderate.",
+            "Very conservative": f"{pfx} I am very conservative.",
+            "Very liberal": f"{pfx} I am very liberal."
+        }
+        backstory.append(ideo_map[row["ideo"]])
 
         # Income
-        if "to less than" in row["income"]:
-            low, high = row["income"].split(" to less than ")
-            backstory.append(("My annual family income is "
-                              f"between {low} and {high}."))
-        else:
-            income = row['income'].lower()
-            backstory.append(f"My annual family income is {income}.")
+        pfx = "My annual family income is"
+        income_map = {
+            "Less than $10,000": f"{pfx} less than $10,000.",
+            "$10,000 to less than $20,000": (f"{pfx} between $10,000 "
+                                             "and $20,000."),
+            "$20,000 to less than $30,000": (f"{pfx} between $20,000 "
+                                             "and $30,000."),
+            "$30,000 to less than $40,000": (f"{pfx} between $30,000 "
+                                             "and $40,000."),
+            "$40,000 to less than $50,000": (f"{pfx} between $40,000 "
+                                             "and $50,000."),
+            "$50,000 to less than $75,000": (f"{pfx} between $50,000 "
+                                             "and $75,000."),
+            "$75,000 to less than $100,000": (f"{pfx} between $75,000 "
+                                              "and $100,000."),
+            "$100,000 to less than $150,000": (f"{pfx} between $100,000 "
+                                               "and $150,000."),
+            "$150,000 or more": f"{pfx} $150,000 or more."
+        }
+        backstory.append(income_map[row["income"]])
 
         # Religiosity
-        if row["religion"] == "Nothing in particular":
-            backstory.append(("I don't identify with any religion "
-                              "in particular."))
-        else:
-            if "Orthodox" in row["religion"]:
-                religion = "Orthodox"
-            elif "Mormon" in row["religion"]:
-                religion = "Mormon"
-            elif row["religion"] in ["Atheist", "Agnostic"]:
-                religion = row["religion"].lower()
-            else:
-                religion = row["religion"]
-            backstory.append(f"In terms of religion I am {religion}.")
+        pfx = "In terms of religion I am"
+        religion_map = {
+            "Roman Catholic": f"{pfx} Roman Catholic.",
+            "Protestant": f"{pfx} Protestant.",
+            "Buddhist": f"{pfx} Buddhist.",
+            "Atheist": f"{pfx} atheist.",
+            "Muslim": f"{pfx} Muslim.",
+            "Hindu": f"{pfx} Hindu.",
+            "Jewish": f"{pfx} Jewish.",
+            ("Orthodox (such as Greek, Russian, "
+             "or some other Orthodox church)"): f"{pfx} Orthodox.",
+            ("Mormon (Church of Jesus Christ of "
+             "Latter-day Saints or LDS)"): f"{pfx} Mormon.",
+            "Agnostic": f"{pfx} agnostic.",
+            "Nothing in particular": ("I don't identify with any "
+                                      "religion in particular.")
+        }
+        backstory.append(religion_map[row["religion"]])
 
         # Race/Ethnicity
-        race = row['race'].replace(' non-Hispanic', '').lower()
-        backstory.append(f"I'm {race}.")
+        pfx = "I'm"
+        if row["race_1"] == "Hispanic":
+            backstory.append(f"{pfx} hispanic.")
+        else:
+            race_map = {
+                "White": f"{pfx} white.",
+                "Asian or Asian-American": f"{pfx} asian.",
+                "Black or African American": f"{pfx} black."
+            }
+            backstory.append(race_map[row["race_2"]])
 
         # Region
-        if row["census_reg"] == "Northeast":
-            backstory.append("I live in the northeast of the United States.")
-        elif row["census_reg"] == "West":
-            backstory.append("I live in the western United States.")
-        else:
-            backstory.append(f"I live in the {row['census_reg']}.")
+        pfx = "I live in the"
+        region_map = {
+            "Midwest": f"{pfx} Midwest.",
+            "West": f"{pfx} western United States.",
+            "Northeast": f"{pfx} northeast of the United States.",
+            "South": f"{pfx} South."
+        }
+        backstory.append(region_map[row["census_reg"]])
 
         # Marital Status
-        if row["marital"] == "Never been married":
-            backstory.append("I've never been married.")
-        elif row["marital"] == "Separated":
-            backstory.append(("I got married, but I'm now "
-                              "separated from my partner."))
-        else:
-            backstory.append(f"I'm {row['marital'].lower()}.")
+        marital_map = {
+            "Widowed": "I'm widowed.",
+            "Never been married": "I've never been married.",
+            "Married": "I'm married.",
+            "Divorced": "I'm divorced.",
+            "Living with a partner": "I'm living with a partner.",
+            "Separated": ("I got married, but I'm now "
+                          "separated from my partner.")
+        }
+        backstory.append(marital_map[row["marital"]])
 
         # Date
         backstory.append("It's November 2020.")
 
         return " ".join(backstory)
 
-    def _get_prompt_instructions(self):
-        return {"econ_today": (("Between excellent, good, fair, and poor, "
-                                "I'd call the the economic conditions in "
-                                "the US"), lambda x: {"Excellent": "excellent",
-                                                      "Good": "good",
-                                                      "Only fair": "fair",
-                                                      "Poor": "poor"}[x]),
-                "econ_year_away": (("If I had to call the economic conditions "
-                                    "in the US I expect a year from now "
-                                    "(compared to now) better, worse, or "
-                                    "same, I'd call them"),
-                                   lambda x: {"Better": "better",
-                                              "Worse": "worse",
-                                              ("About the same "
-                                               "as now"): "same"}[x]),
-                "country_satisfied": (("If asked whether I'm satisfied or "
-                                       "dissatisfied with the way things are "
-                                       "going in this country today I'd "
-                                       "say that I'm"),
-                                      lambda x: x.lower()),
-                "election_wellness": (("If asked whether I think the "
-                                       "elections this month in the United "
-                                       "States were run well or poorly, "
-                                       "I'd say they were run"),
-                                      lambda x: {"Very well": "well",
-                                                 "Somewhat well": "well",
-                                                 "Not too well": "poorly",
-                                                 ("Not at "
-                                                  "all well"): "poorly"}[x]),
-                "follow_election": (("If asked (yes or no) if I followed "
-                                     "the results of the presidential "
-                                     "election after polls closed on "
-                                     "Election Day I'd say"),
-                                    lambda x: {("Followed them almost "
-                                                "constantly"): "yes",
-                                               ("Checked in fairly "
-                                                "often"): "yes",
-                                               ("Checked in "
-                                                "occasionally"): "yes",
-                                               ("Tuned them out "
-                                                "entirely"): "no"}[x]),
-                "covid_assist_pack": (("Congress and President Trump passed "
-                                       "a $2 trillion economic assistance "
-                                       "package in March in response to "
-                                       "the economic impact of the "
-                                       "coronavirus outbreak. If asked "
-                                       "whether I think another economic "
-                                       "assistance package is necessary "
-                                       "or is not necessary I'd say it is"),
-                                      lambda x: x.lower()),
-                "rep_dem_relationship": (("If asked if relations between "
-                                          "Republicans and Democrats in "
-                                          "Washington a year from now will "
-                                          "be better, worse, or same I'd "
-                                          "say they will be"),
-                                         lambda x: {"Get better": "better",
-                                                    "Get worse": "worse",
-                                                    ("Stay about "
-                                                     "the same"): "same"}[x]),
-                "covid_restrict": (("If asked if the number of "
-                                    "restrictions on public activity "
-                                    "because of the coronavirus "
-                                    "outbreak in my area should be "
-                                    "increased, decreased, or maintained, "
-                                    "I'd say it should be"),
-                                   lambda x: {("MORE restrictions "
-                                              "right now"): "increased",
-                                              ("FEWER restrictions "
-                                               "right now"): "decreased",
-                                              ("About the same number "
-                                               "of restrictions "
-                                               "right now"): "maintained"}[x]),
-                "rep_dem_division": (("If asked if I'm at least somewhat "
-                                      "concerned about divisions between "
-                                      "Republicans and Democrats (yes or no) "
-                                      "I'd say"),
-                                     lambda x: {"Very concerned": "yes",
-                                                "Somewhat concerned": "yes",
-                                                "Not too concerned": "no",
-                                                ("Not at all "
-                                                 "concerned"): "no"}[x]),
-                "more_votes_better": (("If asked whether the United States "
-                                       "would be better off if more Americans "
-                                       "voted (yes or no) I'd say"),
-                                      lambda x: {("The country would not be "
-                                                  "better off if more "
-                                                  "Americans voted"): "yes",
-                                                 ("The country would be "
-                                                  "better off if more "
-                                                  "Americans "
-                                                  "voted"): "no"}[x])}
+    def _get_col_prompt_specs(self):
+        return {"coal": PromptSpecs(("Do you support or oppose "
+                                     "expansion of coal mining "
+                                     "in the United States?"),
+                                    "",
+                                    {"Favor": "Support",
+                                     "Oppose": "Oppose"}),
+                "solar": PromptSpecs(("Do you support or oppose "
+                                      "expansion of solar power "
+                                      "\"farms\" "
+                                      "in the United States?"),
+                                     "",
+                                     {"Favor": "Support",
+                                      "Oppose": "Oppose"}),
+                "wind": PromptSpecs(("Do you support or oppose "
+                                     "expansion of wind turbine "
+                                     "\"farms\" "
+                                     "in the United States?"),
+                                    "",
+                                    {"Favor": "Support",
+                                     "Oppose": "Oppose"}),
+                "trees": PromptSpecs(("Do you support or oppose "
+                                      "planting about a trillion "
+                                      "trees around the world to "
+                                      "absorb carbon emissions "
+                                      "in the atmosphere?"),
+                                     "",
+                                     {"Favor": "Support",
+                                      "Oppose": "Oppose"}),
+                "gov_climate": PromptSpecs(("Do you think what "
+                                            "the federal government is "
+                                            "doing to reduce the effects "
+                                            "of global climate change is "
+                                            "excessive, sufficient, or "
+                                            "insufficient?"),
+                                           ("I think the federal government's "
+                                            "efforts are"),
+                                           {"Too much": "excessive",
+                                            "Too little": "insufficient",
+                                            "About the right amount":
+                                            "sufficient"}),
+                "human_act_climate": PromptSpecs(("Do you think human "
+                                                  "activity, such as the "
+                                                  "burning of fossil "
+                                                  "fuels, contributes at "
+                                                  "least some "
+                                                  "to global climate change?"),
+                                                 "",
+                                                 {"A great deal": "Yes",
+                                                  "Some": "Yes",
+                                                  "Not too much": "No",
+                                                  "Not at all": "No"}),
+                "climate_local": PromptSpecs(("Do you think global climate "
+                                              "change is currently "
+                                              "having some affect "
+                                              "on your local community?"),
+                                             "",
+                                             {"A great deal": "Yes",
+                                              "Some": "Yes",
+                                              "Not too much": "No",
+                                              "Not at all": "No"}),
+                "med_researcher_view": PromptSpecs(("Medical research "
+                                                    "scientists conduct "
+                                                    "research to "
+                                                    "investigate human "
+                                                    "diseases, and test "
+                                                    "methods to prevent "
+                                                    "and treat them. In "
+                                                    "general, would you "
+                                                    "say your view of "
+                                                    "medical research "
+                                                    "scientists is positive, "
+                                                    "negative, or neutral?"),
+                                                   "",
+                                                   {"Mostly positive":
+                                                    "positive",
+                                                    "Mostly negative":
+                                                    "negative",
+                                                    ("Neither positive "
+                                                     "nor negative"):
+                                                    "neutral"}),
+                "med_doc_view": PromptSpecs(("Medical doctors provide "
+                                             "patients with diagnoses of "
+                                             "disease and/or treatment "
+                                             "recommendations to promote, "
+                                             "maintain or restore a "
+                                             "patient’s health. "
+                                             "In general, would you say "
+                                             "your view of medical doctors "
+                                             "is positive, negative, or "
+                                             "neutral?"),
+                                            "",
+                                            {"Mostly positive": "positive",
+                                             "Mostly negative": "negative",
+                                             ("Neither positive "
+                                              "nor negative"):
+                                             "neutral"}),
+                "clin_trial": PromptSpecs(("Some medical research studies "
+                                           "are called clinical trials in "
+                                           "which volunteers participate in "
+                                           "a study to help test the safety "
+                                           "and effectiveness of new "
+                                           "treatments, drugs or devices. "
+                                           "Do you think it is at least "
+                                           "somewhat important "
+                                           "to go through the process of "
+                                           "conducting clinical trials, even "
+                                           "if it will lengthen the time it "
+                                           "takes to develop new treatments?"),
+                                          "",
+                                          {"Very important": "Yes",
+                                           "Somewhat important": "Yes",
+                                           "Not too important": "No",
+                                           "Not at all important": "No"})}
 
 
 if __name__ == "__main__":
-    from experiment import Experiment
-    ds = PewAmericanTrendsWave78Dataset(n_exemplars=5)
-    e = Experiment(ds, gpt_3_engine="ada")
-    e.run()
-    e.save_results("pew_results.pkl")
+    ds = PewAmericanTrendsWave67Dataset()
+    for sample in ds.get_prompts_sample():
+        print(sample)
+        print()
