@@ -13,7 +13,7 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                          samples=500)
 
     def _filter_to_usa(self, df):
-        # Since everyone in Pew American Trends Wave 78
+        # Since everyone in Pew American Trends Wave 67
         # is from the US we don't need to do anything here
         return df
 
@@ -40,8 +40,7 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                 "CLIM9_W67": "climate_local",
                 "RQ1_F1A_W67": "med_researcher_view",
                 "PQ1_F2A_W67": "med_doc_view",
-                "CLIN_TRIAL1_W67": "clin_trial"
-                }
+                "CLIN_TRIAL1_W67": "clin_trial"}
 
     def _filter_demographics(self, df):
         new_df = df[df["party"].isin(["Democrat",
