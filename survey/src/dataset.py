@@ -1,6 +1,8 @@
 from opener import Opener
 
 import abc
+import random
+import warnings
 
 
 class PromptSpecs:
@@ -28,10 +30,12 @@ class Dataset(abc.ABC):
 
     def __init__(self,
                  fname,
+                 min_samples=800,
                  opening_func=None,
                  samples=1000,
                  sampling_random_state=0):
 
+        self._min_samples = min_samples
         self._samples = samples
         self._seed = sampling_random_state
 
@@ -67,15 +71,31 @@ class Dataset(abc.ABC):
         self._prompts_dict = {}
         for dv in dv_col_names.values():
 
-            # Filter the series for col_name
-            self._dvs[dv] = self._get_dv_filter_funcs()[dv](self._dvs[dv])
+            # Filter the dv series
+            ok_keys = self._get_col_prompt_specs()[dv].answer_map.keys()
+
+            # Warn if self._dvs[dv] has values not represented in the
+            # keys of the dv's associated answer_map
             self._dvs[dv] = self._dvs[dv].dropna()
+            unique_vals = self._dvs[dv].unique()
+            missing_vals = set(unique_vals) - set(ok_keys)
+
+            self._dvs[dv] = self._dvs[dv][self._dvs[dv].isin(list(ok_keys))]
+            for val in missing_vals:
+                warnings.warn((f"The dv {dv} has value \"{val}\" not "
+                               "represented in its associated "
+                               "answer_map"))
 
             # Sample
-            try:
+            if len(self._dvs[dv]) >= self._samples:
                 self._dvs[dv] = self._dvs[dv].sample(n=self._samples,
                                                      random_state=self._seed)
-            except ValueError:
+            elif len(self._dvs[dv]) >= self._min_samples:
+                warnings.warn((f"DV {dv} only has {len(self._dvs[dv])} "
+                               "samples. Sampling anyways because {dv} has "
+                               f"at least {self._min_samples} (min_samples) "
+                               "values."))
+            else:
                 raise ValueError((f"DV {dv} only has {len(self._dvs[dv])} "
                                   "values, which is not enough "
                                   "to allow for sampling responses from "
@@ -84,6 +104,15 @@ class Dataset(abc.ABC):
             self._prompts_dict[dv] = {}
             for idx in self._dvs[dv].index:
                 self._prompts_dict[dv][idx] = self._make_prompt(idx, dv)
+
+    def get_prompts_sample(self):
+        """Randomly choose one prompt for each DV"""
+        prompts = []
+        for dv_name in self._dvs.keys():
+            dv_prompts = self.prompts[dv_name]
+            rand_idx = random.choice(list(dv_prompts.keys()))
+            prompts.append(dv_prompts[rand_idx])
+        return prompts
 
     @property
     def prompts(self):
@@ -127,10 +156,6 @@ class Dataset(abc.ABC):
         Return a dictionary with column names as keys and convenience
         names as values
         """
-        pass
-
-    @abc.abstractclassmethod
-    def _get_dv_filter_funcs(self):
         pass
 
     @abc.abstractmethod

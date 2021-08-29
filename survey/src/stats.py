@@ -26,9 +26,3 @@ def cramers_v(cm):
     r, k = cm.shape
     denominator = min(k - 1, r - 1)
     return np.sqrt(numerator / denominator)
-
-
-if __name__ == "__main__":
-    a = ["cat", "cat", "dog", "cat", "dog", "cat"]
-    b = ["cat", "dog", "dog", "dog", "dog", "cat"]
-    print(cramers_v_from_vecs(a, b))
