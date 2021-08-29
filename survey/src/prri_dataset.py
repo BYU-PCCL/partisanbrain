@@ -4,22 +4,24 @@ from dataset import PromptSpecs
 class PRRIDataset(Dataset):
 
     def __init__(self):
-        survey_fname = "PRRI 2018 American Values Survey.sav"
-        super().__init__(survey_fname, n_exemplars)
+        survey_fname = "data/PRRI 2018 American Values Survey.sav"
+        super().__init__(survey_fname)
 
     def _get_dv_filter_funcs(self):
-        return {"race_ethnicity": lambda x: x[x != "Other, non-Hispanic"]
-                "immigrant_citizenship": x: x[x != "None of these"]}
+        return {"race_ethnicity": lambda x: x[x != "Other, non-Hispanic"],
+                "immigrant_citizenship": lambda x: x[x != "None of these"]}
 
     def _filter_demographics(self, df):
         problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
-        new_df = new_df[new_df["religion"] != "Something else"]
-        new_df = new_df[new_df["party"].isin(["A Democrat",
+        df = df[df["religion"] != "Something else"]
+        df = df[df["party"].isin(["A Democrat",
                                               "A Republican",
                                               "An Independent"])]
 
-        for col_name in list(new_df):
-            new_df = new_df[~new_df[col_name].isin(problematic_values)]
+        for col_name in list(df):
+            df = df[~df[col_name].isin(problematic_values)]
+
+        return df
 
     def _filter_to_usa(self, df):
         # all respondents in this survey should be from the USA
@@ -73,7 +75,7 @@ class PRRIDataset(Dataset):
 
         # Party
         if row["party"] == "An Independent":
-            backstory.append("In terms of political parties I am independent.")
+            backstory.append("In terms of political parties I am an independent.")
         else:
             backstory.append("In terms of political parties "
                              f"I am a {row['party']}.")
@@ -168,7 +170,7 @@ class PRRIDataset(Dataset):
 
         return " ".join(backstory)
 
-    def _get_prompt_instructions(self):
+    def _get_col_prompt_specs(self):
         return {"electing_women": PromptSpecs(("How do you think electing more "
                                                "women to political office would "
                                                "make things in the US?"),
@@ -180,7 +182,7 @@ class PRRIDataset(Dataset):
                                                 "lesbian, gay, bisexual, and "
                                                 "transgender people to political "
                                                 "office would make things in the US?"),
-                                                "I think things would be",
+                                                "",
                                                 {"Better": "better",
                                                 "Worse": "worse",
                                                 "Not much different": "same"}),
@@ -205,7 +207,7 @@ class PRRIDataset(Dataset):
                                                      "Completely disagree": "no"}),
                 "putin_opinion": PromptSpecs(("How would you describe your overall opinion of"
                                               "Russian President Vladimir Putin?"),
-                                              "My opinion of Putin is",
+                                              "",
                                               {"Very favorable": "favorable",
                                               "Mostly favorable" : "favorable",
                                               "Mostly unfavorable": "unfavorable",
@@ -213,7 +215,7 @@ class PRRIDataset(Dataset):
                 "view_on_immigration": PromptSpecs(("Do you think that, in general, the growing "
                                                     "number of newcomers from other countries to "
                                                     "the US is good or bad?"),
-                                                    "I think the growing number of newcomers is",
+                                                    "",
                                                     {"Threatens traditional American "
                                                     "customs and values": "bad",
                                                     "Strengthens American society" : "good"}),
@@ -237,7 +239,7 @@ class PRRIDataset(Dataset):
                                                       "about how the immigration system should deal "
                                                       "with imigrants who are currently living in the "
                                                       "US illegally?"),
-                                                      "The immigration system should...",
+                                                      "",
                                                       {"Allow them a way to become citizens provided "
                                                       "they meet certain requirements": "Allow them "
                                                       "to become citizens",
@@ -246,7 +248,7 @@ class PRRIDataset(Dataset):
                                                       "not citizens",
                                                       "Identify and deport them": "deport them"}),
                 "voting_frequency": PromptSpecs(("How often would you say you vote?"),
-                                                "I'd say I vote",
+                                                "",
                                                 {"Always": "always",
                                                 "Nearly always" : "sometimes",
                                                 "In about half of elections": "sometimes",
@@ -262,7 +264,7 @@ class PRRIDataset(Dataset):
                 "electing_minorities": PromptSpecs(("How do you think electing more people from "
                                                     "racial and ethnic minority groups to political "
                                                     "office would make things in the US?"),
-                                                    "I think things would be",
+                                                    "",
                                                     {"Better": "better",
                                                     "Worse": "worse",
                                                     "Not much different": "same"}),
@@ -271,7 +273,7 @@ class PRRIDataset(Dataset):
                                                          "are isolated events or part of a "
                                                          "broader pattern how how police "
                                                          "treat African Americans?"),
-                                                         "I think they are",
+                                                         "",
                                                          {"Isolated incidents": "isolated incidents",
                                                          "Part of a broader pattern": "a broader pattern"}),
                 "asian_discrimination": PromptSpecs(("In the US today is there a lot of discrimination "
@@ -318,7 +320,17 @@ class PRRIDataset(Dataset):
                 "elect_non_christian": PromptSpecs(("How do you think electing more non "
                                                     "Christian people to political office "
                                                     "would make things in the US?"),
-                                                    "I think things would be",
+                                                    "",
                                                     {"Better": "better",
                                                     "Worse": "worse",
                                                     "Not much different": "same"}),
+        }
+
+if __name__ == "__main__":
+    ds = PRRIDataset()
+    # Uncomment this to see a sample of your prompts
+    # First prompt for each DV
+    #for dv_name in ds.dvs.keys():
+    #    dv_prompts = ds.prompts[dv_name]
+    #    print(dv_prompts[list(dv_prompts.keys())[0]])
+    #    print()
