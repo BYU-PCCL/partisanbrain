@@ -9,9 +9,6 @@ import pandas as pd
 class AnesDataset(dataset.Dataset):
     def __init__(self, n_exemplars):
         survey_fname = "data/anes/anes_timeseries_2020_csv_20210719.csv"
-        #Read this into a pandas df
-        df = pd.read_csv(survey_fname)
-        bp()
         super().__init__(survey_fname, n_exemplars)
 
     def _get_dv_filter_funcs(self):
@@ -120,19 +117,16 @@ class AnesDataset(dataset.Dataset):
                         1: "Democratic party",
                         2: "Republican party",
                         4: "None or ‘independent’",
-                        5: "Other {SPECIFY}",
                     },
                     'abs': {
                         1: "I'm a Democrat.",
                         2: "I'm a Republican.",
-                        4: "I'm an independent",
+                        4: "I'm an independent, politically speaking.",
                     },
                 },
                 "education": {
                     'q': "What is the highest level of school you have completed or the highest degree you have received ('Less than high school credential', 'High school graduate - High school diploma or equivalent (e.g: GED)', 'Some college but no degree', 'Associate degree in college - occupational/vocational', 'Associate degree in college - academic', 'Bachelor’s degree (e.g. BA, AB, BS)', 'Master’s degree (e.g. MA, MS, MEng, MEd, MSW, MBA)', 'Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)')?",
                     'a': {
-                        -9: "Refused",
-                        -8: "Don’t know",
                         1: "Less than high school credential",
                         2: "High school graduate - High school diploma or equivalent (e.g: GED)",
                         3: "Some college but no degree",
@@ -141,7 +135,6 @@ class AnesDataset(dataset.Dataset):
                         6: "Bachelor’s degree (e.g. BA, AB, BS)",
                         7: "Master’s degree (e.g. MA, MS, MEng, MEd, MSW, MBA)",
                         8: "Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)",
-                        95: "Other \{SPECIFY\}}",
                         },
                     'abs': {
                         1: "I didn't graduate from high school.",
