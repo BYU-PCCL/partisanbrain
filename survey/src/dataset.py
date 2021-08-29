@@ -1,6 +1,7 @@
 from opener import Opener
 
 import abc
+import random
 import warnings
 
 
@@ -103,6 +104,15 @@ class Dataset(abc.ABC):
             self._prompts_dict[dv] = {}
             for idx in self._dvs[dv].index:
                 self._prompts_dict[dv][idx] = self._make_prompt(idx, dv)
+
+    def get_prompts_sample(self):
+        """Randomly choose one prompt for each DV"""
+        prompts = []
+        for dv_name in self._dvs.keys():
+            dv_prompts = self.prompts[dv_name]
+            rand_idx = random.choice(list(dv_prompts.keys()))
+            prompts.append(dv_prompts[rand_idx])
+        return prompts
 
     @property
     def prompts(self):
