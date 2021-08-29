@@ -112,7 +112,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         # Income
         pfx = "My annual family income is"
         income_map = {
-            "Less than $30,000": f"{pfx} less than $30,000",
+            "Less than $30,000": f"{pfx} less than $30,000.",
             "$30,000 to less than $40,000": (f"{pfx} between $30,000 "
                                              "and $40,000."),
             "$40,000 to less than $50,000": (f"{pfx} between $40,000 "
@@ -243,7 +243,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                 ("Tuned them out "
                                                  "entirely"): "No"}),
                 "covid_assist_pack": PromptSpecs(("Congress and President "
-                                                  "Trump passed a  trillion "
+                                                  "Trump passed a $2 trillion "
                                                   "economic assistance "
                                                   "package in March in "
                                                   "response to the "
@@ -252,10 +252,9 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                   "you think another economic "
                                                   "assistance package is "
                                                   "necessary?"),
-                                                 "I think it is",
-                                                 {"Necessary": "necessary",
-                                                  "Not necessary":
-                                                  "not necessary"}),
+                                                 "",
+                                                 {"Necessary": "Yes",
+                                                  "Not necessary": "No"}),
                 "rep_dem_relationship": PromptSpecs(("Do you think relations "
                                                      "between Republicans and "
                                                      "Democrats in Washington "
@@ -295,9 +294,10 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                  "Not too concerned": "No",
                                                  ("Not at all "
                                                   "concerned"): "No"}),
-                "more_votes_better": PromptSpecs(("Do you the United States "
-                                                  "would be better off if "
-                                                  "more Americans voted?"),
+                "more_votes_better": PromptSpecs(("Do you think the United "
+                                                  "States would be better "
+                                                  "off if more Americans "
+                                                  "voted?"),
                                                  "",
                                                  {("The country would not be "
                                                    "better off if more "
@@ -310,6 +310,9 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave78Dataset()
+    for sample in ds.get_prompts_sample():
+        print(sample)
+        print()
     # Uncomment this to see a sample of your prompts
     # First prompt for each DV
     # prompts = []
