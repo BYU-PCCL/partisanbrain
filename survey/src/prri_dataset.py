@@ -7,25 +7,23 @@ class PRRIDataset(Dataset):
         survey_fname = "data/PRRI 2018 American Values Survey.sav"
         super().__init__(survey_fname)
 
-    def _get_dv_filter_funcs(self):
-        return {"race_ethnicity": lambda x: x[x != "Other, non-Hispanic"],
-                "immigrant_citizenship": lambda x: x[x != "None of these"]}
-
-    def _filter_demographics(self, df):
-        problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
-        df = df[df["religion"] != "Something else"]
-        df = df[df["party"].isin(["A Democrat",
-                                              "A Republican",
-                                              "An Independent"])]
-
-        for col_name in list(df):
-            df = df[~df[col_name].isin(problematic_values)]
-
-        return df
-
     def _filter_to_usa(self, df):
         # all respondents in this survey should be from the USA
         return df
+
+    def _get_demographic_col_names(self):
+        return {"AGE": "age",
+                "AGE4": "age4",
+                "AGE7": "age7",
+                "GENDER": "gender",
+                "PARTY": "party",
+                "EDUC": "education",
+                "IDEO": "ideology",
+                "INCOME": "income",
+                "RELIG": "religion",
+                "RACETHNICITY": "race_ethnicity",
+                "REGION9": "region",
+                "MARITAL": "marital_status"}
 
     def _get_dv_col_names(self):
         return {"Q20A": "electing_women",
@@ -49,19 +47,13 @@ class PRRIDataset(Dataset):
                 "Q27N": "use_of_racism",
                 "Q20D": "elect_non_christian"}
 
-    def _get_demographic_col_names(self):
-        return {"AGE": "age",
-                "AGE4": "age4",
-                "AGE7": "age7",
-                "GENDER": "gender",
-                "PARTY": "party",
-                "EDUC": "education",
-                "IDEO": "ideology",
-                "INCOME": "income",
-                "RELIG": "religion",
-                "RACETHNICITY": "race_ethnicity",
-                "REGION9": "region",
-                "MARITAL": "marital_status"}
+    def _filter_demographics(self, df):
+        problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
+        df = df[df["religion"] != "Something else"]
+        df = df[df["party"].isin(["A Democrat",
+                                              "A Republican",
+                                              "An Independent"])]
+        return df
 
     def _make_backstory(self, row):
         backstory = []
@@ -78,7 +70,7 @@ class PRRIDataset(Dataset):
             backstory.append("In terms of political parties I am an independent.")
         else:
             backstory.append("In terms of political parties "
-                             f"I am a {row['party']}.")
+                             f"I am {row['party']}.")
 
         # Education
         education = row["education"]
@@ -136,20 +128,20 @@ class PRRIDataset(Dataset):
             backstory.append(f"In terms of religion I am {religion}.")
 
         # Race/Ethnicity
-        race = row['race_ethnicity'].replace(' non-Hispanic', '').lower()
+        race = row['race_ethnicity'].replace(', non-Hispanic', '').lower()
         backstory.append(f"I'm {race}.")
 
         # Region
         if row["region"] == "New England" or row["region"] == "Mid Atlantic":
-            backstory.append("I live in the northeast of the United States.")
+            backstory.append("I live in the Northeast of the United States.")
         elif row["region"] == "Mountain":
-            backstory.append("I live in the western United States.")
+            backstory.append("I live in the Western United States.")
         elif row["region"] == "East North Central" or row["region"] == "West North Central":
-            backstory.append("I live in the midwest of the United States.")
+            backstory.append("I live in the Midwest of the United States.")
         elif row["region"] == "West South Central":
-            backstory.append("I live in the southern United States.")
+            backstory.append("I live in the Southern United States.")
         elif row["region"] == "East South Central" or row["region"] == "South Atlantic":
-            backstory.append("I live in the south eastern United States.")
+            backstory.append("I live in the Southeast of the United States.")
         else:
             backstory.append("I live in the western United States.")
 
@@ -177,15 +169,15 @@ class PRRIDataset(Dataset):
                                               "I think things would be",
                                               {"Better": "better",
                                                "Worse": "worse",
-                                               "Not much different": "same"}),
+                                               "Not much different": "the same"}),
                 "electing_LGBTQIA": PromptSpecs(("How do you think electing more "
                                                 "lesbian, gay, bisexual, and "
                                                 "transgender people to political "
                                                 "office would make things in the US?"),
-                                                "",
+                                                "I think things would be",
                                                 {"Better": "better",
                                                 "Worse": "worse",
-                                                "Not much different": "same"}),
+                                                "Not much different": "the same"}),
                 "do_more_for_LGBTQIA": PromptSpecs(("Do you think our country has made "
                                                     "the changes needed to give gay and "
                                                     "lesbian people equal rights in America?"),
@@ -193,21 +185,21 @@ class PRRIDataset(Dataset):
                                                    {"Our country has made the changes "
                                                    "needed to give gay and lesbian "
                                                    "people equal rights with other "
-                                                   "Americans": "yes",
+                                                   "Americans": "Yes",
                                                    "Our country needs to continue making "
                                                    "changes to give gay and lesbian people "
-                                                   "equal rights with other Americans": "no"}),
+                                                   "equal rights with other Americans": "No"}),
                 "immigrant_preference": PromptSpecs(("Do you think we should give preference "
                                                      "to immigrants from Western Europe. who "
                                                      "share our values?"),
                                                      "",
-                                                     {"Completely agree": "yes",
-                                                     "Mostly agree" : "yes",
-                                                     "Mostly disagree": "no",
-                                                     "Completely disagree": "no"}),
+                                                     {"Completely agree": "Yes",
+                                                     "Mostly agree" : "Yes",
+                                                     "Mostly disagree": "No",
+                                                     "Completely disagree": "No"}),
                 "putin_opinion": PromptSpecs(("How would you describe your overall opinion of"
                                               "Russian President Vladimir Putin?"),
-                                              "",
+                                              "My opinion is",
                                               {"Very favorable": "favorable",
                                               "Mostly favorable" : "favorable",
                                               "Mostly unfavorable": "unfavorable",
@@ -215,7 +207,7 @@ class PRRIDataset(Dataset):
                 "view_on_immigration": PromptSpecs(("Do you think that, in general, the growing "
                                                     "number of newcomers from other countries to "
                                                     "the US is good or bad?"),
-                                                    "",
+                                                    "The growing number of newcomers is",
                                                     {"Threatens traditional American "
                                                     "customs and values": "bad",
                                                     "Strengthens American society" : "good"}),
@@ -227,19 +219,18 @@ class PRRIDataset(Dataset):
                                                            "Immigrants today are a burden on our "
                                                            "country because they take our jobs, housing, "
                                                            "and healthcare": "bad"}),
-                "laws_preventing_refugees": PromptSpecs(("Do you favor,or oppose passing a "
+                "laws_preventing_refugees": PromptSpecs(("Do you favor or oppose passing a "
                                                          "law to prevent refugees from "
                                                          "entering the US?"),
-                                                         "",
+                                                         "I",
                                                          {"Strongly favor": "favor",
                                                          "Favor" : "favor",
                                                          "Oppose": "oppose",
                                                          "Strongly oppose": "oppose"}),
-                "immigrant_citizenship": PromptSpecs(("Which statement comes closest to your view "
-                                                      "about how the immigration system should deal "
+                "immigrant_citizenship": PromptSpecs(("How should the US immigration system should deal "
                                                       "with imigrants who are currently living in the "
                                                       "US illegally?"),
-                                                      "",
+                                                      "The US immigration system should",
                                                       {"Allow them a way to become citizens provided "
                                                       "they meet certain requirements": "Allow them "
                                                       "to become citizens",
@@ -248,7 +239,7 @@ class PRRIDataset(Dataset):
                                                       "not citizens",
                                                       "Identify and deport them": "deport them"}),
                 "voting_frequency": PromptSpecs(("How often would you say you vote?"),
-                                                "",
+                                                "I vote",
                                                 {"Always": "always",
                                                 "Nearly always" : "sometimes",
                                                 "In about half of elections": "sometimes",
@@ -257,52 +248,52 @@ class PRRIDataset(Dataset):
                 "trump_job_opinion": PromptSpecs(("Do you approve of the job Donald Trump is "
                                                   "doing as president?"),
                                                   "",
-                                                  {"Strongly approve": "yes",
-                                                  "Somewhat approve" : "yes",
-                                                  "Somewhat disapprove": "no",
-                                                  "Strongly disapprove": "no"}),
+                                                  {"Strongly approve": "Yes",
+                                                  "Somewhat approve" : "Yes",
+                                                  "Somewhat disapprove": "No",
+                                                  "Strongly disapprove": "No"}),
                 "electing_minorities": PromptSpecs(("How do you think electing more people from "
                                                     "racial and ethnic minority groups to political "
                                                     "office would make things in the US?"),
-                                                    "",
+                                                    "I think things would be",
                                                     {"Better": "better",
                                                     "Worse": "worse",
-                                                    "Not much different": "same"}),
+                                                    "Not much different": "the same"}),
                 "police_brutality_pattern": PromptSpecs(("Do you think the recent killings "
                                                          "of African American men by police "
                                                          "are isolated events or part of a "
                                                          "broader pattern how how police "
                                                          "treat African Americans?"),
-                                                         "",
+                                                         "I think they are",
                                                          {"Isolated incidents": "isolated incidents",
                                                          "Part of a broader pattern": "a broader pattern"}),
                 "asian_discrimination": PromptSpecs(("In the US today is there a lot of discrimination "
                                                      "against Asians?"),
                                                      "",
-                                                     {"Yes, there is a lot of discrimination": "yes",
-                                                     "No, not a lot of discrimination": "no"}),
+                                                     {"Yes, there is a lot of discrimination": "Yes",
+                                                     "No, not a lot of discrimination": "No"}),
                 "hispanic_discrimination": PromptSpecs(("In the US today is there a lot of discrimination "
                                                      "against Hispanics?"),
                                                      "",
-                                                     {"Yes, there is a lot of discrimination": "yes",
-                                                     "No, not a lot of discrimination": "no"}),
+                                                     {"Yes, there is a lot of discrimination": "Yes",
+                                                     "No, not a lot of discrimination": "No"}),
                 "white_vs_black_discrimination": PromptSpecs(("Do you think that discrimination "
                                                               "against whites has become as big a"
                                                               "problem as discrimination against "
                                                               "blacks and other minorities?"),
                                                               "",
-                                                              {"Completely agree": "yes",
-                                                              "Mostly agree": "yes",
-                                                              "Mostly disagree": "no",
-                                                              "Completely disagree": "no"}),
+                                                              {"Completely agree": "Yes",
+                                                              "Mostly agree": "Yes",
+                                                              "Mostly disagree": "No",
+                                                              "Completely disagree": "No"}),
                 "stranger_in_own_country": PromptSpecs(("Do you think the US has changed "
                                                         " so much that you feel like a "
                                                         "stranger in your own country?"),
                                                         "",
-                                                        {"Completely agree": "yes",
-                                                        "Mostly agree": "yes",
-                                                        "Mostly disagree": "no",
-                                                        "Completely disagree": "no"}),
+                                                        {"Completely agree": "Yes",
+                                                        "Mostly agree": "Yes",
+                                                        "Mostly disagree": "No",
+                                                        "Completely disagree": "No"}),
                 "demographic_change_opinion": PromptSpecs(("By 2045, minorities will together be a majority "
                                                            "in the US. Do you think the impact of the "
                                                            "coming demographic change will be positive "
@@ -313,17 +304,17 @@ class PRRIDataset(Dataset):
                 "use_of_racism": PromptSpecs(("Do you think racial minorities use racism "
                                               "as an excuse more than they should?"),
                                               "",
-                                              {"Completely agree": "yes",
-                                              "Mostly agree": "yes",
-                                              "Mostly disagree": "no",
-                                              "Completely disagree": "no"}),
+                                              {"Completely agree": "Yes",
+                                              "Mostly agree": "Yes",
+                                              "Mostly disagree": "No",
+                                              "Completely disagree": "No"}),
                 "elect_non_christian": PromptSpecs(("How do you think electing more non "
                                                     "Christian people to political office "
                                                     "would make things in the US?"),
-                                                    "",
+                                                    "I think things would be",
                                                     {"Better": "better",
                                                     "Worse": "worse",
-                                                    "Not much different": "same"}),
+                                                    "Not much different": "the same"}),
         }
 
 if __name__ == "__main__":
