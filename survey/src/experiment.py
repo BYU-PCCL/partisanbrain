@@ -22,30 +22,39 @@ class Experiment:
 
     def _process_prompt(self, prompt):
         """Process prompt with self._gpt_3_version version of GPT-3"""
-        try:
-            # TODO: Are these arguments correct?
-            # TODO: Do we ever want max_tokens > 1?
-            return openai.Completion.create(engine=self._gpt_3_engine,
-                                            prompt=prompt,
-                                            max_tokens=1,
-                                            logprobs=100)
-        # TODO: Catch more specific exception here
-        except Exception as exc:
-            print(exc)
-            return None
+        # try:
+        #     # TODO: Are these arguments correct?
+        #     # TODO: Do we ever want max_tokens > 1?
+        #     return openai.Completion.create(engine=self._gpt_3_engine,
+        #                                     prompt=prompt,
+        #                                     max_tokens=1,
+        #                                     logprobs=100)
+        # # TODO: Catch more specific exception here
+        # except Exception as exc:
+        #     print(exc)
+        #     return None
+        return "temp"
 
     def run(self):
         """Get results from GPT-3 API"""
-        for (row_idx, row_dict) in tqdm.tqdm(self._ds.prompts.items()):
-            self._results[row_idx] = {}
-            for (dv_name, prompt) in row_dict.items():
+        for (dv_name, dv_dict) in tqdm.tqdm(self._ds.prompts.items()):
+            self._results[dv_name] = {}
+            for (row_idx, prompt) in dv_dict.items():
                 response = self._process_prompt(prompt)
-                raw_target = self._ds.data.loc[row_idx][dv_name]
-                dv_proc_func = self._ds._get_prompt_instructions()[dv_name][1]
-                target = dv_proc_func(raw_target)
-                self._results[row_idx][dv_name] = (prompt, response, target)
+                raw_target = self._ds.dvs[dv_name][row_idx]
+                am = self._ds._get_col_prompt_specs()[dv_name].answer_map
+                target = am[raw_target]
+                self._results[dv_name][row_idx] = (prompt, response, target)
 
     def save_results(self, fname):
         """Save results obtained from run method"""
         with open(fname, "wb") as f:
             pickle.dump(self._results, f)
+
+
+# if __name__ == "__main__":
+#     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
+#     ds = PewAmericanTrendsWave78Dataset()
+#     e = Experiment(ds, gpt_3_engine="ada")
+#     e.run()
+#     e.save_results("new.pkl")
