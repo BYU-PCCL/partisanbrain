@@ -1,11 +1,13 @@
 from dataset import Dataset
 from dataset import PromptSpecs
 import pandas as pd
+from pdb import set_trace as bp
+
 
 class BaylorReligionSurveyDataset(Dataset):
 
     def __init__(self):
-        survey_fname = "data/baylor/Baylor Religion Survey, Wave V (2017).SAV"
+        survey_fname = "data/baylor/baylor.sav"
         df = pd.read_spss(survey_fname)
 
         super().__init__(survey_fname)
@@ -52,7 +54,7 @@ class BaylorReligionSurveyDataset(Dataset):
             "AGE"   : "age",
             "Q77"   : "gender",
             "Q32"   : "party",
-            "I-EDUC": "edu",
+            "I_EDUC": "edu",
             "Q31"   : "ideology",
             "Q95"   : "income",
             "Q1"    : "religion",
@@ -386,13 +388,10 @@ class BaylorReligionSurveyDataset(Dataset):
 
 if __name__ == "__main__":
     ds = BaylorReligionSurveyDataset()
+    bp()
     # Uncomment this to see a sample of your prompts
     # First prompt for each DV
     for dv_name in ds.dvs.keys():
         dv_prompts = ds.prompts[dv_name]
         print(dv_prompts[list(dv_prompts.keys())[0]])
         print()
-
-
-
-            
