@@ -1,11 +1,13 @@
 from dataset import Dataset
 from dataset import PromptSpecs
-
+import pandas as pd
 
 class BaylorReligionSurveyDataset(Dataset):
 
     def __init__(self):
-        survey_fname = "data/Baylor Religion Survey, Wave V (2017).SAV"
+        survey_fname = "data/baylor/Baylor Religion Survey, Wave V (2017).SAV"
+        df = pd.read_spss(survey_fname)
+
         super().__init__(survey_fname)
         #issues:
         # no region demographic
@@ -180,7 +182,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                                         "Agree": "agree",
                                         "Disagree": "disagree",
-                                        "Strongly Disagree": "disagree"}),
+                                        "Strongly disagree": "disagree"}),
             "trans_restrooms": PromptSpecs(
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following statements: "
@@ -306,7 +308,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             "Disagree": "disagree",
                             "Strongly Disagree": "disagree"}),
             "bible_beliefs": PromptSpecs(
-                            question=("I think the Bible is"),
+                            question=("Which one statement comes closest to your personal beliefs about the Bible?"),
                             answer_prefix="I believe the bible is",
                             answer_map={"The Bible means exactly what it says. It should be "
                             "taken literally, word-for-word, on all subjects.": "literal",
@@ -314,36 +316,36 @@ class BaylorReligionSurveyDataset(Dataset):
                             "The Bible contains some human error.": "flawed",
                             "The Bible is an ancient book of history and legends.": "legend"}),
             "god_beliefs": PromptSpecs(
-                            question=("I think the existence of God is"),
+                            question=("Which statement comes closest to your personal beliefs about God?"),
                             answer_prefix="I think that God's existence is",
-                            answer_map={"I have no doubts that God exists": "real",
-                            "I believe in God, but with some doubts": "real",
-                            "I sometimes believe in God": "possible",
+                            answer_map={"I have no doubts that God exists": "surely real",
+                            "I believe in God, but with some doubts": "probably real",
+                            "I sometimes believe in God": "real occasionally",
                             "I believe in a higher power of cosmic force": "complicated, not simple",
                             "I don't know and there is no way to find out": "unknown",
                             "I do not believe in God": "false",
                             "I have no opinion": "unimportant"}),
             "god_concern_for_world": PromptSpecs(
                             question=("Based on your personal understanding "
-                            "of God, please rate the extent to "
-                            "which you agree or disagree with "
-                            "the following statements: God is "
+                            "of God, to what extent do "
+                            "you agree or disagree with "
+                            "the statement 'God is "
                             "concerned with the well-being of the "
-                            "world."),
-                            answer_prefix="I ",
+                            "world'?"),
+                            answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
                             "Strongly Disagree": "disagree"}),
             "god_concern_for_individuals": PromptSpecs(
                             question=("Based on your personal "
-                            "understanding of God, please "
-                            "rate the extent to which you "
+                            "understanding of God, to what "
+                            "extent do you "
                             "agree or disagree with the "
-                            "following statements: God is "
+                            "statement 'God is "
                             "concerned with my personal "
-                            "well-being."),
-                            answer_prefix="I ",
+                            "well-being'?"),
+                            answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
@@ -361,20 +363,20 @@ class BaylorReligionSurveyDataset(Dataset):
                             "About once a week": "weekly",
                             "Several times a week": "frequently"}),
             "prayer_in_school": PromptSpecs(
-                            question=("Please rate the extent to which you agree "
-                            "or disagree with the following "
-                            "statements: The federal government "
-                            "should allow prayer in public schools."),
-                            answer_prefix="I ",
+                            question=("To what extent do you agree "
+                            "or disagree with the "
+                            "statement 'The federal government "
+                            "should allow prayer in public schools'?"),
+                            answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
                             "Strongly Disagree": "disagree"}),
             "gods_plan": PromptSpecs(
-                            question=("Please rate the extent to which you agree or "
-                            "disagree with the following statements: When "
+                            question=("To what extent do you agree or "
+                            "disagree with the statement 'When "
                             "good or bad things happen to me, I see it as "
-                            "part of God's plan for me."),
+                            "part of God's plan for me'?"),
                             answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
@@ -382,14 +384,14 @@ class BaylorReligionSurveyDataset(Dataset):
                             "Strongly Disagree": "disagree"}),
                                 }
 
-    if __name__ == "__main__":
-        ds = BaylorReligionSurveyDataset()
-        # Uncomment this to see a sample of your prompts
-        # First prompt for each DV
-        for dv_name in ds.dvs.keys():
-            dv_prompts = ds.prompts[dv_name]
-            print(dv_prompts[list(dv_prompts.keys())[0]])
-            print()
+if __name__ == "__main__":
+    ds = BaylorReligionSurveyDataset()
+    # Uncomment this to see a sample of your prompts
+    # First prompt for each DV
+    for dv_name in ds.dvs.keys():
+        dv_prompts = ds.prompts[dv_name]
+        print(dv_prompts[list(dv_prompts.keys())[0]])
+        print()
 
 
 
