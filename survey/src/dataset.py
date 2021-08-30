@@ -125,6 +125,10 @@ class Dataset(abc.ABC):
         return self._dvs
 
     @property
+    def demographics(self):
+        return self._demographics
+
+    @property
     def kept_indices(self):
         return self._demographics.index.tolist()
 
