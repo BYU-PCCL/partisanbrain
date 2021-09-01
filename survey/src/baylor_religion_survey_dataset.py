@@ -14,10 +14,6 @@ class BaylorReligionSurveyDataset(Dataset):
         #issues:
         # no region demographic
 
-    def _get_dv_filter_funcs(self):
-        return {"bible_beliefs": lambda x: x[x != "I don't know."]}
-
-
     def _filter_demographics(self, df):
         new_df = df[~df["religion"].isin(["Other","Don't know"])]
         new_df = new_df[new_df["race"] != "No races chosen"]
@@ -42,7 +38,7 @@ class BaylorReligionSurveyDataset(Dataset):
                 "MP4H" : "police_racial_treatment",
                 "MP4I" : "racial_violence",
                 "Q17"  : "bible_beliefs",
-                "Q18"  : "god_beliefs",
+                "R22"  : "heaven",
                 "Q19A" : "god_concern_for_world",
                 "Q19D" : "god_concern_for_individuals",
                 "Q4"   : "church_attendance",
@@ -61,7 +57,6 @@ class BaylorReligionSurveyDataset(Dataset):
             "RACE"  : "race",
             "D9"    : "marital",
         }
-
 
     def _make_backstory(self, row):
         backstory = []
@@ -98,42 +93,86 @@ class BaylorReligionSurveyDataset(Dataset):
 
         #RELIGION
         #main cases
-        if row["religion"].isin([   "Assemblies of God",
-                                    "Bible Church",
-                                    "Brethren",
-                                    "Christian & Missionary Alliance",
-                                    "Christian Reformed",
-                                    "Christian Science",
-                                    "Congregational",
-                                    "Holiness",
-                                    "Lutheran",
-                                    "Pentecostal",
-                                    "Unitarian Universalist"
-                                    ]):
+        case1 = pd.DataFrame(["Assemblies of God",
+                  "Bible Church",
+                  "Brethren",
+                  "Christian & Missionary Alliance",
+                  "Christian Reformed",
+                  "Christian Science",
+                  "Congregational",
+                  "Holiness",
+                  "Lutheran",
+                  "Pentecostal",
+                  "Unitarian Universalist"
+                  ])
+        case2 = pd.DataFrame(["Baha'i",
+                              "Adventist",
+                              "African Methodist",
+                              "Anabaptist",
+                              "Baptist",
+                              "Buddhist",
+                              "Hindu",
+                              "Jewish",
+                              "Mennonite",
+                              "Methodist",
+                              "Muslim",
+                              "Presbyterian",
+                              "Seventh-Day Adventist",
+                              "Sikh"
+                             ])
+        case3 = pd.DataFrame([   "Church of Christ",
+                                 "Church of God",
+                                 "Church of the Nazarene",
+                                 "Jehovah's Witnesses",
+                                 "Salvation Army",
+                                 "United Church of Christ" ])
+
+
+        if row["religion"] in list(case1):
             backstory.append(f"I am a member of the {row['religion']} faith.")
-        if row["religion"].isin([   "Baha'i",
-                                    "Adventist",
-                                    "African Methodist",
-                                    "Anabaptist",
-                                    "Baptist",
-                                    "Buddhist",
-                                    "Hindu",
-                                    "Jewish",
-                                    "Mennonite",
-                                    "Methodist",
-                                    "Muslim",
-                                    "Presbyterian",
-                                    "Seventh-Day Adventist",
-                                    "Sikh"
-                                    ]):
+
+        if row["religion"] in list(case2):
             backstory.append(f"In terms of religion, I am a {row['religion']}.")
-        if row["religion"].isin([   "Church of Christ",
-                                    "Church of God",
-                                    "Church of the Nazarene",
-                                    "Jehovah's Witnesses",
-                                    "Salvation Army",
-                                    "United Church of Christ" ]):
+
+        if row["religion"] in list(case3):
             backstory.append(f"I am a member of the {row['religion']}.")
+
+        #if row["religion"].isin([   "Assemblies of God",
+                    #                "Bible Church",
+                    #                "Brethren",
+                    #                "Christian & Missionary Alliance",
+                    #                "Christian Reformed",
+                    #                "Christian Science",
+                    #                "Congregational",
+                    #                "Holiness",
+                    #                "Lutheran",
+                    #                "Pentecostal",
+                    #                "Unitarian Universalist"
+                    #                ]):
+        #    backstory.append(f"I am a member of the {row['religion']} faith.")
+        #if row["religion"].isin([   "Baha'i",
+                    #                "Adventist",
+                    #                "African Methodist",
+                    #                "Anabaptist",
+                    #                "Baptist",
+                    #                "Buddhist",
+                    #                "Hindu",
+                    #                "Jewish",
+                    #                "Mennonite",
+                    #                "Methodist",
+                    #                "Muslim",
+                    #                "Presbyterian",
+                    #                "Seventh-Day Adventist",
+                    #                "Sikh"
+                    #                ]):
+            #backstory.append(f"In terms of religion, I am a {row['religion']}.")
+        #if row["religion"].isin([   "Church of Christ",
+                    #                "Church of God",
+                    #                "Church of the Nazarene",
+                    #                "Jehovah's Witnesses",
+                    #                "Salvation Army",
+                    #                "United Church of Christ" ]):
+            #backstory.append(f"I am a member of the {row['religion']}.")
 
         #special cases
         if row["religion"] == "Asian Folk Religion":
@@ -173,7 +212,6 @@ class BaylorReligionSurveyDataset(Dataset):
 
         return backstory
 
-
     def _get_col_prompt_specs(self):
         return {
             "tech_oppor": PromptSpecs(
@@ -194,7 +232,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                                         "Agree": "agree",
                                         "Disagree": "disagree",
-                                        "Strongly Disagree": "disagree"}),
+                                        "Strongly disagree": "disagree"}),
             "gay_is_it_choice": PromptSpecs(
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following "
@@ -204,7 +242,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                                     "Agree": "agree",
                                     "Disagree": "disagree",
-                                    "Strongly Disagree": "disagree"}),
+                                    "Strongly disagree": "disagree"}),
             "husband_salary": PromptSpecs(
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following statements: "
@@ -214,7 +252,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                                         "Agree": "agree",
                                         "Disagree": "disagree",
-                                        "Strongly Disagree": "disagree"}),
+                                        "Strongly disagree": "disagree"}),
             "women_childcare": PromptSpecs(
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following "
@@ -224,7 +262,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "men_suited_politics": PromptSpecs(
                             question=("Please rate the extent to which you "
                             "agree or disagree with the following "
@@ -234,7 +272,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "refugees_terrorist_threat": PromptSpecs(
                             question=("Please rate the extent to which "
                             "you agree or disagree with the "
@@ -246,7 +284,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "mexican_immigrants_criminals":PromptSpecs(
                             question=("Please rate the extent to "
                             "which you agree or disagree "
@@ -258,7 +296,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "life_happiness": PromptSpecs(
                             question=("In general, how happy are you with your "
                             "life as a whole these days?"),
@@ -279,14 +317,14 @@ class BaylorReligionSurveyDataset(Dataset):
                             question=("How many DAYS per WEEK do you do exercise "
                             "for at least 30 minutes?"),
                             answer_prefix="I exercise",
-                            answer_map={"0": "zero times",
-                            "1": "one time",
-                            "2": "two times",
-                            "3": "three times",
-                            "4": "four times",
-                            "5": "five times",
-                            "6": "six times",
-                            "7": "seven times"}),
+                            answer_map={0.0: "zero times",
+                            1.0: "one time",
+                            2.0: "two times",
+                            3.0: "three times",
+                            4.0: "four times",
+                            5.0: "five times",
+                            6.0: "six times",
+                            7.0: "seven times"}),
             "police_racial_treatment": PromptSpecs(
                             question=("Please rate the extent to which "
                             "you agree or disagree with the "
@@ -297,7 +335,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "racial_violence": PromptSpecs(
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following statements: "
@@ -308,25 +346,25 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "bible_beliefs": PromptSpecs(
                             question=("Which one statement comes closest to your personal beliefs about the Bible?"),
                             answer_prefix="I believe the bible is",
                             answer_map={"The Bible means exactly what it says. It should be "
-                            "taken literally, word-for-word, on all subjects.": "literal",
-                            "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning.": "true but not literal",
-                            "The Bible contains some human error.": "flawed",
-                            "The Bible is an ancient book of history and legends.": "legend"}),
-            "god_beliefs": PromptSpecs(
-                            question=("Which statement comes closest to your personal beliefs about God?"),
-                            answer_prefix="I think that God's existence is",
-                            answer_map={"I have no doubts that God exists": "surely real",
-                            "I believe in God, but with some doubts": "probably real",
-                            "I sometimes believe in God": "real occasionally",
-                            "I believe in a higher power of cosmic force": "complicated, not simple",
-                            "I don't know and there is no way to find out": "unknown",
-                            "I do not believe in God": "false",
-                            "I have no opinion": "unimportant"}),
+                            "taken literally, word-for-word, on all subjects": "literal",
+                            "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning": "true but not literal",
+                            "The Bible contains some human error": "flawed",
+                            "The Bible is an ancient book of history and legends": "legend"}),
+            "heaven": PromptSpecs(
+                            question=("How certain are you that you will get into Heaven?"),
+                            answer_prefix="I am ",
+                            answer_map={"Very certain": "certain",
+                            "Quite certain": "certain",
+                            "Somewhat certain": "certain",
+                            "Not very certain": "uncertain",
+                            "Not at all certain": "uncertain",
+                            "I don't believe in Heaven": "disbelieving",
+                            }),
             "god_concern_for_world": PromptSpecs(
                             question=("Based on your personal understanding "
                             "of God, to what extent do "
@@ -338,7 +376,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "god_concern_for_individuals": PromptSpecs(
                             question=("Based on your personal "
                             "understanding of God, to what "
@@ -351,12 +389,12 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
             "church_attendance": PromptSpecs(
                             question=("How often do you attend religious "
                             "services at a place of worship?"),
                             answer_prefix="I attend religious services",
-                            answer_map={"Never": "never",
+                            answer_map={"Never - Skip to Question 12": "never",
                             "Less than once a year": "rarely",
                             "Once or twice a year": "annually",
                             "Several times a year": "sometimes",
@@ -373,7 +411,8 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree",
+                            "Undecided": "am not sure"}),
             "gods_plan": PromptSpecs(
                             question=("To what extent do you agree or "
                             "disagree with the statement 'When "
@@ -383,7 +422,7 @@ class BaylorReligionSurveyDataset(Dataset):
                             answer_map={"Strongly agree": "agree",
                             "Agree": "agree",
                             "Disagree": "disagree",
-                            "Strongly Disagree": "disagree"}),
+                            "Strongly disagree": "disagree"}),
                                 }
 
 if __name__ == "__main__":
