@@ -87,7 +87,7 @@ class GSSDataset(Dataset):
         # Education
         educ_int = int(row['education'])
         education_dict = {
-            0: 'I have never gone to any school.',
+            0: 'I have never gone to school.',
             1: '1st grade',
             2: '2nd grade',
             3: '3rd grade',
@@ -111,7 +111,7 @@ class GSSDataset(Dataset):
         }
         education = education_dict[educ_int]
 
-        if int(row['education']) == 0:
+        if educ_int == 0:
             backstory.append(education)
         elif 1 <= educ_int <= 12:
             backstory.append(f"The highest year of school I've completed is {education}.")
@@ -151,15 +151,15 @@ class GSSDataset(Dataset):
 
         # Religiosity
         religion_dict = {
-            'CHRISTIAN': 'christian',
-            'CATHOLIC': 'catholic',
+            'CHRISTIAN': 'Christian',
+            'CATHOLIC': 'Catholic',
             'NONE': 'not religious',
-            'PROTESTANT': 'protestant',
-            'ORTHODOX-CHRISTIAN': 'an orthodox christian',
-            'BUDDHISM': 'buddist',
-            'JEWISH': 'jewish',
-            'HINDUISM': 'hindu',
-            'MOSLEM/ISLAM': 'muslim',
+            'PROTESTANT': 'Protestant',
+            'ORTHODOX-CHRISTIAN': 'an Orthodox Christian',
+            'BUDDHISM': 'Buddhist',
+            'JEWISH': 'Jewish',
+            'HINDUISM': 'Hindu',
+            'MOSLEM/ISLAM': 'Muslim',
         }
         religion = religion_dict[row['religiosity']]
         backstory.append(f"I'm {religion}.")
