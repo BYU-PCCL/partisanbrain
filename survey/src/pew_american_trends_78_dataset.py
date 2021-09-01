@@ -1,6 +1,5 @@
 from dataset import Dataset
 from dataset import PromptSpecs
-from pdb import set_trace as bp
 
 
 class PewAmericanTrendsWave78Dataset(Dataset):
@@ -311,7 +310,6 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave78Dataset()
-    bp()
     for sample in ds.get_prompts_sample():
 
         print(sample)
