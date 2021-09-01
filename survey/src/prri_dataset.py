@@ -12,64 +12,67 @@ class PRRIDataset(Dataset):
         return df
 
     def _get_demographic_col_names(self):
-        return {"AGE": "age",
-                "AGE4": "age4",
-                "AGE7": "age7",
-                "GENDER": "gender",
-                "PARTY": "party",
-                "EDUC": "education",
-                "IDEO": "ideology",
-                "INCOME": "income",
-                "RELIG": "religion",
-                "RACETHNICITY": "race_ethnicity",
-                "REGION9": "region",
-                "MARITAL": "marital_status"}
+        return {"AGE"          : "age",
+                "AGE4"         : "age4",
+                "AGE7"         : "age7",
+                "GENDER"       : "gender",
+                "PARTY"        : "party",
+                "EDUC"         : "education",
+                "IDEO"         : "ideology",
+                "INCOME"       : "income",
+                "RELIG"        : "religion",
+                "RACETHNICITY" : "race_ethnicity",
+                "REGION9"      : "region",
+                "MARITAL"      : "marital_status"}
 
     def _get_dv_col_names(self):
-        return {"Q20A": "electing_women",
-                "Q20B": "electing_LGBTQIA",
-                "Q29": "do_more_for_LGBTQIA",
-                "Q27P": "immigrant_preference",
-                "Q18C": "putin_opinion",
-                "Q30": "view_on_immigration",
-                "Q31": "perspective_on_immigration",
-                "Q35C": "laws_preventing_refugees",
-                "Q36": "immigrant_citizenship",
-                "Q1": "voting_frequency",
-                "Q5": "trump_job_opinion",
-                "Q20C": "electing_minorities",
-                "Q22": "police_brutality_pattern",
-                "Q26E": "asian_discrimination",
-                "Q26F": "hispanic_discrimination",
-                "Q27O": "white_vs_black_discrimination",
-                "Q27R": "stranger_in_own_country",
-                "Q33" : "demographic_change_opinion",
-                "Q27N": "use_of_racism",
-                "Q20D": "elect_non_christian"}
+        return {"Q20A" : "electing_women",
+                "Q20B" : "electing_LGBTQIA",
+                "Q29"  : "do_more_for_LGBTQIA",
+                "Q27P" : "immigrant_preference",
+                "Q18C" : "putin_opinion",
+                "Q30"  : "view_on_immigration",
+                "Q31"  : "perspective_on_immigration",
+                "Q35C" : "laws_preventing_refugees",
+                "Q36"  : "immigrant_citizenship",
+                "Q1"   : "voting_frequency",
+                "Q5"   : "trump_job_opinion",
+                "Q20C" : "electing_minorities",
+                "Q22"  : "police_brutality_pattern",
+                "Q26E" : "asian_discrimination",
+                "Q26F" : "hispanic_discrimination",
+                "Q27O" : "white_vs_black_discrimination",
+                "Q27R" : "stranger_in_own_country",
+                "Q33"  : "demographic_change_opinion",
+                "Q27N" : "use_of_racism",
+                "Q20D" : "elect_non_christian"}
 
     def _filter_demographics(self, df):
-        problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
-        df = df[df["religion"] != "Something else"]
         df = df[df["party"].isin(["A Democrat",
-                                              "A Republican",
-                                              "An Independent"])]
+                                  "A Republican",
+                                  "An Independent"])]
+        df = df[df["race_ethnicity"] != "Other, non-Hispanic"]
+
+        problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
+        for col_name in list(df):
+            df = df[~df[col_name].isin(problematic_values)]
+
         return df
 
     def _make_backstory(self, row):
         backstory = []
 
         # Age
-        age = str(int(row["age"]))
-        backstory.append(f"I am {age} years old.")
+        backstory.append(f"I am {row['age']} years old.")
 
         # Gender
         backstory.append(f"I am {row['gender'].lower()}.")
 
         # Party
         if row["party"] == "An Independent":
-            backstory.append("In terms of political parties I am an independent.")
+            backstory.append("In terms of political party I am an Independent.")
         else:
-            backstory.append("In terms of political parties "
+            backstory.append("In terms of political party "
                              f"I am {row['party']}.")
 
         # Education
@@ -90,9 +93,9 @@ class PRRIDataset(Dataset):
 
         # Income
         if "Less than" in row["income"]:
-            backstory.append("My annual family income is less than $5,000")
+            backstory.append("My annual family income is less than $5,000.")
         elif "or more" in row["income"]:
-            backstory.append("My annual family income is $200,000 or more")
+            backstory.append("My annual family income is $200,000 or more.")
         else:
             low, high = row["income"].split("-")
             backstory.append(("My annual family income is "
@@ -128,8 +131,11 @@ class PRRIDataset(Dataset):
             backstory.append(f"In terms of religion I am {religion}.")
 
         # Race/Ethnicity
-        race = row['race_ethnicity'].replace(', non-Hispanic', '').lower()
-        backstory.append(f"I'm {race}.")
+        race = row['race_ethnicity'].replace(', non-Hispanic', '')
+        if "Two plus" in race:
+            backstory.append(f"I'm multi-racial.")
+        else:
+            backstory.append(f"I'm {race}.")
 
         # Region
         if row["region"] == "New England" or row["region"] == "Mid Atlantic":
@@ -143,7 +149,7 @@ class PRRIDataset(Dataset):
         elif row["region"] == "East South Central" or row["region"] == "South Atlantic":
             backstory.append("I live in the Southeast of the United States.")
         else:
-            backstory.append("I live in the western United States.")
+            backstory.append("I live in the Western United States.")
 
         # Marital Status
         if row["marital_status"] == "Never married":
@@ -316,12 +322,3 @@ class PRRIDataset(Dataset):
                                                     "Worse": "worse",
                                                     "Not much different": "the same"}),
         }
-
-if __name__ == "__main__":
-    ds = PRRIDataset()
-    # Uncomment this to see a sample of your prompts
-    # First prompt for each DV
-    #for dv_name in ds.dvs.keys():
-    #    dv_prompts = ds.prompts[dv_name]
-    #    print(dv_prompts[list(dv_prompts.keys())[0]])
-    #    print()
