@@ -169,156 +169,137 @@ class PRRIDataset(Dataset):
         return " ".join(backstory)
 
     def _get_col_prompt_specs(self):
-        return {"electing_women": PromptSpecs(("How do you think electing more "
-                                               "women to political office would "
-                                               "make things in the US?"),
-                                              "I think things would be",
-                                              {"Better": "better",
-                                               "Worse": "worse",
-                                               "Not much different": "the same"}),
-                "electing_LGBTQIA": PromptSpecs(("How do you think electing more "
-                                                "lesbian, gay, bisexual, and "
-                                                "transgender people to political "
-                                                "office would make things in the US?"),
-                                                "I think things would be",
-                                                {"Better": "better",
-                                                "Worse": "worse",
-                                                "Not much different": "the same"}),
-                "do_more_for_LGBTQIA": PromptSpecs(("Do you think our country has made "
-                                                    "the changes needed to give gay and "
-                                                    "lesbian people equal rights in America?"),
-                                                   "",
-                                                   {"Our country has made the changes "
-                                                   "needed to give gay and lesbian "
-                                                   "people equal rights with other "
-                                                   "Americans": "Yes",
-                                                   "Our country needs to continue making "
-                                                   "changes to give gay and lesbian people "
-                                                   "equal rights with other Americans": "No"}),
-                "immigrant_preference": PromptSpecs(("Do you think we should give preference "
-                                                     "to immigrants from Western Europe. who "
-                                                     "share our values?"),
-                                                     "",
-                                                     {"Completely agree": "Yes",
-                                                     "Mostly agree" : "Yes",
-                                                     "Mostly disagree": "No",
-                                                     "Completely disagree": "No"}),
-                "putin_opinion": PromptSpecs(("How would you describe your overall opinion of"
-                                              "Russian President Vladimir Putin?"),
-                                              "My opinion is",
-                                              {"Very favorable": "favorable",
-                                              "Mostly favorable" : "favorable",
-                                              "Mostly unfavorable": "unfavorable",
-                                              "Very unfavorable": "unfavorable"}),
-                "view_on_immigration": PromptSpecs(("Do you think that, in general, the growing "
-                                                    "number of newcomers from other countries to "
-                                                    "the US is good or bad?"),
-                                                    "The growing number of newcomers is",
-                                                    {"Threatens traditional American "
-                                                    "customs and values": "bad",
-                                                    "Strengthens American society" : "good"}),
-                "perspective_on_immigration": PromptSpecs(("Do you think that immigrants today "
-                                                           "are good or bad for the US?"),
-                                                           "I think that immigrants today are",
-                                                           {"Immigrants today strengthen our country "
-                                                           "because of their hard work and talents": "good",
-                                                           "Immigrants today are a burden on our "
-                                                           "country because they take our jobs, housing, "
-                                                           "and healthcare": "bad"}),
-                "laws_preventing_refugees": PromptSpecs(("Do you favor or oppose passing a "
-                                                         "law to prevent refugees from "
-                                                         "entering the US?"),
-                                                         "I",
-                                                         {"Strongly favor": "favor",
-                                                         "Favor" : "favor",
-                                                         "Oppose": "oppose",
-                                                         "Strongly oppose": "oppose"}),
-                "immigrant_citizenship": PromptSpecs(("How should the US immigration system should deal "
-                                                      "with imigrants who are currently living in the "
-                                                      "US illegally?"),
-                                                      "The US immigration system should",
-                                                      {"Allow them a way to become citizens provided "
-                                                      "they meet certain requirements": "Allow them "
-                                                      "to become citizens",
-                                                      "Allow them to become permanent legal residents, "
-                                                      "but not citizens" : "Allow them to become residents, "
-                                                      "not citizens",
-                                                      "Identify and deport them": "deport them"}),
-                "voting_frequency": PromptSpecs(("How often would you say you vote?"),
-                                                "I vote",
-                                                {"Always": "always",
-                                                "Nearly always" : "sometimes",
-                                                "In about half of elections": "sometimes",
-                                                "Seldom": "sometimes",
-                                                "Never": "never"}),
-                "trump_job_opinion": PromptSpecs(("Do you approve of the job Donald Trump is "
-                                                  "doing as president?"),
-                                                  "",
-                                                  {"Strongly approve": "Yes",
-                                                  "Somewhat approve" : "Yes",
-                                                  "Somewhat disapprove": "No",
-                                                  "Strongly disapprove": "No"}),
-                "electing_minorities": PromptSpecs(("How do you think electing more people from "
-                                                    "racial and ethnic minority groups to political "
-                                                    "office would make things in the US?"),
-                                                    "I think things would be",
-                                                    {"Better": "better",
-                                                    "Worse": "worse",
-                                                    "Not much different": "the same"}),
-                "police_brutality_pattern": PromptSpecs(("Do you think the recent killings "
-                                                         "of African American men by police "
-                                                         "are isolated events or part of a "
-                                                         "broader pattern how how police "
-                                                         "treat African Americans?"),
-                                                         "I think they are",
-                                                         {"Isolated incidents": "isolated incidents",
-                                                         "Part of a broader pattern": "a broader pattern"}),
-                "asian_discrimination": PromptSpecs(("In the US today is there a lot of discrimination "
-                                                     "against Asians?"),
-                                                     "",
-                                                     {"Yes, there is a lot of discrimination": "Yes",
-                                                     "No, not a lot of discrimination": "No"}),
-                "hispanic_discrimination": PromptSpecs(("In the US today is there a lot of discrimination "
-                                                     "against Hispanics?"),
-                                                     "",
-                                                     {"Yes, there is a lot of discrimination": "Yes",
-                                                     "No, not a lot of discrimination": "No"}),
-                "white_vs_black_discrimination": PromptSpecs(("Do you think that discrimination "
-                                                              "against whites has become as big a"
-                                                              "problem as discrimination against "
-                                                              "blacks and other minorities?"),
-                                                              "",
-                                                              {"Completely agree": "Yes",
-                                                              "Mostly agree": "Yes",
-                                                              "Mostly disagree": "No",
-                                                              "Completely disagree": "No"}),
-                "stranger_in_own_country": PromptSpecs(("Do you think the US has changed "
-                                                        " so much that you feel like a "
-                                                        "stranger in your own country?"),
-                                                        "",
-                                                        {"Completely agree": "Yes",
-                                                        "Mostly agree": "Yes",
-                                                        "Mostly disagree": "No",
-                                                        "Completely disagree": "No"}),
-                "demographic_change_opinion": PromptSpecs(("By 2045, minorities will together be a majority "
-                                                           "in the US. Do you think the impact of the "
-                                                           "coming demographic change will be positive "
-                                                           "or negative?"),
-                                                           "I think the coming demographic change will be",
-                                                           {"Mostly positive": "positive",
-                                                           "Mostly negative": "negative"}),
-                "use_of_racism": PromptSpecs(("Do you think racial minorities use racism "
-                                              "as an excuse more than they should?"),
-                                              "",
-                                              {"Completely agree": "Yes",
-                                              "Mostly agree": "Yes",
-                                              "Mostly disagree": "No",
-                                              "Completely disagree": "No"}),
-                "elect_non_christian": PromptSpecs(("How do you think electing more non "
-                                                    "Christian people to political office "
-                                                    "would make things in the US?"),
-                                                    "I think things would be",
-                                                    {"Better": "better",
-                                                    "Worse": "worse",
-                                                    "Not much different": "the same"}),
+        return {"electing_women": PromptSpecs(
+                    question="How do you think electing more women to political office would make things in the US?",
+                    answer_prefix="I think things would be",
+                    answer_map={"Better": "better",
+                                "Worse": "worse",
+                                "Not much different": "the same"}),
+                "electing_LGBTQIA": PromptSpecs(
+                    question="How do you think electing more lesbian, gay, bisexual, and transgender people to political office would make things in the US?",
+                    answer_prefix="I think things would be",
+                    answer_map={"Better": "better",
+                                "Worse": "worse",
+                                "Not much different": "the same"}),
+                "do_more_for_LGBTQIA": PromptSpecs(
+                    question="Do you think our country has made the changes needed to give gay and lesbian people equal rights in America?",
+                    answer_prefix="",
+                    answer_map={"Our country has made the changes "
+                                "needed to give gay and lesbian "
+                                "people equal rights with other "
+                                "Americans": "Yes",
+                                "Our country needs to continue making "
+                                "changes to give gay and lesbian people "
+                                "equal rights with other Americans": "No"}),
+                "immigrant_preference": PromptSpecs(
+                    question="Do you think we should give preference to immigrants from Western Europe. who share our values?",
+                    answer_prefix="",
+                    answer_map={"Completely agree": "Yes",
+                                "Mostly agree" : "Yes",
+                                "Mostly disagree": "No",
+                                "Completely disagree": "No"}),
+                "putin_opinion": PromptSpecs(
+                    question="How would you describe your overall opinion of Russian President Vladimir Putin?",
+                    answer_prefix="My opinion is",
+                    answer_map={"Very favorable": "favorable",
+                                "Mostly favorable" : "favorable",
+                                "Mostly unfavorable": "unfavorable",
+                                "Very unfavorable": "unfavorable"}),
+                "view_on_immigration": PromptSpecs(
+                    question="Do you think that, in general, the growing number of newcomers from other countries to the US is good or bad?",
+                    answer_prefix="The growing number of newcomers is",
+                    answer_map={"Threatens traditional American "
+                                "customs and values": "bad",
+                                "Strengthens American society" : "good"}),
+                "perspective_on_immigration": PromptSpecs(
+                    question="Do you think that immigrants today are good or bad for the US?",
+                    answer_prefix="I think that immigrants today are",
+                    answer_map={"Immigrants today strengthen our country "
+                                "because of their hard work and talents": "good",
+                                "Immigrants today are a burden on our "
+                                "country because they take our jobs, housing, "
+                                "and healthcare": "bad"}),
+                "laws_preventing_refugees": PromptSpecs(
+                    question="Do you favor or oppose passing a law to prevent refugees from entering the US?",
+                    answer_prefix="I",
+                    answer_map={"Strongly favor": "favor",
+                                "Favor" : "favor",
+                                "Oppose": "oppose",
+                                "Strongly oppose": "oppose"}),
+                "immigrant_citizenship": PromptSpecs(
+                    question="How should the US immigration system should deal with imigrants who are currently living in the US illegally?",
+                    answer_prefix="The US immigration system should",
+                    answer_map={"Allow them a way to become citizens provided "
+                                "they meet certain requirements": "Allow them to become citizens",
+                                "Allow them to become permanent legal residents, "
+                                "but not citizens" : "Allow them to become residents, not citizens",
+                                "Identify and deport them": "deport them"}),
+                "voting_frequency": PromptSpecs(
+                    question="How often would you say you vote?",
+                    answer_prefix="I vote",
+                    answer_map={"Always": "always",
+                                "Nearly always" : "sometimes",
+                                "In about half of elections": "sometimes",
+                                "Seldom": "sometimes",
+                                "Never": "never"}),
+                "trump_job_opinion": PromptSpecs(
+                    question="Do you approve of the job Donald Trump is doing as president?",
+                    answer_prefix="",
+                    answer_map={"Strongly approve": "Yes",
+                                "Somewhat approve" : "Yes",
+                                "Somewhat disapprove": "No",
+                                "Strongly disapprove": "No"}),
+                "electing_minorities": PromptSpecs(
+                    question="How do you think electing more people from racial and ethnic minority groups to political office would make things in the US?",
+                    answer_prefix="I think things would be",
+                    answer_map={"Better": "better",
+                                "Worse": "worse",
+                                "Not much different": "the same"}),
+                "police_brutality_pattern": PromptSpecs(
+                    question="Do you think the recent killings of African American men by police are isolated events or part of a broader pattern how how police treat African Americans?",
+                    answer_prefix="I think they are",
+                    answer_map={"Isolated incidents": "isolated incidents",
+                                "Part of a broader pattern": "a broader pattern"}),
+                "asian_discrimination": PromptSpecs(
+                    question="In the US today is there a lot of discrimination against Asians?",
+                    answer_prefix="",
+                    answer_map={"Yes, there is a lot of discrimination": "Yes",
+                                "No, not a lot of discrimination": "No"}),
+                "hispanic_discrimination": PromptSpecs(
+                    question="In the US today is there a lot of discrimination against Hispanics?",
+                    answer_prefix="",
+                    answer_map={"Yes, there is a lot of discrimination": "Yes",
+                                "No, not a lot of discrimination": "No"}),
+                "white_vs_black_discrimination": PromptSpecs(
+                    question="Do you think that discrimination against whites has become as big a problem as discrimination against blacks and other minorities?",
+                    answer_prefix="",
+                    answer_map={"Completely agree": "Yes",
+                                "Mostly agree": "Yes",
+                                "Mostly disagree": "No",
+                                "Completely disagree": "No"}),
+                "stranger_in_own_country": PromptSpecs(
+                    question="Do you think the US has changed so much that you feel like a stranger in your own country?",
+                    answer_prefix="",
+                    answer_map={"Completely agree": "Yes",
+                                "Mostly agree": "Yes",
+                                "Mostly disagree": "No",
+                                "Completely disagree": "No"}),
+                "demographic_change_opinion": PromptSpecs(
+                    question="By 2045, minorities will together be a majority in the US. Do you think the impact of the coming demographic change will be positive or negative?",
+                    answer_prefix="I think the coming demographic change will be",
+                    answer_map={"Mostly positive": "positive",
+                                "Mostly negative": "negative"}),
+                "use_of_racism": PromptSpecs(
+                    question="Do you think racial minorities use racism as an excuse more than they should?",
+                    answer_prefix="",
+                    answer_map={"Completely agree": "Yes",
+                                "Mostly agree": "Yes",
+                                "Mostly disagree": "No",
+                                "Completely disagree": "No"}),
+                "elect_non_christian": PromptSpecs(
+                    question="How do you think electing more non Christian people to political office would make things in the US?",
+                    answer_prefix="I think things would be",
+                    answer_map={"Better": "better",
+                                "Worse": "worse",
+                                "Not much different": "the same"}),
         }
