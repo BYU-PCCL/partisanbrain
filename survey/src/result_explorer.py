@@ -19,15 +19,17 @@ class ResultExplorer:
         resp = self._results[dv_name][row_idx][1]
         logit_dict = resp["choices"][0]["logprobs"]["top_logprobs"][0]
         answer_map = self._ds._get_col_prompt_specs()[dv_name].answer_map
-        possible_vals = [val.lower() for val in list(answer_map.values())]
+        possible_vals = [val.split(" ")[0].lstrip().lower()
+                         for val in list(answer_map.values())]
         logit_dict = {k: v for (k, v) in logit_dict.items()
-                      if k.strip().lower() in possible_vals}
+                      if k.lstrip().lower() in possible_vals}
         logit_dict = {k: np.exp(v) for (k, v) in logit_dict.items()}
         val_sum = sum(list(logit_dict.values()))
         logit_dict = {k: v/val_sum for (k, v) in logit_dict.items()}
         score_dict = dict(zip(possible_vals, [0]*len(possible_vals)))
+        # TODO: Softmax then combine or combine then softmax?
         for k, v in logit_dict.items():
-            score_dict[k.strip().lower()] += v
+            score_dict[k.lstrip().lower()] += v
         return score_dict
 
     def _sample(self, dv_name, row_idx, seed=0):
@@ -35,7 +37,7 @@ class ResultExplorer:
         score_dict = self._get_score_dict(dv_name, row_idx)
         possible_vals = list(score_dict.keys())
         opt_scores = [score_dict[opt] for opt in possible_vals]
-        chosen = np.random.choice(possible_vals, 1, opt_scores)[0]
+        chosen = np.random.choice(possible_vals, p=opt_scores)
         return chosen
 
     def _make_summary_dfs(self):
@@ -48,7 +50,7 @@ class ResultExplorer:
 
             # Get human responses for this dv
             human_resp = [r[-1] for r in list(self._results[dv_name].values())]
-            human_resp = [r.strip().lower() for r in human_resp]
+            human_resp = [r.lstrip().lower() for r in human_resp]
 
             # Get GPT-3 responses for this dv with sampling
             gpt_3_resp = [self._sample(dv_name, i) for i in dv_series.index]
@@ -74,7 +76,11 @@ class ResultExplorer:
         raw_accs = dict()
         for dv_name in self._ds.dvs.keys():
             df = self._summary_dfs[dv_name]
-            raw_accs[dv_name] = (sum(df["human"] == df["gpt_3"])) / len(df)
+            human_responses = []
+            for item in df["human"]:
+                human_responses.append(item.split(" ")[0].lstrip().lower())
+            matches = sum(np.array(human_responses) == df["gpt_3"])
+            raw_accs[dv_name] = matches / len(df)
         return raw_accs
 
     def get_cramers_v(self):
@@ -85,5 +91,5 @@ if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
     re = ResultExplorer("patsy_87_davinci_200.pkl",
                         PewAmericanTrendsWave78Dataset())
-    re.summary_dfs_to_excel("output.xlsx")
-    # print(re.get_raw_accs())
+    # re.summary_dfs_to_excel("output.xlsx")
+    print(re.get_raw_accs())
