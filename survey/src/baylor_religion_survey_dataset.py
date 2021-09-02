@@ -6,13 +6,13 @@ import pandas as pd
 class BaylorReligionSurveyDataset(Dataset):
 
     def __init__(self):
-        survey_fname = "data/baylor/baylor.sav"
+        survey_fname = "data/baylor.sav"
         super().__init__(survey_fname)
-        #issues:
-        # no region demographic
+        # Issues:
+        #   No region demographic
 
     def _filter_demographics(self, df):
-        new_df = df[~df["religion"].isin(["Other","Don't know"])]
+        new_df = df[~df["religion"].isin(["Other", "Don't know"])]
         new_df = new_df[new_df["race"] != "No races chosen"]
 
         return new_df

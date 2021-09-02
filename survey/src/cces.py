@@ -7,7 +7,7 @@ from dataset import PromptSpecs
 class CCESDataset(Dataset):
 
     def __init__(self, n_exemplars):
-        survey_fname = "data/cces/CES20_Common_OUTPUT_vv.csv"
+        survey_fname = "data/CES20_Common_OUTPUT_vv.csv"
         super().__init__(survey_fname, n_exemplars)
 
     def _get_dv_filter_funcs(self):

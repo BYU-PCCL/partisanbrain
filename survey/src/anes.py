@@ -8,7 +8,7 @@ import pandas as pd
 
 class AnesDataset(dataset.Dataset):
     def __init__(self, n_exemplars):
-        survey_fname = "data/anes/anes_timeseries_2020_csv_20210719.csv"
+        survey_fname = "data/anes_timeseries_2020_csv_20210719.csv"
         super().__init__(survey_fname, n_exemplars)
 
     def _get_dv_filter_funcs(self):
