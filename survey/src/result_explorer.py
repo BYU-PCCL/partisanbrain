@@ -4,11 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
-<<<<<<< HEAD
-from pdb import set_trace as bp
-=======
 import seaborn as sns
->>>>>>> cc8b05f396a58a670ec859bfd32adc5c6d74bbd7
 
 from matplotlib import pyplot as plt
 
@@ -47,13 +43,8 @@ class ResultExplorer:
         chosen = np.random.choice(possible_vals, 1, opt_scores)[0]
         return chosen
 
-<<<<<<< HEAD
-    def _make_summary_dfs(self):
-        np.random.seed(0)
-=======
     def _make_summary_dfs(self, seed=0):
         np.random.seed(seed)
->>>>>>> cc8b05f396a58a670ec859bfd32adc5c6d74bbd7
         summary_dfs = dict()
         demographics = self._ds.demographics
         for (dv_name, dv_series) in self._ds.dvs.items():
@@ -307,7 +298,4 @@ if __name__ == "__main__":
     re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
     # print(re.get_raw_accs())
-<<<<<<< HEAD
-=======
     print(re.get_cramers_v_values())
->>>>>>> cc8b05f396a58a670ec859bfd32adc5c6d74bbd7

@@ -7,9 +7,9 @@ import pandas as pd
 
 
 class AnesDataset(dataset.Dataset):
-    def __init__(self, n_exemplars):
+    def __init__(self):
         survey_fname = "data/anes_timeseries_2020_csv_20210719.csv"
-        super().__init__(survey_fname, n_exemplars)
+        super().__init__(survey_fname)
 
     def _get_dv_filter_funcs(self):
         return {
@@ -37,11 +37,12 @@ class AnesDataset(dataset.Dataset):
 
     def _filter_demographics(self, df):
         df = df[~df['age'].isin([-9])]
-        df = df[~df['gender'].isin([-8,-7,-6,-5,-1])]
-        df = df[~df['party'].isin(-9,-8,-1,5)]
+        df = df[~df['gender'].isin([-9])]
+        # df = df[~df['gender'].isin([-8,-7,-6,-5,-1])]
+        df = df[~df['party'].isin([-9,-8,-1,5])]
         df = df[~df['education'].isin([-9,-8,95])]
-        df = df[~df['ideo'].isin([-9,-8])]
-        df = df[~df['religion'].isin([-1])]
+        df = df[~df['ideo'].isin([-9,-8, 99])]
+        df = df[~df['religion'].isin([-1, 8])]
         df = df[~df['race'].isin([-9,-8])]
         new_df = df[~df['marital'].isin([-9,-8])]
         return new_df
@@ -77,7 +78,8 @@ class AnesDataset(dataset.Dataset):
     def _get_demographic_col_names(self):
         return {
             "V201507x": 'age',
-            "V202637" : "gender" ,
+            "V201600" : "gender" ,
+            # "V202637" : "gender" ,
             "V201018" : "party",
             "V201510" : 'education',
             "V201200" : "ideo",
@@ -88,14 +90,16 @@ class AnesDataset(dataset.Dataset):
             "V201508" : "marital",
         }
 
-    def _make_backstory(self, row, format):
+    def _make_backstory(self, row):
 
         # Renaming columns for convenience
+        age_dic = {k:f"I am {k} years old." for k in range(80)} 
+        age_dic.update({80: "I am 80 years old."})
         code_dic = {
                 "age": {
                     'q': 'What is your age?',
                     'a': {k:str(k) for k in range(80)}.update({'80': "80 or older"}),
-                    'abs': {k:f"I am {k} years old." for k in range(80)}.update({'80': "I am 80 years old."}),
+                    'abs': age_dic,
                 },
                 "gender": {
                     'q': "What's your gender (male or female)?",
@@ -140,8 +144,8 @@ class AnesDataset(dataset.Dataset):
                         1: "I didn't graduate from high school.",
                         2: "I graduated from high school.",
                         3: "I did some college but didn't get a degree.",
-                        4: "I have an associate's degree",
-                        5: "I have an associate's degree",
+                        4: "I have an associate's degree.",
+                        5: "I have an associate's degree.",
                         6: "I have a bachelor’s degree.",
                         7: "I have a master’s degree.",
                         8: "I went to grad school.",
@@ -157,31 +161,29 @@ class AnesDataset(dataset.Dataset):
                         5: "Slightly conservative",
                         6: "Conservative",
                         7: "Extremely conservative",
-                        99: "Haven’t thought much about this",
                     },
                     'abs': {
-                        1: "I am extremely liberal.",
-                        2: "I am liberal.",
-                        3: "I am slightly liberal.",
-                        4: "I am moderate; middle of the road.",
-                        5: "I am slightly conservative.",
-                        6: "I am conservative.",
-                        7: "I am extremely conservative.",
-                        99: "I don't think much about politics.",
+                        1:  "Ideologically speaking, I am extremely liberal.",
+                        2:  "Ideologically speaking, I am liberal.",
+                        3:  "Ideologically speaking, I am slightly liberal.",
+                        4:  "Ideologically speaking, I am moderate.",
+                        5:  "Ideologically speaking, I am slightly conservative.",
+                        6:  "Ideologically speaking, I am conservative.",
+                        7:  "Ideologically speaking, I am extremely conservative.",
                     },
                 },
                 #This is restricted so it doesn't matter
-                "income": {
-                    'q': "The next question is about [the total combined income of all "
-                        "members of your family / your total income] during the past 12 "
-                        "months. This includes money from jobs, net income from "
-                        "business, farm or rent, pensions, dividends, interest, Social "
-                        "Security payments, and any other money income received by "
-                        "members of your family who are 15 years of age or older. What "
-                        "was the total income of your family during the past 12 months? "
-                        "TYPE THE NUMBER. YOUR BEST GUESS IS FINE.",
-                    "abs": ""
-                },
+                # "income": {
+                #     'q': "The next question is about [the total combined income of all "
+                #         "members of your family / your total income] during the past 12 "
+                #         "months. This includes money from jobs, net income from "
+                #         "business, farm or rent, pensions, dividends, interest, Social "
+                #         "Security payments, and any other money income received by "
+                #         "members of your family who are 15 years of age or older. What "
+                #         "was the total income of your family during the past 12 months? "
+                #         "TYPE THE NUMBER. YOUR BEST GUESS IS FINE.",
+                #     "abs": ""
+                # },
                 "religion": {
                     'q': "What's your religion ('Mainline Protestant', 'Evangelical Protestant', 'Black Protestant', 'Undifferentiated Protestant', 'Roman Catholic', 'Other Christian', 'Jewish', 'Other religion', 'Not religious')?",
                     'a': {
@@ -203,7 +205,6 @@ class AnesDataset(dataset.Dataset):
                         5: "I am Roman Catholic.",
                         6: "I am Christian.",
                         7: "I am Jewish.",
-                        8: "I belong to a non-standard religion.",
                         9: "I am not religious.",
                     },
                 },
@@ -223,7 +224,7 @@ class AnesDataset(dataset.Dataset):
                         3: "I am Hispanic.",
                         4: "I am Asian or Native Hawaiian/other Pacific Islander.",
                         5: "I am Native American/Alaska Native.",
-                        6: "I am Multiple races.",
+                        6: "I am multi-racial.",
                     },
                 },
                 "region": {
@@ -267,26 +268,27 @@ class AnesDataset(dataset.Dataset):
 
 
         backstory = ""
-        date_statement = "It's November 2020."
-        if "format" == "QA":
-            #For every Demographic question, ask the question asked in the survey.
-            for code, dic in code_dic.items():
-                backstory+= f"Q: {dic['q']}\nA: {dic['a'][row[code]]}\n\n"
-        elif "format" == "FPBS":
-            backstory = " ".join([dic['abs'][row[code]] for code,dic in code_dic.items()] + date_statement)
-        else:
-            raise Exception("Invalid format")
+        date_statement = ["It's November 2020."]
+        # if "format" == "QA":
+        #     #For every Demographic question, ask the question asked in the survey.
+        #     for code, dic in code_dic.items():
+        #         backstory+= f"Q: {dic['q']}\nA: {dic['a'][row[code]]}\n\n"
+        # el        bp()if "format" == "FPBS":
+        #     backstory = " ".join([dic['abs'][row[code]] for code,dic in code_dic.items()] + date_statement)
+        # else:
+        #     raise Exception("Invalid format")
+        backstory = " ".join([dic['abs'][row[code]] for code,dic in code_dic.items()] + date_statement)
         return backstory
 
-    def _get_prompt_instructions(self):
+    def _get_col_prompt_specs(self):
         return { 
             "protect_environment": PromptSpecs(
                 question="What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?",
                 answer_prefix="spending on protecting the environment should be",
                 answer_map={
                     1: "increased",
-                    1: "decreased",
-                    1: "kept the same",
+                    2: "decreased",
+                    3: "kept the same",
                 }
                 ), 
             "government_temperatures": PromptSpecs(
@@ -294,8 +296,8 @@ class AnesDataset(dataset.Dataset):
                 answer_prefix="the federal government should do",
                 answer_map={
                     1: "more",
-                    1: "less",
-                    1: "same",
+                    2: "less",
+                    3: "same",
                 }
                 ), 
             "federal_spending_crime": PromptSpecs(
@@ -303,8 +305,8 @@ class AnesDataset(dataset.Dataset):
                 answer_prefix="federal spending on dealing with crime should be",
                 answer_map={
                     1: "increased",
-                    1: "decreased",
-                    1: "kept the same",
+                    2: "decreased",
+                    3: "kept the same",
                 }
                 ), 
             "trump_economy": PromptSpecs(
@@ -409,7 +411,7 @@ class AnesDataset(dataset.Dataset):
                 ), 
             "military": PromptSpecs(
                 question="How willing should the United States be to use military force to solve international problems?",
-                answer_prefix="",
+                answer_prefix="the military should be",
                 answer_map={
                     1: "extremely willing to use military force",
                     2: "very willing to use military force",
@@ -434,7 +436,7 @@ class AnesDataset(dataset.Dataset):
                 answer_prefix="I",
                 answer_map={
                     1: "do have health insurance",
-                    1: "don't have health insurance",
+                    2: "don't have health insurance",
                 }
                 ), 
             "political_campaigns": PromptSpecs(
@@ -488,7 +490,6 @@ class AnesDataset(dataset.Dataset):
                     ),
                 "trump_economy": (("If asked whether I (approve or disapprove) of the way the way Donald Trump is handling the economy, I would answer that I"),
 					                lambda x: {
-					-8: " don’t know",
 					1: " approve",
 					2: " disapprove",
                     }[x]
@@ -614,5 +615,7 @@ class AnesDataset(dataset.Dataset):
 
 if __name__ == '__main__':
     import random
-
-    ds = AnesDataset(n_exemplars=5)
+    ds = AnesDataset()
+    prompts = ds.get_prompts_sample()
+    print(prompts)
+    pass

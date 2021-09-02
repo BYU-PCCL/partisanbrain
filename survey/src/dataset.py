@@ -44,6 +44,7 @@ class Dataset(abc.ABC):
 
         # Filter down to rows where respondents are from USA
         data = self._filter_to_usa(data)
+        print(f"After filtering to USA, {len(data)} instances remaining.")
 
         # Make demographics table
         demographic_col_names = self._get_demographic_col_names()
@@ -55,6 +56,7 @@ class Dataset(abc.ABC):
         # or missing values
         self._demographics = self._filter_demographics(self._demographics)
         self._demographics = self._demographics.dropna(axis=0)
+        print(f"After filtering demographics, {len(self._demographics)} instances remaining.")
 
         # Get row backstories (so they only need to be calculated once)
         self._row_backstories = {idx: self._make_backstory(row) for (idx, row)
@@ -92,7 +94,7 @@ class Dataset(abc.ABC):
                                                      random_state=self._seed)
             elif len(self._dvs[dv]) >= self._min_samples:
                 warnings.warn((f"DV {dv} only has {len(self._dvs[dv])} "
-                               "samples. Sampling anyways because {dv} has "
+                               f"samples. Sampling anyways because {dv} has "
                                f"at least {self._min_samples} (min_samples) "
                                "values."))
             else:
@@ -113,6 +115,28 @@ class Dataset(abc.ABC):
             rand_idx = random.choice(list(dv_prompts.keys()))
             prompts.append(dv_prompts[rand_idx])
         return prompts
+    
+    def get_backstories_all_demos(self):
+        """Proceed through all possible values of each demographic and 
+        construct an example of a backstory for each
+
+        Returns:
+            list[tuples]: (string indicating demographic, string of backstory,
+                            pandas series)
+        """
+        prompts = []
+        demodf = self._demographics.copy()
+        demographics = demodf.columns
+        demodf['ix'] = demodf.index
+        backstories = self._row_backstories.copy()
+        for demographic in demographics:
+            examples = demodf.groupby(demographic).first()
+            for row, example in examples.iterrows():
+                backstory = backstories[example.ix]
+                example[demographic] = row
+                prompts.append((f"{demographic}={row}", backstory, example))
+        return prompts
+
 
     @property
     def prompts(self):
