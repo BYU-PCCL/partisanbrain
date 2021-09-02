@@ -22,18 +22,17 @@ class Experiment:
 
     def _process_prompt(self, prompt):
         """Process prompt with self._gpt_3_version version of GPT-3"""
-        # try:
-        #     # TODO: Are these arguments correct?
-        #     # TODO: Do we ever want max_tokens > 1?
-        #     return openai.Completion.create(engine=self._gpt_3_engine,
-        #                                     prompt=prompt,
-        #                                     max_tokens=1,
-        #                                     logprobs=100)
-        # # TODO: Catch more specific exception here
-        # except Exception as exc:
-        #     print(exc)
-        #     return None
-        return "temp"
+        try:
+            # TODO: Are these arguments correct?
+            # TODO: Do we ever want max_tokens > 1?
+            return openai.Completion.create(engine=self._gpt_3_engine,
+                                            prompt=prompt,
+                                            max_tokens=1,
+                                            logprobs=100)
+        # TODO: Catch more specific exception here
+        except Exception as exc:
+            print(exc)
+            return None
 
     def run(self):
         """Get results from GPT-3 API"""
@@ -52,9 +51,55 @@ class Experiment:
             pickle.dump(self._results, f)
 
 
-# if __name__ == "__main__":
-#     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
-#     ds = PewAmericanTrendsWave78Dataset()
-#     e = Experiment(ds, gpt_3_engine="ada")
-#     e.run()
-#     e.save_results("new.pkl")
+if __name__ == "__main__":
+    ###############################################################################################################
+    # MMMMMMMM               MMMMMMMMEEEEEEEEEEEEEEEEEEEEEE       GGGGGGGGGGGGG               AAA               
+    # M:::::::M             M:::::::ME::::::::::::::::::::E    GGG::::::::::::G              A:::A              
+    # M::::::::M           M::::::::ME::::::::::::::::::::E  GG:::::::::::::::G             A:::::A             
+    # M:::::::::M         M:::::::::MEE::::::EEEEEEEEE::::E G:::::GGGGGGGG::::G            A:::::::A            
+    # M::::::::::M       M::::::::::M  E:::::E       EEEEEEG:::::G       GGGGGG           A:::::::::A           
+    # M:::::::::::M     M:::::::::::M  E:::::E            G:::::G                        A:::::A:::::A          
+    # M:::::::M::::M   M::::M:::::::M  E::::::EEEEEEEEEE  G:::::G                       A:::::A A:::::A         
+    # M::::::M M::::M M::::M M::::::M  E:::::::::::::::E  G:::::G    GGGGGGGGGG        A:::::A   A:::::A        
+    # M::::::M  M::::M::::M  M::::::M  E:::::::::::::::E  G:::::G    G::::::::G       A:::::A     A:::::A       
+    # M::::::M   M:::::::M   M::::::M  E::::::EEEEEEEEEE  G:::::G    GGGGG::::G      A:::::AAAAAAAAA:::::A      
+    # M::::::M    M:::::M    M::::::M  E:::::E            G:::::G        G::::G     A:::::::::::::::::::::A     
+    # M::::::M     MMMMM     M::::::M  E:::::E       EEEEEEG:::::G       G::::G    A:::::AAAAAAAAAAAAA:::::A    
+    # M::::::M               M::::::MEE::::::EEEEEEEE:::::E G:::::GGGGGGGG::::G   A:::::A             A:::::A   
+    # M::::::M               M::::::ME::::::::::::::::::::E  GG:::::::::::::::G  A:::::A               A:::::A  
+    # M::::::M               M::::::ME::::::::::::::::::::E    GGG::::::GGG:::G A:::::A                 A:::::A 
+    # MMMMMMMM               MMMMMMMMEEEEEEEEEEEEEEEEEEEEEE       GGGGGG   GGGGAAAAAAA                   AAAAAAA
+    ###############################################################################################################
+
+    # Import experiment code
+    from experiment import Experiment
+
+    # Import all the datasets
+    from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
+    from pew_american_trends_67_dataset import PewAmericanTrendsWave67Dataset
+    from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
+    from add_health_dataset import AddHealthDataset
+    from anes import AnesDataset
+    from cces import CCESDataset
+    from gss_dataset import GSSDataset
+    from prri_dataset import PRRIDataset
+
+    datasets = {PewAmericanTrendsWave67Dataset: "pew67",
+                PewAmericanTrendsWave78Dataset: "pew78",
+                BaylorReligionSurveyDataset: "baylor",
+                AddHealthDataset: "add_health",
+                AnesDataset: "anes",
+                CCESDataset: "cces",
+                GSSDataset: "gss",
+                PRRIDataset: "prri"}
+
+    for (name, ds_cls) in datasets.items():
+
+        # Set up the experiment
+        e = Experiment(ds_cls(), gpt_3_engine="ada")
+
+        # Run the experiment
+        e.run()
+
+        # Save the results
+        e.save_results(f"{ds_cls}_mega.pkl")
