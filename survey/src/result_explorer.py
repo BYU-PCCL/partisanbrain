@@ -1,6 +1,10 @@
+from stats import cramers_v_from_vecs, list_to_val_map
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
+import seaborn as sns
 
 
 class ResultExplorer:
@@ -32,7 +36,7 @@ class ResultExplorer:
             score_dict[k.lstrip().lower()] += v
         return score_dict
 
-    def _sample(self, dv_name, row_idx, seed=0):
+    def _sample(self, dv_name, row_idx):
         """Returns sampled GPT-3 answer lowercased"""
         score_dict = self._get_score_dict(dv_name, row_idx)
         possible_vals = list(score_dict.keys())
@@ -40,7 +44,8 @@ class ResultExplorer:
         chosen = np.random.choice(possible_vals, p=opt_scores)
         return chosen
 
-    def _make_summary_dfs(self):
+    def _make_summary_dfs(self, seed=0):
+        np.random.seed(seed)
         summary_dfs = dict()
         demographics = self._ds.demographics
         for (dv_name, dv_series) in self._ds.dvs.items():
@@ -83,8 +88,53 @@ class ResultExplorer:
             raw_accs[dv_name] = matches / len(df)
         return raw_accs
 
-    def get_cramers_v(self):
-        pass
+    def get_cramers_v_values(self):
+        # # Rows are demographics, columns are DVs
+        # dvs = list(self._ds.dvs.keys())
+        # dv_map = list_to_val_map(dvs)
+        # demographic_map = list_to_val_map(list(self._ds.demographics))
+        # tbl = np.zeros((len(demographic_map), len(dv_map)))
+        # for dv_name in self._ds.dvs.keys():
+        #     for demographic_name in list(self._ds.demographics):
+        #         demographic = self._summary_dfs[dv_name][demographic_name]
+        #         dv = self._summary_dfs[dv_name]["human"]
+        #         v = cramers_v_from_vecs(demographic, dv)
+        #         tbl[demographic_map[demographic_name], dv_map[dv_name]] = v
+
+        # # Show plot
+        # sns.heatmap(tbl,
+        #             annot=True,
+        #             xticklabels=dvs,
+        #             yticklabels=list(self._ds.demographics))
+        # plt.show()
+
+        # Rows are demographics, columns are DVs
+        dvs = list(self._ds.dvs.keys())
+        dv_map = list_to_val_map(dvs)
+        demographic_map = list_to_val_map(list(self._ds.demographics))
+        tbl_1 = np.zeros((len(demographic_map), len(dv_map)))
+        for dv_name in self._ds.dvs.keys():
+            for demographic_name in list(self._ds.demographics):
+                demographic = self._summary_dfs[dv_name][demographic_name]
+                dv = self._summary_dfs[dv_name]["human"]
+                v = cramers_v_from_vecs(demographic, dv)
+                tbl_1[demographic_map[demographic_name], dv_map[dv_name]] = v
+
+        # Rows are demographics, columns are DVs
+        tbl_2 = np.zeros((len(demographic_map), len(dv_map)))
+        for dv_name in self._ds.dvs.keys():
+            for demographic_name in list(self._ds.demographics):
+                demographic = self._summary_dfs[dv_name][demographic_name]
+                dv = self._summary_dfs[dv_name]["gpt_3"]
+                v = cramers_v_from_vecs(demographic, dv)
+                tbl_2[demographic_map[demographic_name], dv_map[dv_name]] = v
+
+        # Show plot
+        sns.heatmap(np.abs(tbl_1-tbl_2),
+                    annot=True,
+                    xticklabels=dvs,
+                    yticklabels=list(self._ds.demographics))
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -92,4 +142,5 @@ if __name__ == "__main__":
     re = ResultExplorer("patsy_87_davinci_200.pkl",
                         PewAmericanTrendsWave78Dataset())
     # re.summary_dfs_to_excel("output.xlsx")
-    print(re.get_raw_accs())
+    # print(re.get_raw_accs())
+    print(re.get_cramers_v_values())
