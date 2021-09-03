@@ -418,9 +418,6 @@ class BaylorReligionSurveyDataset(Dataset):
 if __name__ == "__main__":
     from experiment import Experiment
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
-    import openai
-
-    openai.api_key = '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'
 
     # Set up the experiment
     ds = BaylorReligionSurveyDataset()
