@@ -130,11 +130,7 @@ class Dataset(abc.ABC):
         demodf['ix'] = demodf.index
         backstories = self._row_backstories.copy()
         for demographic in demographics:
-<<<<<<< HEAD
-            examples = demodf.groupby(demographic).first().dropna()
-=======
             examples = demodf.groupby(demographic, observed=True).first()
->>>>>>> 19dc2a092f8c4998d6be1c6f6d504b37fed1859e
             for row, example in examples.iterrows():
                 backstory = backstories[example.ix]
                 example[demographic] = row

@@ -73,8 +73,12 @@ class PRRIDataset(Dataset):
         if row["party"] == "An Independent":
             backstory.append("In terms of political party I am an Independent.")
         else:
-            backstory.append("In terms of political party "
-                             f"I am {row['party']}.")
+            if "A Democrat" == row["party"]:
+                backstory.append("In terms of political party "
+                                 "I am a Democrat")
+            elif "A Republican" == row['party']:
+                backstory.append("In terms of political party "
+                                 "I am a Republican")
 
         # Education
         education = row["education"]
@@ -83,13 +87,13 @@ class PRRIDataset(Dataset):
         elif education == "Master's degree" or education == "Professional or doctorate degree":
             backstory.append("I went to grad school.")
         elif education == "Some college, no degree" or education == "Associate degree":
-            backstory.append("I've completed some college.")
+            backstory.append("I have completed some college.")
         else:
-            backstory.append("I didn't go to college.")
+            backstory.append("I did not go to college.")
 
         # Ideology
         backstory.append(("In terms of political ideology, "
-                          "I'd consider myself "
+                          "I would consider myself "
                           f"to be {row['ideology'].lower()}."))
 
         # Income
@@ -104,7 +108,7 @@ class PRRIDataset(Dataset):
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
-            backstory.append(("I don't identify with any religion "
+            backstory.append(("I do not identify with any religion "
                               "in particular."))
         else:
             if "Christian" in row["religion"]:
@@ -134,9 +138,9 @@ class PRRIDataset(Dataset):
         # Race/Ethnicity
         race = row['race_ethnicity'].replace(', non-Hispanic', '')
         if "Two plus" in race:
-            backstory.append(f"I'm multi-racial.")
+            backstory.append(f"I am multi-racial.")
         else:
-            backstory.append(f"I'm {race}.")
+            backstory.append(f"I am {race}.")
 
         # Region
         if row["region"] == "New England" or row["region"] == "Mid-Atlantic":
@@ -154,15 +158,15 @@ class PRRIDataset(Dataset):
 
         # Marital Status
         if row["marital_status"] == "Never married":
-            backstory.append("I've never been married.")
+            backstory.append("I have never been married.")
         elif row["marital_status"] == "Separated":
-            backstory.append(("I got married, but I'm now "
+            backstory.append(("I got married, but I am now "
                               "separated from my partner."))
         elif row["marital_status"] == "Living with partner":
             backstory.append("I am not married, but I am living "
                             "with my partner.")
         else:
-            backstory.append(f"I'm {row['marital_status'].lower()}.")
+            backstory.append(f"I am {row['marital_status'].lower()}.")
 
         # Date
         backstory.append("It is between September and October 2018.")
@@ -188,20 +192,20 @@ class PRRIDataset(Dataset):
                     answer_map={"Our country has made the changes "
                                 "needed to give gay and lesbian "
                                 "people equal rights with other "
-                                "Americans": "Yes",
+                                "Americans": "yes",
                                 "Our country needs to continue making "
                                 "changes to give gay and lesbian people "
-                                "equal rights with other Americans": "No"}),
+                                "equal rights with other Americans": "no"}),
                 "immigrant_preference": PromptSpecs(
                     question="Do you think we should give preference to immigrants from Western Europe. who share our values?",
                     answer_prefix="",
-                    answer_map={"Completely agree": "Yes",
-                                "Mostly agree" : "Yes",
-                                "Mostly disagree": "No",
-                                "Completely disagree": "No"}),
+                    answer_map={"Completely agree": "yes",
+                                "Mostly agree" : "yes",
+                                "Mostly disagree": "no",
+                                "Completely disagree": "no"}),
                 "putin_opinion": PromptSpecs(
                     question="How would you describe your overall opinion of Russian President Vladimir Putin?",
-                    answer_prefix="My opinion is",
+                    answer_prefix="my opinion is",
                     answer_map={"Very favorable": "favorable",
                                 "Mostly favorable" : "favorable",
                                 "Mostly unfavorable": "unfavorable",
@@ -209,7 +213,7 @@ class PRRIDataset(Dataset):
                                 "Have not heard of": "no opinion"}),
                 "view_on_immigration": PromptSpecs(
                     question="Do you think that, in general, the growing number of newcomers from other countries to the US is good or bad?",
-                    answer_prefix="The growing number of newcomers is",
+                    answer_prefix="the growing number of newcomers is",
                     answer_map={"Threatens traditional American "
                                 "customs and values": "bad",
                                 "Strengthens American society" : "good"}),
@@ -228,11 +232,11 @@ class PRRIDataset(Dataset):
                                 "Strongly oppose": "oppose"}),
                 "immigrant_citizenship": PromptSpecs(
                     question="How should the US immigration system should deal with imigrants who are currently living in the US illegally?",
-                    answer_prefix="The US immigration system should",
+                    answer_prefix="the US immigration system should",
                     answer_map={"Allow them a way to become citizens provided "
-                                "they meet certain requirements": "Allow them to become citizens",
+                                "they meet certain requirements": "allow them to become citizens",
                                 "Allow them to become permanent legal residents, "
-                                "but not citizens" : "Allow them to become residents, not citizens",
+                                "but not citizens" : "allow them to become residents, not citizens",
                                 "Identify and deport them": "deport them"}),
                 "voting_frequency": PromptSpecs(
                     question="How often would you say you vote?",
@@ -245,10 +249,10 @@ class PRRIDataset(Dataset):
                 "trump_job_opinion": PromptSpecs(
                     question="Do you approve of the job Donald Trump is doing as president?",
                     answer_prefix="",
-                    answer_map={"Strongly approve": "Yes",
-                                "Somewhat approve" : "Yes",
-                                "Somewhat disapprove": "No",
-                                "Strongly disapprove": "No"}),
+                    answer_map={"Strongly approve": "yes",
+                                "Somewhat approve" : "yes",
+                                "Somewhat disapprove": "no",
+                                "Strongly disapprove": "no"}),
                 "electing_minorities": PromptSpecs(
                     question="How do you think electing more people from racial and ethnic minority groups to political office would make things in the US?",
                     answer_prefix="I think things would be",
@@ -263,27 +267,27 @@ class PRRIDataset(Dataset):
                 "asian_discrimination": PromptSpecs(
                     question="In the US today is there a lot of discrimination against Asians?",
                     answer_prefix="",
-                    answer_map={"Yes, there is a lot of discrimination": "Yes",
-                                "No, not a lot of discrimination": "No"}),
+                    answer_map={"Yes, there is a lot of discrimination": "yes",
+                                "No, not a lot of discrimination": "no"}),
                 "hispanic_discrimination": PromptSpecs(
                     question="In the US today is there a lot of discrimination against Hispanics?",
                     answer_prefix="",
-                    answer_map={"Yes, there is a lot of discrimination": "Yes",
-                                "No, not a lot of discrimination": "No"}),
+                    answer_map={"Yes, there is a lot of discrimination": "yes",
+                                "No, not a lot of discrimination": "no"}),
                 "white_vs_black_discrimination": PromptSpecs(
                     question="Do you think that discrimination against whites has become as big a problem as discrimination against blacks and other minorities?",
                     answer_prefix="",
-                    answer_map={"Completely agree": "Yes",
-                                "Mostly agree": "Yes",
-                                "Mostly disagree": "No",
-                                "Completely disagree": "No"}),
+                    answer_map={"Completely agree": "yes",
+                                "Mostly agree": "yes",
+                                "Mostly disagree": "no",
+                                "Completely disagree": "no"}),
                 "stranger_in_own_country": PromptSpecs(
                     question="Do you think the US has changed so much that you feel like a stranger in your own country?",
                     answer_prefix="",
-                    answer_map={"Completely agree": "Yes",
-                                "Mostly agree": "Yes",
-                                "Mostly disagree": "No",
-                                "Completely disagree": "No"}),
+                    answer_map={"Completely agree": "yes",
+                                "Mostly agree": "yes",
+                                "Mostly disagree": "no",
+                                "Completely disagree": "no"}),
                 "demographic_change_opinion": PromptSpecs(
                     question="By 2045, minorities will together be a majority in the US. Do you think the impact of the coming demographic change will be positive or negative?",
                     answer_prefix="I think the coming demographic change will be",
@@ -292,10 +296,10 @@ class PRRIDataset(Dataset):
                 "use_of_racism": PromptSpecs(
                     question="Do you think racial minorities use racism as an excuse more than they should?",
                     answer_prefix="",
-                    answer_map={"Completely agree": "Yes",
-                                "Mostly agree": "Yes",
-                                "Mostly disagree": "No",
-                                "Completely disagree": "No"}),
+                    answer_map={"Completely agree": "yes",
+                                "Mostly agree": "yes",
+                                "Mostly disagree": "no",
+                                "Completely disagree": "no"}),
                 "elect_non_christian": PromptSpecs(
                     question="How do you think electing more non Christian people to political office would make things in the US?",
                     answer_prefix="I think things would be",
@@ -303,4 +307,23 @@ class PRRIDataset(Dataset):
                                 "Worse": "worse",
                                 "Not much different": "the same"}),
         }
+
+if __name__ == "__main__":
+    ds = PRRIDataset()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
+    # Uncomment this to see a sample of your prompts
+    # First prompt for each DV
+    # prompts = []
+    # for dv_name in ds.dvs.keys():
+    #     dv_prompts = ds.prompts[dv_name]
+    #     for row_idx in dv_prompts.keys():
+    #         prompts.append(dv_prompts[row_idx])
+    #     for prompt in prompts:
+    #        print(prompt)
+    #        print()
 
