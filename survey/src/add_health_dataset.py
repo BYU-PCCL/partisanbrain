@@ -367,7 +367,7 @@ class AddHealthDataset(Dataset):
                                 30.0: "an adult",
                                 33.0: "an adult",}),
                 "car_accidents": PromptSpecs(
-                    question="In the past 12 months, were you involved in a moror vehicle accident?",
+                    question="In the past 12 months, were you involved in a motor vehicle accident?",
                     answer_prefix="",
                     answer_map={"(1) Yes": "Yes",
                                 "(0) No": "No",}),
@@ -391,12 +391,18 @@ class AddHealthDataset(Dataset):
 
 if __name__ == "__main__":
     ds = AddHealthDataset()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
     # Uncomment this to see a sample of your prompts
     # First prompt for each DV
-    prompts = []
-    for dv_name in ds.dvs.keys():
-         dv_prompts = ds.prompts[dv_name]
-         for row_idx in dv_prompts.keys():
-             prompts.append(dv_prompts[row_idx])
-         print(dv_prompts[list(dv_prompts.keys())[0]])
-         print()
+    # prompts = []
+    # for dv_name in ds.dvs.keys():
+    #      dv_prompts = ds.prompts[dv_name]
+    #      for row_idx in dv_prompts.keys():
+    #          prompts.append(dv_prompts[row_idx])
+    #      print(dv_prompts[list(dv_prompts.keys())[0]])
+    #      print()
