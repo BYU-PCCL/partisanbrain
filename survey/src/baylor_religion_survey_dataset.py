@@ -12,10 +12,12 @@ class BaylorReligionSurveyDataset(Dataset):
         #   No region demographic
 
     def _filter_demographics(self, df):
-        new_df = df[~df["religion"].isin(["Other", "Don't know"])]
-        new_df = new_df[new_df["race"] != "No races chosen"]
+        df = df[~df["religion"].isin(["Other", "Don't know"])]
+        df = df[df["race"] != "No races chosen"]
 
-        return new_df
+        print(df.groupby("marital").first())
+
+        return df
 
     def _filter_to_usa(self, df):
         """Return a new dictionary where all respondents are from USA"""
@@ -60,16 +62,23 @@ class BaylorReligionSurveyDataset(Dataset):
         backstory = []
 
         #AGE
-        backstory.append(f"I am {row['age']} years old.")
+
+        backstory.append(f"I am {int(row['age'])} years old.")
 
         #GENDER
-        if row["gender"] == "Other":
-            backstory.append("I don't identify as male or female.")
-        else:
-            backstory.append(f"I am {row['gender'].lower()}.")
+        backstory.append(f"I am {row['gender'].lower()}.")
 
         #POLITICAL PARTY
-        backstory.append(f"In terms of partisan politics, I am a {row['party'].lower()}.")
+        party = row['party']
+        if "Leaning" in party:
+            if "Democrat" in party:
+                backstory.append(f"In terms of partisan politics, I lean toward Democrat.")
+            else:
+                backstory.append(f"In terms of partisan politics, I lean toward Republican.")
+        elif "Independent" in party:
+            backstory.append(f"In terms of partisan politics, I am an Independent.")
+        else:
+            backstory.append(f"In terms of partisan politics, I am a {row['party']}.")
 
         #EDUCATION
         if row["edu"] == "No high school degree":
@@ -91,7 +100,7 @@ class BaylorReligionSurveyDataset(Dataset):
 
         #RELIGION
         #main cases
-        case1 = pd.DataFrame(["Assemblies of God",
+        case1 = ["Assemblies of God",
                   "Brethren",
                   "Christian & Missionary Alliance",
                   "Christian Reformed",
@@ -101,38 +110,38 @@ class BaylorReligionSurveyDataset(Dataset):
                   "Lutheran",
                   "Pentecostal",
                   "Unitarian Universalist"
-                  ])
-        case2 = pd.DataFrame(["Baha'i",
-                              "Baptist",
-                              "Buddhist",
-                              "Hindu",
-                              "Mennonite",
-                              "Methodist",
-                              "Muslim",
-                              "Presbyterian",
-                              "Seventh-Day Adventist",
-                              "Sikh"
-                             ])
-        case3 = pd.DataFrame(["Adventist",
-                              "African Methodist",
-                              "Anabaptist"])
-        case4 = pd.DataFrame(["Bible Church",
-                              "Church of Christ",
-                              "Church of God",
-                              "Church of the Nazarene",
-                              "Salvation Army",
-                              "United Church of Christ" ])
+                  ]
+        case2 = [ "Baha'i",
+                  "Baptist",
+                  "Buddhist",
+                  "Hindu",
+                  "Mennonite",
+                  "Methodist",
+                  "Muslim",
+                  "Presbyterian",
+                  "Seventh-Day Adventist",
+                  "Sikh"
+                 ]
+        case3 = ["Adventist",
+                 "African Methodist",
+                 "Anabaptist"]
+        case4 = ["Bible Church",
+                 "Church of Christ",
+                 "Church of God",
+                 "Church of the Nazarene",
+                 "Salvation Army",
+                 "United Church of Christ" ]
 
-        if row["religion"] in list(case1):
+        if row["religion"] in case1:
             backstory.append(f"I am a member of the {row['religion']} faith.")
 
-        if row["religion"] in list(case2):
+        if row["religion"] in case2:
             backstory.append(f"In terms of religion, I am a {row['religion']}.")
 
-        if row["religion"] in list(case3):
+        if row["religion"] in case3:
             backstory.append(f"In terms of religion, I am an {row['religion']}.")
 
-        if row["religion"] in list(case4):
+        if row["religion"] in case4:
             backstory.append(f"I am a member of the {row['religion']}.")
 
         #special cases
@@ -393,10 +402,5 @@ class BaylorReligionSurveyDataset(Dataset):
 
 if __name__ == "__main__":
     ds = BaylorReligionSurveyDataset()
-    bp()
-    # Uncomment this to see a sample of your prompts
-    # First prompt for each DV
-    for dv_name in ds.dvs.keys():
-        dv_prompts = ds.prompts[dv_name]
-        print(dv_prompts[list(dv_prompts.keys())[0]])
-        print()
+
+
