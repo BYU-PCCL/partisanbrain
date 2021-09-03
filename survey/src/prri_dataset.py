@@ -52,6 +52,7 @@ class PRRIDataset(Dataset):
                                   "A Republican",
                                   "An Independent"])]
         df = df[df["race_ethnicity"] != "Other, non-Hispanic"]
+        df = df[df["party"] != "Other [SPECIFY]"]
 
         problematic_values = ["Refused", "Something else", "Don't know (VOL.)", "Skipped on web"]
         for col_name in list(df):
@@ -63,7 +64,7 @@ class PRRIDataset(Dataset):
         backstory = []
 
         # Age
-        backstory.append(f"I am {row['age']} years old.")
+        backstory.append(f"I am {int(row['age'])} years old.")
 
         # Gender
         backstory.append(f"I am {row['gender'].lower()}.")
@@ -138,7 +139,7 @@ class PRRIDataset(Dataset):
             backstory.append(f"I'm {race}.")
 
         # Region
-        if row["region"] == "New England" or row["region"] == "Mid Atlantic":
+        if row["region"] == "New England" or row["region"] == "Mid-Atlantic":
             backstory.append("I live in the Northeast of the United States.")
         elif row["region"] == "Mountain":
             backstory.append("I live in the Western United States.")
@@ -204,7 +205,8 @@ class PRRIDataset(Dataset):
                     answer_map={"Very favorable": "favorable",
                                 "Mostly favorable" : "favorable",
                                 "Mostly unfavorable": "unfavorable",
-                                "Very unfavorable": "unfavorable"}),
+                                "Very unfavorable": "unfavorable",
+                                "Have not heard of": "no opinion"}),
                 "view_on_immigration": PromptSpecs(
                     question="Do you think that, in general, the growing number of newcomers from other countries to the US is good or bad?",
                     answer_prefix="The growing number of newcomers is",
@@ -216,9 +218,7 @@ class PRRIDataset(Dataset):
                     answer_prefix="I think that immigrants today are",
                     answer_map={"Immigrants today strengthen our country "
                                 "because of their hard work and talents": "good",
-                                "Immigrants today are a burden on our "
-                                "country because they take our jobs, housing, "
-                                "and healthcare": "bad"}),
+                                "Immigrants today are a burden on our country because they take our jobs, housing and health care": "bad"}),
                 "laws_preventing_refugees": PromptSpecs(
                     question="Do you favor or oppose passing a law to prevent refugees from entering the US?",
                     answer_prefix="I",
@@ -303,3 +303,4 @@ class PRRIDataset(Dataset):
                                 "Worse": "worse",
                                 "Not much different": "the same"}),
         }
+

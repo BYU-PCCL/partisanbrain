@@ -15,8 +15,6 @@ class BaylorReligionSurveyDataset(Dataset):
         df = df[~df["religion"].isin(["Other", "Don't know"])]
         df = df[df["race"] != "No races chosen"]
 
-        print(df.groupby("marital").first())
-
         return df
 
     def _filter_to_usa(self, df):
@@ -66,7 +64,10 @@ class BaylorReligionSurveyDataset(Dataset):
         backstory.append(f"I am {int(row['age'])} years old.")
 
         #GENDER
-        backstory.append(f"I am {row['gender'].lower()}.")
+        if row['gender'] == "Other (please specify)":
+            backstory.append("I do not identify as male or female.")
+        else:
+            backstory.append(f"I am {row['gender'].lower()}.")
 
         #POLITICAL PARTY
         party = row['party']
@@ -402,5 +403,9 @@ class BaylorReligionSurveyDataset(Dataset):
 
 if __name__ == "__main__":
     ds = BaylorReligionSurveyDataset()
-
-
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
