@@ -416,7 +416,9 @@ if __name__ == "__main__":
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
 
     # Set up the experiment
-    e = Experiment(BaylorReligionSurveyDataset(), gpt_3_engine="ada")
+    ds = BaylorReligionSurveyDataset()
+    print(ds._samples, "samples")
+    e = Experiment(ds, gpt_3_engine="davinci")
 
     # Run the experiment
     e.run()
