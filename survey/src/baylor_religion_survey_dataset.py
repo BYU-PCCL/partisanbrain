@@ -1,6 +1,5 @@
 from dataset import Dataset
 from dataset import PromptSpecs
-import pandas as pd
 
 
 class BaylorReligionSurveyDataset(Dataset):
@@ -73,23 +72,27 @@ class BaylorReligionSurveyDataset(Dataset):
         party = row['party']
         if "Leaning" in party:
             if "Democrat" in party:
-                backstory.append(f"In terms of partisan politics, I lean toward Democrat.")
+                backstory.append("In terms of partisan politics, I lean toward Democrat.")
             else:
-                backstory.append(f"In terms of partisan politics, I lean toward Republican.")
+                backstory.append("In terms of partisan politics, I lean toward Republican.")
         elif "Independent" in party:
-            backstory.append(f"In terms of partisan politics, I am an Independent.")
+            backstory.append("In terms of partisan politics, I am an Independent.")
+        elif "moderate" or "strong" in party.lower():
+            degree = party.split(" ")[0].lower()
+            specific_party = party.split(" ")[1]
+            backstory.append(f"In terms of partisan politics, I am a {degree} {specific_party}.")
         else:
-            backstory.append(f"In terms of partisan politics, I am a {row['party']}.")
+            backstory.append(f"In terms of partisan politics, I am {party}")
 
         #EDUCATION
         if row["edu"] == "No high school degree":
-            backstory.append("I did not graduate high school.")
+            backstory.append("I did not graduate from high school.")
         if row["edu"] == "High school graduate (Grade 12 with diploma or GED certificate)":
             backstory.append("I am a high school graduate.")
         if row["edu"] == "Some college":
             backstory.append("I have some college education.")
         if row["edu"] == "Four year bachelor's degree from a college or university (e.g., BS, BA, AB)":
-            backstory.append("I have a bachelor's degree from a college or university.")
+            backstory.append("I have a bachelor's degree.")
         if row["edu"] == "Postgraduate":
             backstory.append("I have a postgraduate degree.")
 
@@ -153,9 +156,9 @@ class BaylorReligionSurveyDataset(Dataset):
         elif row["religion"] == "Episcopal/Anglican":
             backstory.append("I am a member of the Anglican faith.")
         elif row["religion"] == "Jehovah's Witnesses":
-            backstory.append("In terms of religion, I am a Jehovah's Witness")
+            backstory.append("In terms of religion, I am a Jehovah's Witness.")
         elif row["religion"] == "Jewish":
-            backstory.append("In terms of religion, I am Jewish")
+            backstory.append("In terms of religion, I am Jewish.")
         elif row["religion"] == "Latter-day Saints":
             backstory.append("In terms of religion, I am a Mormon.")
         elif row["religion"] == "Orthodox (Eastern, Russian, Greek)":
@@ -171,7 +174,14 @@ class BaylorReligionSurveyDataset(Dataset):
 
 
         #RACE
-        backstory.append(f"I am {row['race'].lower()}.")
+        if "multiple" in row["race"].lower():
+            backstory.append("I am multiple races.")
+        elif "american indian" in row["race"].lower():
+            backstory.append("I am American Indian.")
+        elif "pacific islander" in row["race"].lower():
+            backstory.append("I am Pacific Islander.")
+        else:
+            backstory.append(f"I am {row['race'].capitalize()}.")
 
 
         #REGION
@@ -183,7 +193,7 @@ class BaylorReligionSurveyDataset(Dataset):
         elif row["marital"] == "Domestic partnership/living with partner (not legally married)":
             backstory.append("I am not married, but I am living with my partner.")
         else:
-            backstory.append(f"I'm {row['marital'].lower()}.")
+            backstory.append(f"I am {row['marital'].lower()}.")
 
         return " ".join(backstory)
 
@@ -275,7 +285,7 @@ class BaylorReligionSurveyDataset(Dataset):
             "life_happiness": PromptSpecs(
                             question=("In general, how happy are you with your "
                             "life as a whole these days?"),
-                            answer_prefix="In general I am",
+                            answer_prefix="in general I am",
                             answer_map={"Not too happy": "sad",
                                         "Pretty happy": "happy",
                                         "Very happy": "happy"}),
@@ -283,29 +293,28 @@ class BaylorReligionSurveyDataset(Dataset):
                             question=("In the past WEEK, about how often have you "
                             "had the following feelings? I felt "
                             "depressed."),
-                            answer_prefix="In the last week I have felt depressed",
+                            answer_prefix="in the last week I have felt depressed",
                             answer_map={"Never": "never",
                                         "Hardly ever": "rarely",
                                         "Some of the time": "sometimes",
                                         "Most or all of the time": "frequently"}),
             "days_of_exercise": PromptSpecs(
-                            question=("How many DAYS per WEEK do you do exercise "
-                            "for at least 30 minutes?"),
-                            answer_prefix="I exercise",
-                            answer_map={0.0: "zero times",
-                                        1.0: "one time",
-                                        2.0: "two times",
-                                        3.0: "three times",
-                                        4.0: "four times",
-                                        5.0: "five times",
-                                        6.0: "six times",
-                                        7.0: "seven times"}),
+                            question=("Did you exercise for at least 30 minutes any day last week?"),
+                            answer_prefix="",
+                            answer_map={0.0: "yes",
+                                        1.0: "no",
+                                        2.0: "no",
+                                        3.0: "no",
+                                        4.0: "no",
+                                        5.0: "no",
+                                        6.0: "no",
+                                        7.0: "no"}),
             "police_racial_treatment": PromptSpecs(
                             question=("Please rate the extent to which "
                             "you agree or disagree with the "
                             "following statements: Police "
                             "officers in the United States "
-                            "treat blacks the same as whites."),
+                            "treat Blacks the same as Whites."),
                             answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                                         "Agree": "agree",
@@ -315,8 +324,8 @@ class BaylorReligionSurveyDataset(Dataset):
                             question=("Please rate the extent to which you agree "
                             "or disagree with the following statements: "
                             "Police officers in the United States shoot "
-                            "blacks more often because they are more "
-                            "violent than whites."),
+                            "Blacks more often because they are more "
+                            "violent than Whites."),
                             answer_prefix="I",
                             answer_map={"Strongly agree": "agree",
                                         "Agree": "agree",
@@ -324,7 +333,7 @@ class BaylorReligionSurveyDataset(Dataset):
                                         "Strongly disagree": "disagree"}),
             "bible_beliefs": PromptSpecs(
                             question=("Which one statement comes closest to your personal beliefs about the Bible?"),
-                            answer_prefix="I believe the bible is",
+                            answer_prefix="I believe the Bible is",
                             answer_map={"The Bible means exactly what it says. It should be "
                                         "taken literally, word-for-word, on all subjects": "literal",
                                         "The Bible is perfectly true, but it should not be taken literally, word-for-word. We must interpret its meaning": "true but not literal",
@@ -365,17 +374,16 @@ class BaylorReligionSurveyDataset(Dataset):
                                         "Disagree": "disagree",
                                         "Strongly disagree": "disagree"}),
             "church_attendance": PromptSpecs(
-                            question=("How often do you attend religious "
-                            "services at a place of worship?"),
-                            answer_prefix="I attend religious services",
-                            answer_map={"Never - Skip to Question 12": "never",
-                                        "Less than once a year": "rarely",
-                                        "Once or twice a year": "annually",
-                                        "Several times a year": "sometimes",
-                                        "Once a month": "monthly",
-                                        "2 to 3 times a month": "biweekly",
-                                        "About once a week": "weekly",
-                                        "Several times a week": "frequently"}),
+                            question=("Do you attend religious services at a place of worship at least weekly?"),
+                            answer_prefix="",
+                            answer_map={"Never - Skip to Question 12": "no",
+                                        "Less than once a year": "no",
+                                        "Once or twice a year": "no",
+                                        "Several times a year": "no",
+                                        "Once a month": "no",
+                                        "2 to 3 times a month": "no",
+                                        "About once a week": "yes",
+                                        "Several times a week": "yes"}),
             "prayer_in_school": PromptSpecs(
                             question=("To what extent do you agree "
                             "or disagree with the "
@@ -405,7 +413,7 @@ if __name__ == "__main__":
     ds = BaylorReligionSurveyDataset()
     backstories = ds.get_backstories_all_demos()
     for backstory in backstories:
-        print(f"{backstory[0]}\n\n{backstory[1]}")
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
     prompts = ds.get_prompts_sample()
     for prompt in prompts:
         print(f"{prompt}\n\n")
