@@ -68,16 +68,16 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         gender_map = {
             "A woman": "I am a woman.",
             "A man": "I am a man.",
-            "In some other way": "I don't identify as a man or a woman."
+            "In some other way": "I do not identify as a man or a woman."
         }
         backstory.append(gender_map[row["gender"]])
 
         # Party
-        pfx = "In terms of political parties"
+        pfx = "In terms of political parties, I am"
         party_map = {
-            "Democrat": f"{pfx} I'm a Democrat.",
-            "Republican": f"{pfx} I'm a Republican.",
-            "Independent": f"{pfx} I'm independent."
+            "Democrat": f"{pfx} a Democrat.",
+            "Republican": f"{pfx} a Republican.",
+            "Independent": f"{pfx} independent."
         }
         backstory.append(party_map[row["party"]])
 
@@ -86,15 +86,15 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         educ_map = {
             "Less than high school": (f"{pfx} I have less than a high "
                                       "school education."),
-            "High school graduate": (f"{pfx} I'm a high school graduate."),
-            "Some college, no degree": (f"{pfx} I've completed some "
-                                        "college but haven't earned a "
+            "High school graduate": (f"{pfx} I am a high school graduate."),
+            "Some college, no degree": (f"{pfx} I have completed some "
+                                        "college but have not earned a "
                                         "college degree."),
-            "Associate's degree": (f"{pfx} I've earned an "
-                                   "Associate's degree."),
-            "College graduate/some post grad": (f"{pfx} I've graduated "
+            "Associate's degree": (f"{pfx} I have earned an "
+                                   "associate's degree."),
+            "College graduate/some post grad": (f"{pfx} I have graduated "
                                                 "from college."),
-            "Postgraduate": (f"{pfx} I've earned a postgraduate degree.")
+            "Postgraduate": (f"{pfx} I have earned a postgraduate degree.")
         }
         backstory.append(educ_map[row["educ"]])
 
@@ -146,18 +146,18 @@ class PewAmericanTrendsWave78Dataset(Dataset):
             ("Mormon (Church of Jesus Christ of "
              "Latter-day Saints or LDS)"): f"{pfx} Mormon.",
             "Agnostic": f"{pfx} agnostic.",
-            "Nothing in particular": ("I don't identify with any "
+            "Nothing in particular": ("I do not identify with any "
                                       "religion in particular.")
         }
         backstory.append(religion_map[row["religion"]])
 
         # Race/Ethnicity
-        pfx = "I'm"
+        pfx = "I am"
         race_map = {
-            "White non-Hispanic": f"{pfx} white.",
-            "Asian non-Hispanic": f"{pfx} asian.",
-            "Hispanic": f"{pfx} hispanic.",
-            "Black non-Hispanic": f"{pfx} black."
+            "White non-Hispanic": f"{pfx} White.",
+            "Asian non-Hispanic": f"{pfx} Asian.",
+            "Hispanic": f"{pfx} Hispanic.",
+            "Black non-Hispanic": f"{pfx} Black."
         }
         backstory.append(race_map[row["race"]])
 
@@ -173,18 +173,18 @@ class PewAmericanTrendsWave78Dataset(Dataset):
 
         # Marital Status
         marital_map = {
-            "Widowed": "I'm widowed.",
-            "Never been married": "I've never been married.",
-            "Married": "I'm married.",
-            "Divorced": "I'm divorced.",
-            "Living with a partner": "I'm living with a partner.",
-            "Separated": ("I got married, but I'm now "
+            "Widowed": "I am widowed.",
+            "Never been married": "I have never been married.",
+            "Married": "I am married.",
+            "Divorced": "I am divorced.",
+            "Living with a partner": "I am living with a partner.",
+            "Separated": ("I got married, but I am now "
                           "separated from my partner.")
         }
         backstory.append(marital_map[row["marital"]])
 
         # Date
-        backstory.append("It's November 2020.")
+        backstory.append("It is November 2020.")
 
         return " ".join(backstory)
 
@@ -213,7 +213,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                   "with the way things are "
                                                   "going in the United States "
                                                   "today?"),
-                                                 "I'm",
+                                                 "I am",
                                                  {"Satisfied": "satisfied",
                                                   "Dissatisfied":
                                                   "dissatisfied"}),
@@ -235,13 +235,13 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                 "Election Day?"),
                                                "",
                                                {("Followed them almost "
-                                                 "constantly"): "Yes",
+                                                 "constantly"): "yes",
                                                 ("Checked in fairly "
-                                                 "often"): "Yes",
+                                                 "often"): "yes",
                                                 ("Checked in "
-                                                 "occasionally"): "Yes",
+                                                 "occasionally"): "yes",
                                                 ("Tuned them out "
-                                                 "entirely"): "No"}),
+                                                 "entirely"): "no"}),
                 "covid_assist_pack": PromptSpecs(("Congress and President "
                                                   "Trump passed a $2 trillion "
                                                   "economic assistance "
@@ -253,20 +253,20 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                   "assistance package is "
                                                   "necessary?"),
                                                  "",
-                                                 {"Necessary": "Yes",
-                                                  "Not necessary": "No"}),
+                                                 {"Necessary": "yes",
+                                                  "Not necessary": "no"}),
                 "rep_dem_relationship": PromptSpecs(("Do you think relations "
                                                      "between Republicans and "
                                                      "Democrats in Washington "
                                                      "a year from now will "
                                                      "be better, worse, or "
-                                                     "same as now?"),
-                                                    "I think they'll be",
+                                                     "the same as now?"),
+                                                    "I think they will be",
                                                     {"Get better": "better",
                                                      "Get worse": "worse",
                                                      ("Stay about "
                                                       "the same"):
-                                                        "same as now"}),
+                                                        "the same as now"}),
                 "covid_restrict": PromptSpecs(("Thinking about restrictions "
                                                "on public activity because "
                                                "of the coronavirus outbreak "
@@ -289,11 +289,11 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                  "between Republicans and "
                                                  "Democrats?"),
                                                 "",
-                                                {"Very concerned": "Yes",
-                                                 "Somewhat concerned": "Yes",
-                                                 "Not too concerned": "No",
+                                                {"Very concerned": "yes",
+                                                 "Somewhat concerned": "yes",
+                                                 "Not too concerned": "no",
                                                  ("Not at all "
-                                                  "concerned"): "No"}),
+                                                  "concerned"): "no"}),
                 "more_votes_better": PromptSpecs(("Do you think the United "
                                                   "States would be better "
                                                   "off if more Americans "
@@ -301,27 +301,18 @@ class PewAmericanTrendsWave78Dataset(Dataset):
                                                  "",
                                                  {("The country would not be "
                                                    "better off if more "
-                                                   "Americans voted"): "Yes",
+                                                   "Americans voted"): "yes",
                                                   ("The country would be "
                                                    "better off if more "
                                                    "Americans "
-                                                   "voted"): "No"})}
+                                                   "voted"): "no"})}
 
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave78Dataset()
-    for sample in ds.get_prompts_sample():
-
-        print(sample)
-        print()
-    # Uncomment this to see a sample of your prompts
-    # First prompt for each DV
-    # prompts = []
-    # for dv_name in ds.dvs.keys():
-    #     dv_prompts = ds.prompts[dv_name]
-    #     for row_idx in dv_prompts.keys():
-    #         prompts.append(dv_prompts[row_idx])
-    #     # print(dv_prompts[list(dv_prompts.keys())[0]])
-    #     # print()
-    # print(len(prompts))
-    # print(sum([len(p.split(" ")) for p in prompts]))
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
