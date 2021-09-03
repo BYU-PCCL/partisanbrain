@@ -72,29 +72,29 @@ class BaylorReligionSurveyDataset(Dataset):
         party = row['party']
         if "Leaning" in party:
             if "Democrat" in party:
-                backstory.append("In terms of partisan politics, I lean toward Democrat.")
+                backstory.append("In terms of politics, I lean Democrat.")
             else:
-                backstory.append("In terms of partisan politics, I lean toward Republican.")
+                backstory.append("In terms of politics, I lean Republican.")
         elif "Independent" in party:
-            backstory.append("In terms of partisan politics, I am an Independent.")
+            backstory.append("In terms of politics, I am an Independent.")
         elif "moderate" or "strong" in party.lower():
             degree = party.split(" ")[0].lower()
             specific_party = party.split(" ")[1]
-            backstory.append(f"In terms of partisan politics, I am a {degree} {specific_party}.")
+            backstory.append(f"In terms of politics, I am a {degree} {specific_party}.")
         else:
-            backstory.append(f"In terms of partisan politics, I am {party}")
+            backstory.append(f"In terms of politics, I am {party}")
 
         #EDUCATION
         if row["edu"] == "No high school degree":
             backstory.append("I did not graduate from high school.")
         if row["edu"] == "High school graduate (Grade 12 with diploma or GED certificate)":
-            backstory.append("I am a high school graduate.")
+            backstory.append("I graduated from high school.")
         if row["edu"] == "Some college":
-            backstory.append("I have some college education.")
+            backstory.append("I went to some college.")
         if row["edu"] == "Four year bachelor's degree from a college or university (e.g., BS, BA, AB)":
             backstory.append("I have a bachelor's degree.")
         if row["edu"] == "Postgraduate":
-            backstory.append("I have a postgraduate degree.")
+            backstory.append("I went to graduate school.")
 
         #POLITICAL IDEOLOGY
         backstory.append(f"In terms of political ideology, I'd consider myself to be {row['ideology'].lower()}.")
@@ -175,7 +175,7 @@ class BaylorReligionSurveyDataset(Dataset):
 
         #RACE
         if "multiple" in row["race"].lower():
-            backstory.append("I am multiple races.")
+            backstory.append("I am multi-racial.")
         elif "american indian" in row["race"].lower():
             backstory.append("I am American Indian.")
         elif "pacific islander" in row["race"].lower():
@@ -192,6 +192,8 @@ class BaylorReligionSurveyDataset(Dataset):
             backstory.append("I am single.")
         elif row["marital"] == "Domestic partnership/living with partner (not legally married)":
             backstory.append("I am not married, but I am living with my partner.")
+        elif row['marital'] == "Separated":
+            backstory.append("I am separated from my spouse.")
         else:
             backstory.append(f"I am {row['marital'].lower()}.")
 
@@ -301,14 +303,14 @@ class BaylorReligionSurveyDataset(Dataset):
             "days_of_exercise": PromptSpecs(
                             question=("Did you exercise for at least 30 minutes any day last week?"),
                             answer_prefix="",
-                            answer_map={0.0: "yes",
-                                        1.0: "no",
-                                        2.0: "no",
-                                        3.0: "no",
-                                        4.0: "no",
-                                        5.0: "no",
-                                        6.0: "no",
-                                        7.0: "no"}),
+                            answer_map={0.0: "no",
+                                        1.0: "yes",
+                                        2.0: "yes",
+                                        3.0: "yes",
+                                        4.0: "yes",
+                                        5.0: "yes",
+                                        6.0: "yes",
+                                        7.0: "yes"}),
             "police_racial_treatment": PromptSpecs(
                             question=("Please rate the extent to which "
                             "you agree or disagree with the "
@@ -347,7 +349,7 @@ class BaylorReligionSurveyDataset(Dataset):
                                         "Somewhat certain": "certain",
                                         "Not very certain": "uncertain",
                                         "Not at all certain": "uncertain",
-                                        "I don't believe in Heaven": "disbelieving"}),
+                                        "I don't believe in Heaven": "skeptical"}),
             "god_concern_for_world": PromptSpecs(
                             question=("Based on your personal understanding "
                             "of God, to what extent do "
