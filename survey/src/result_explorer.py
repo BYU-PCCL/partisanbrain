@@ -82,7 +82,7 @@ class ResultExplorer:
             raw_accs[dv_name] = (sum(df["human"] == df["gpt_3"])) / len(df)
         return raw_accs
 
-    def get_cramers_triptych(self):
+    def get_cramers_quadriptych(self):
         # Rows are demographics, columns are DVs
         dvs = list(self._ds.dvs.keys())
         dv_map = list_to_val_map(dvs)
@@ -106,8 +106,9 @@ class ResultExplorer:
                 v = cramers_v_from_vecs(demographic, dv)
                 gpt_3_tbl[demog_map[demog_name], dv_map[dv_name]] = v
 
-        fig, axs = plt.subplots(ncols=4,
-                                gridspec_kw=dict(width_ratios=[1, 1, 1, 0.1]))
+        width_ratios = [1, 1, 1, 1, 0.1]
+        fig, axs = plt.subplots(ncols=5,
+                                gridspec_kw=dict(width_ratios=width_ratios))
         sns.heatmap(human_tbl,
                     annot=True,
                     xticklabels=dvs,
@@ -132,62 +133,22 @@ class ResultExplorer:
                     vmin=0,
                     vmax=1,
                     cbar=False)
-        fig.colorbar(axs[2].collections[0],
-                     cax=axs[3])
-        for ax in range(3):
+        sns.heatmap(np.abs(human_tbl-gpt_3_tbl) / human_tbl,
+                    annot=True,
+                    xticklabels=dvs,
+                    yticklabels=list(self._ds.demographics),
+                    ax=axs[3],
+                    vmin=0,
+                    vmax=1,
+                    cbar=False)
+        fig.colorbar(axs[3].collections[0],
+                     cax=axs[4])
+        for ax in range(4):
             axs[ax].set_xticklabels(dvs, rotation=45, ha="right")
         axs[0].set_title("Human")
         axs[1].set_title("GPT-3")
         axs[2].set_title("Absolute Differences")
-        plt.show()
-
-
-    def get_cramers_v_values(self):
-        # # Rows are demographics, columns are DVs
-        # dvs = list(self._ds.dvs.keys())
-        # dv_map = list_to_val_map(dvs)
-        # demographic_map = list_to_val_map(list(self._ds.demographics))
-        # tbl = np.zeros((len(demographic_map), len(dv_map)))
-        # for dv_name in self._ds.dvs.keys():
-        #     for demographic_name in list(self._ds.demographics):
-        #         demographic = self._summary_dfs[dv_name][demographic_name]
-        #         dv = self._summary_dfs[dv_name]["human"]
-        #         v = cramers_v_from_vecs(demographic, dv)
-        #         tbl[demographic_map[demographic_name], dv_map[dv_name]] = v
-
-        # # Show plot
-        # sns.heatmap(tbl,
-        #             annot=True,
-        #             xticklabels=dvs,
-        #             yticklabels=list(self._ds.demographics))
-        # plt.show()
-
-        # Rows are demographics, columns are DVs
-        dvs = list(self._ds.dvs.keys())
-        dv_map = list_to_val_map(dvs)
-        demographic_map = list_to_val_map(list(self._ds.demographics))
-        tbl_1 = np.zeros((len(demographic_map), len(dv_map)))
-        for dv_name in self._ds.dvs.keys():
-            for demographic_name in list(self._ds.demographics):
-                demographic = self._summary_dfs[dv_name][demographic_name]
-                dv = self._summary_dfs[dv_name]["human"]
-                v = cramers_v_from_vecs(demographic, dv)
-                tbl_1[demographic_map[demographic_name], dv_map[dv_name]] = v
-
-        # Rows are demographics, columns are DVs
-        tbl_2 = np.zeros((len(demographic_map), len(dv_map)))
-        for dv_name in self._ds.dvs.keys():
-            for demographic_name in list(self._ds.demographics):
-                demographic = self._summary_dfs[dv_name][demographic_name]
-                dv = self._summary_dfs[dv_name]["gpt_3"]
-                v = cramers_v_from_vecs(demographic, dv)
-                tbl_2[demographic_map[demographic_name], dv_map[dv_name]] = v
-
-        # Show plot
-        sns.heatmap(np.abs(tbl_1-tbl_2),
-                    annot=True,
-                    xticklabels=dvs,
-                    yticklabels=list(self._ds.demographics))
+        axs[3].set_title("Normalized by Human")
         plt.show()
 
 
