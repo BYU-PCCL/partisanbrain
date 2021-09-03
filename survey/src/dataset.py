@@ -115,7 +115,7 @@ class Dataset(abc.ABC):
             rand_idx = random.choice(list(dv_prompts.keys()))
             prompts.append(dv_prompts[rand_idx])
         return prompts
-    
+
     def get_backstories_all_demos(self):
         """Proceed through all possible values of each demographic and 
         construct an example of a backstory for each
@@ -130,7 +130,7 @@ class Dataset(abc.ABC):
         demodf['ix'] = demodf.index
         backstories = self._row_backstories.copy()
         for demographic in demographics:
-            examples = demodf.groupby(demographic).first()
+            examples = demodf.groupby(demographic, observed=True).first()
             for row, example in examples.iterrows():
                 backstory = backstories[example.ix]
                 example[demographic] = row
