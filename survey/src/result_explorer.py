@@ -6,7 +6,6 @@ import pandas as pd
 import pickle
 import seaborn as sns
 
-from matplotlib import pyplot as plt
 
 class ResultExplorer:
     """For getting statistics and visualizing results of an experiment"""
@@ -82,6 +81,66 @@ class ResultExplorer:
             df = self._summary_dfs[dv_name]
             raw_accs[dv_name] = (sum(df["human"] == df["gpt_3"])) / len(df)
         return raw_accs
+
+    def get_cramers_triptych(self):
+        # Rows are demographics, columns are DVs
+        dvs = list(self._ds.dvs.keys())
+        dv_map = list_to_val_map(dvs)
+        demog_map = list_to_val_map(list(self._ds.demographics))
+
+        # Make human response table
+        human_tbl = np.zeros((len(demog_map), len(dv_map)))
+        for dv_name in self._ds.dvs.keys():
+            for demog_name in list(self._ds.demographics):
+                demographic = self._summary_dfs[dv_name][demog_name]
+                dv = self._summary_dfs[dv_name]["human"]
+                v = cramers_v_from_vecs(demographic, dv)
+                human_tbl[demog_map[demog_name], dv_map[dv_name]] = v
+
+        # Make GPT-3 response table
+        gpt_3_tbl = np.zeros((len(demog_map), len(dv_map)))
+        for dv_name in self._ds.dvs.keys():
+            for demog_name in list(self._ds.demographics):
+                demographic = self._summary_dfs[dv_name][demog_name]
+                dv = self._summary_dfs[dv_name]["gpt_3"]
+                v = cramers_v_from_vecs(demographic, dv)
+                gpt_3_tbl[demog_map[demog_name], dv_map[dv_name]] = v
+
+        fig, axs = plt.subplots(ncols=4,
+                                gridspec_kw=dict(width_ratios=[1, 1, 1, 0.1]))
+        sns.heatmap(human_tbl,
+                    annot=True,
+                    xticklabels=dvs,
+                    yticklabels=list(self._ds.demographics),
+                    ax=axs[0],
+                    vmin=0,
+                    vmax=1,
+                    cbar=False)
+        sns.heatmap(gpt_3_tbl,
+                    annot=True,
+                    xticklabels=dvs,
+                    yticklabels=list(self._ds.demographics),
+                    ax=axs[1],
+                    vmin=0,
+                    vmax=1,
+                    cbar=False)
+        sns.heatmap(np.abs(human_tbl-gpt_3_tbl),
+                    annot=True,
+                    xticklabels=dvs,
+                    yticklabels=list(self._ds.demographics),
+                    ax=axs[2],
+                    vmin=0,
+                    vmax=1,
+                    cbar=False)
+        fig.colorbar(axs[2].collections[0],
+                     cax=axs[3])
+        for ax in range(3):
+            axs[ax].set_xticklabels(dvs, rotation=45, ha="right")
+        axs[0].set_title("Human")
+        axs[1].set_title("GPT-3")
+        axs[2].set_title("Absolute Differences")
+        plt.show()
+
 
     def get_cramers_v_values(self):
         # # Rows are demographics, columns are DVs
@@ -295,7 +354,8 @@ if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
     re = ResultExplorer("patsy_87_davinci_200.pkl",
                         PewAmericanTrendsWave78Dataset())
-    re.average_demographics()
+    # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
     # print(re.get_raw_accs())
-    print(re.get_cramers_v_values())
+    # print(re.get_cramers_v_values())
+    re.get_cramers_triptych()
