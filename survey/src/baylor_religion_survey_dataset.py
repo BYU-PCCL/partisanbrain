@@ -196,6 +196,9 @@ class BaylorReligionSurveyDataset(Dataset):
             backstory.append("I am separated from my spouse.")
         else:
             backstory.append(f"I am {row['marital'].lower()}.")
+        
+        #WE DIDN'T USE THIS IN THE MEGA!
+        backstory.append("It is spring 2017.")
 
         return " ".join(backstory)
 
@@ -343,13 +346,14 @@ class BaylorReligionSurveyDataset(Dataset):
                                         "The Bible is an ancient book of history and legends": "legend"}),
             "heaven": PromptSpecs(
                             question=("How certain are you that you will get into Heaven?"),
-                            answer_prefix="I am ",
+                            answer_prefix="I am",
                             answer_map={"Very certain": "certain",
                                         "Quite certain": "certain",
                                         "Somewhat certain": "certain",
                                         "Not very certain": "uncertain",
                                         "Not at all certain": "uncertain",
-                                        "I don't believe in Heaven": "skeptical"}),
+                                        "I don't believe in Heaven": "not someone who believes in heaven"
+                                        }),
             "god_concern_for_world": PromptSpecs(
                             question=("Based on your personal understanding "
                             "of God, to what extent do "
@@ -396,7 +400,7 @@ class BaylorReligionSurveyDataset(Dataset):
                                         "Agree": "agree",
                                         "Disagree": "disagree",
                                         "Strongly disagree": "disagree",
-                                        "Undecided": "am not sure"}),
+                                        }),
             "gods_plan": PromptSpecs(
                             question=("To what extent do you agree or "
                             "disagree with the statement 'When "
@@ -414,6 +418,9 @@ class BaylorReligionSurveyDataset(Dataset):
 if __name__ == "__main__":
     from experiment import Experiment
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
+    import openai
+
+    openai.api_key = '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'
 
     # Set up the experiment
     ds = BaylorReligionSurveyDataset()

@@ -6,9 +6,9 @@ from dataset import PromptSpecs
 
 class CCESDataset(Dataset):
 
-    def __init__(self, n_exemplars):
+    def __init__(self):
         survey_fname = "data/CES20_Common_OUTPUT_vv.csv"
-        super().__init__(survey_fname, n_exemplars)
+        super().__init__(survey_fname)
 
     def _get_dv_filter_funcs(self):
         return {
@@ -34,7 +34,11 @@ class CCESDataset(Dataset):
         }
 
     def _filter_demographics(self, df):
-        new_df = df[~df["CL_party"].isin([9,13])]
+        df = df[~df["party"].isin([9,13])]
+        df = df[~df["race"].isin([7])]
+        df = df[~df["ideo"].isin([8])]
+        df = df[~df["income"].isin([97])]
+        new_df = df[~df["religion"].isin([12])]
         return new_df
 
     def _filter_to_usa(self, df):
@@ -77,10 +81,9 @@ class CCESDataset(Dataset):
                 "marstat"     : "marital"}
 
     def _make_backstory(self, row):
+
         code_dic = {
-            "age": {
-                {k:f"I am {2020 - int(k)} years old" for k in range(1900,2020)}
-                },
+            "age": { k:f"I am {2020 - int(k)} years old." for k in range(1900,2020)},
             "gender": {
                 1:  "I am male.",
                 2:  "I am female.",
@@ -115,7 +118,6 @@ class CCESDataset(Dataset):
                 5:  "Ideologically, I am somewhat conservative.",
                 6:  "Ideologically, I am conservative.",
                 7:  "Ideologically, I am very conservative.",
-                8:  "I am not sure what to call myself, ideologically speaking.",
                 },
             "income": {
                 1 : "Over the last year, my family's income was less than $10,000.",
@@ -134,7 +136,6 @@ class CCESDataset(Dataset):
                 14: "Over the last year, my family's income was $250,000 - $349,999.",
                 15: "Over the last year, my family's income was $350,000 - $499,999.",
                 16: "Over the last year, my family's income was $500,000 or more.",
-                97: "I prefer not to say how much money my family makes.",
                 },
             "religion": {
                 1 : "I am Protestant.",
@@ -174,8 +175,12 @@ class CCESDataset(Dataset):
                 },
         }
         date_statement = ["It's November 2020."]
-
-        return " ".join([code_dic[k][row[k]] for k in code_dic] + date_statement)
+        backstory = None
+        try:
+            backstory = " ".join([code_dic[k][row[k]] for k in code_dic] + date_statement)
+        except Exception as exc:
+            print(exc)
+        return backstory
 
     def _get_col_prompt_specs(self):
         return {
@@ -239,7 +244,7 @@ class CCESDataset(Dataset):
                     }),
             "CC20_302": PromptSpecs(
                 question="Would you say that OVER THE PAST YEAR the nation's economy has improved, stayed the same, or worsened?",
-                answer_prefix="OVER THE PAST YEAR the nation's economy has",
+                answer_prefix="over the past year the nation's economy has",
                 answer_map={
                     1 : "improved",
                     2 : "improved",
@@ -249,7 +254,7 @@ class CCESDataset(Dataset):
                     }),
             "CC20_303": PromptSpecs(
                 question="OVER THE PAST YEAR, would you say that your household's income has increased, stayed the same, or decreased?",
-                answer_prefix="OVER THE PAST YEAR, my household's income has",
+                answer_prefix="over the past year, my household's income has",
                 answer_map={
                     1 : "increased",
                     2 : "increased",
@@ -335,4 +340,10 @@ class CCESDataset(Dataset):
 if __name__ == '__main__':
     import random
 
-    ds = CCESDataset(n_exemplars=5)
+    ds = CCESDataset()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
