@@ -115,7 +115,7 @@ class Dataset(abc.ABC):
             rand_idx = random.choice(list(dv_prompts.keys()))
             prompts.append(dv_prompts[rand_idx])
         return prompts
-    
+
     def get_backstories_all_demos(self):
         """Proceed through all possible values of each demographic and I was born in 1977. I am male. I didn't go to college. In terms of political ideology, I'd consider myself to be moderate. My annual family income is between $40,000 and $49,999. In terms of religion I am Protestant. My race is black. I have been married 1 time. It's November 2020. If asked to choose either "Yes" OR "No" in response to the question, "Have you shot or stabbed someone in the past 12 months?" I'd choose "
         construct an example of a backstory for each
@@ -130,7 +130,11 @@ class Dataset(abc.ABC):
         demodf['ix'] = demodf.index
         backstories = self._row_backstories.copy()
         for demographic in demographics:
+<<<<<<< HEAD
             examples = demodf.groupby(demographic).first().dropna()
+=======
+            examples = demodf.groupby(demographic, observed=True).first()
+>>>>>>> 19dc2a092f8c4998d6be1c6f6d504b37fed1859e
             for row, example in examples.iterrows():
                 backstory = backstories[example.ix]
                 example[demographic] = row
