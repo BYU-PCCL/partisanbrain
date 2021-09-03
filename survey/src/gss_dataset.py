@@ -1,11 +1,11 @@
-from .dataset import Dataset, PromptSpecs
+from dataset import Dataset, PromptSpecs
 
 
 class GSSDataset(Dataset):
 
-    def __init__(self, samples):
+    def __init__(self):
         survey_fname = "data/GSS2018.sav"
-        super().__init__(survey_fname, samples=samples)
+        super().__init__(survey_fname)
 
     def _filter_demographics(self, df):
         new_df = df.loc[~df['partisanship'].isin(['OTHER PARTY'])]
@@ -73,13 +73,13 @@ class GSSDataset(Dataset):
 
         # Partisanship
         party_dict = {
-            'NOT STR REPUBLICAN': 'am slightly republican',
-            'IND,NEAR DEM': 'lean democratic',
-            'IND,NEAR REP': 'lean republican',
-            'STRONG REPUBLICAN': 'am strongly republican',
-            'STRONG DEMOCRAT': 'am strongly democrat',
+            'NOT STR REPUBLICAN': 'am slightly Republican',
+            'IND,NEAR DEM': 'lean Democrat',
+            'IND,NEAR REP': 'lean Republican',
+            'STRONG REPUBLICAN': 'am strongly Republican',
+            'STRONG DEMOCRAT': 'am strongly Democrat',
             'INDEPENDENT': 'am independent',
-            'NOT STR DEMOCRAT': 'am slightly democrat',
+            'NOT STR DEMOCRAT': 'am slightly Democrat',
         }
         party = party_dict[row['partisanship']]
         backstory.append(f'In terms of political parties I {party}.')
@@ -114,9 +114,9 @@ class GSSDataset(Dataset):
         if educ_int == 0:
             backstory.append(education)
         elif 1 <= educ_int <= 12:
-            backstory.append(f"The highest year of school I've completed is {education}.")
+            backstory.append(f"The highest year of school I have completed is {education}.")
         else:
-            backstory.append(f"I've finished {education} of college.")
+            backstory.append(f"I have finished {education} of college.")
 
         # Ideology
         ideology_dict = {
@@ -129,7 +129,7 @@ class GSSDataset(Dataset):
             'EXTREMELY LIBERAL': 'extremely liberal',
         }
         ideology = ideology_dict[row['ideology']]
-        backstory.append(f"In terms of political ideology, I'd consider myself to be {ideology}.")
+        backstory.append(f"In terms of political ideology, I would consider myself to be {ideology}.")
 
         # Income
         income_dict = {
@@ -162,7 +162,7 @@ class GSSDataset(Dataset):
             'MOSLEM/ISLAM': 'Muslim',
         }
         religion = religion_dict[row['religiosity']]
-        backstory.append(f"I'm {religion}.")
+        backstory.append(f"I am {religion}.")
 
         # Race
         race_dict = {
@@ -176,24 +176,24 @@ class GSSDataset(Dataset):
             'JAPANESE': 'Japanese',
             'KOREAN': 'Korean',
             'OTHER ASIAN': 'Asian',
-            'OTHER PACIFIC ISLANDER': 'an Islander',
+            'OTHER PACIFIC ISLANDER': 'a Pacific Islander',
             'VIETNAMESE': 'Vietnamese',
             'WHITE': 'White',
         }
         race = race_dict[row['race']]
-        backstory.append(f"I'm {race}.")
+        backstory.append(f"I am {race}.")
 
         # Region
         region_dict = {
-            'E. NOR. CENTRAL': 'midwest',
-            'E. SOU. CENTRAL': 'south',
-            'MIDDLE ATLANTIC': 'north',
-            'MOUNTAIN': 'west',
-            'NEW ENGLAND': 'north',
-            'PACIFIC': 'west',
-            'SOUTH ATLANTIC': 'south',
-            'W. NOR. CENTRAL': 'midwest',
-            'W. SOU. CENTRAL': 'south',
+            'E. NOR. CENTRAL': 'Midwest',
+            'E. SOU. CENTRAL': 'South',
+            'MIDDLE ATLANTIC': 'Eastern Seaboard',
+            'MOUNTAIN': 'West',
+            'NEW ENGLAND': 'New England',
+            'PACIFIC': 'West',
+            'SOUTH ATLANTIC': 'South',
+            'W. NOR. CENTRAL': 'Midwest',
+            'W. SOU. CENTRAL': 'South',
         }
         region = region_dict[row['region']]
         backstory.append(f"I live in the {region}.")
@@ -203,11 +203,13 @@ class GSSDataset(Dataset):
             'DIVORCED': 'am divorced',
             'MARRIED': 'am married',
             'NEVER MARRIED': 'have never been married',
-            'SEPARATED': 'am seperated from my spouse',
+            'SEPARATED': 'am separated from my spouse',
             'WIDOWED': 'am widowed',
         }
         marital_status = marital_status_dict[row['marital']]
         backstory.append(f"I {marital_status}.")
+
+        backstory.append("It is 2018.")
 
         return " ".join(backstory)
 
@@ -235,7 +237,7 @@ class GSSDataset(Dataset):
             ),
             'marijuana': PromptSpecs(
                 question="Do you think the use of marijuana should be legal or illegal?",
-                answer_prefix="marijuana should be ",
+                answer_prefix="marijuana should be",
                 answer_map={'LEGAL': 'legal', 'NOT LEGAL': 'illegal'}
             ),
             'gender_discrimination': PromptSpecs(
@@ -250,18 +252,18 @@ class GSSDataset(Dataset):
             ),
             'mental_health_rating': PromptSpecs(
                 question="In general, how would you rate your mental health, including your mood and your ability to think?",
-                answer_prefix="My mental health is",
-                answer_map={'Good': 'good', 'Very good': 'great', 'Fair': 'fair', 'Excellent': 'excellent', 'Poor': 'poor'}
+                answer_prefix="my mental health is",
+                answer_map={'Good': 'good', 'Very good': 'excellent', 'Fair': 'fair', 'Excellent': 'excellent', 'Poor': 'poor'}
             ),
             'therapist_rec': PromptSpecs(
                 question=("John is a white man with a college education. For the past two weeks John has been feeling really "
-                "down. He wakes up in the morning with a flat heavy feeling that sticks with him all day long. He isn't "
+                "down. He wakes up in the morning with a flat heavy feeling that sticks with him all day long. He is not "
                 "enjoying things the way he normally would. In fact nothing gives him pleasure. Even when good things happen, "
-                "they don't seem to make John happy. He pushes on through his days, but it is really hard. The smallest tasks "
+                "they do not seem to make John happy. He pushes on through his days, but it is really hard. The smallest tasks "
                 "are difficult to accomplish. He finds it hard to concentrate on anything. He feels out of energy and out of "
-                "steam. And even though John feels tired, when night comes he can't go to sleep. John feels pretty worthless, "
-                "and very discouraged. John's family has noticed that he hasn't been himself for about the last month and that "
-                "he has pulled away from them. John just doesn't feel like talking. Should John go to a therapist, or counselor, "
+                "steam. And even though John feels tired, when night comes he cannot go to sleep. John feels pretty worthless, "
+                "and very discouraged. John's family has noticed that he has not been himself for about the last month and that "
+                "he has pulled away from them. John just does not feel like talking. Should John go to a therapist, or counselor, "
                 "like a psychologist, social worker, or other mental health professional for help?"),
                 answer_prefix="",
                 answer_map={'YES': 'yes', 'NO': "no"}
@@ -269,7 +271,7 @@ class GSSDataset(Dataset):
             'fam_mental_health_views': PromptSpecs(
                 question="Thinking about your family, to what extent do they hold negative attitudes about people with mental health problems?",
                 answer_prefix="their attitudes are",
-                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'slightly negative', 'Very much': 'very negative'}
+                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'not negative', 'Very much': 'very negative'}
             ),
             'mental_health_diagnosis': PromptSpecs(
                 question="Have you ever been diagnosed with a mental health problem?",
@@ -280,12 +282,12 @@ class GSSDataset(Dataset):
                 question=("Thinking about other people you know personally outside of your family, to what extent do they hold negative attitudes "
                           "about people with mental health problems?"),
                 answer_prefix="their attitudes are",
-                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'slightly negative', 'Very much': 'very negative'}
+                answer_map={'Somewhat': 'somewhat negative', 'Not at all': 'not negative', 'Not very much': 'not negative', 'Very much': 'very negative'}
             ),
             'physical_health_rating': PromptSpecs(
                 question="In general, how would you rate your physical health?",
                 answer_prefix="my physical health is",
-                answer_map={'Good': 'good', 'Very good': 'great', 'Fair': 'fair', 'Excellent': 'excellent', 'Poor': 'poor'}
+                answer_map={'Good': 'good', 'Very good': 'excellent', 'Fair': 'fair', 'Excellent': 'excellent', 'Poor': 'poor'}
             ),
             'voted': PromptSpecs(
                 question=("In 2016, you remember that Clinton ran for President on the Democratic ticket against Trump for the Republicans. "
@@ -323,7 +325,7 @@ class GSSDataset(Dataset):
             'religious_rating': PromptSpecs(
                 question=("How religious are you?"),
                 answer_prefix="I am",
-                answer_map={'NO RELIGION': 'not religious', 'STRONG': 'very religious', 'NOT VERY STRONG': 'slightly religious', 'SOMEWHAT STRONG': 'somewhat religious'}
+                answer_map={'NO RELIGION': 'not religious', 'STRONG': 'very religious', 'NOT VERY STRONG': 'somewhat religious', 'SOMEWHAT STRONG': 'somewhat religious'}
             ),
             'afterlife': PromptSpecs(
                 question=("Do you believe there is a life after death?"),
@@ -333,4 +335,10 @@ class GSSDataset(Dataset):
         }
 
 if __name__ == '__main__':
-    GSSDataset()
+    ds = GSSDataset()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
