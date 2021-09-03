@@ -73,8 +73,12 @@ class PRRIDataset(Dataset):
         if row["party"] == "An Independent":
             backstory.append("In terms of political party I am an Independent.")
         else:
-            backstory.append("In terms of political party "
-                             f"I am {row['party']}.")
+            if "A Democrat" == row["party"]:
+                backstory.append("In terms of political party "
+                                 "I am a Democrat")
+            elif "A Republican" == row['party']:
+                backstory.append("In terms of political party "
+                                 "I am a Republican")
 
         # Education
         education = row["education"]
@@ -322,3 +326,4 @@ if __name__ == "__main__":
     #     for prompt in prompts:
     #        print(prompt)
     #        print()
+
