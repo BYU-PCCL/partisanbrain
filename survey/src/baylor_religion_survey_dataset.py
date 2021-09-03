@@ -97,7 +97,7 @@ class BaylorReligionSurveyDataset(Dataset):
             backstory.append("I went to graduate school.")
 
         #POLITICAL IDEOLOGY
-        backstory.append(f"In terms of political ideology, I'd consider myself to be {row['ideology'].lower()}.")
+        backstory.append(f"In terms of political ideology, I would consider myself to be {row['ideology'].lower()}.")
 
         #INCOME
         backstory.append(f"My family income is {row['income']} per year.")
@@ -412,10 +412,14 @@ class BaylorReligionSurveyDataset(Dataset):
 
 
 if __name__ == "__main__":
-    ds = BaylorReligionSurveyDataset()
-    backstories = ds.get_backstories_all_demos()
-    for backstory in backstories:
-        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
-    prompts = ds.get_prompts_sample()
-    for prompt in prompts:
-        print(f"{prompt}\n\n")
+    from experiment import Experiment
+    from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
+
+    # Set up the experiment
+    e = Experiment(BaylorReligionSurveyDataset(), gpt_3_engine="ada")
+
+    # Run the experiment
+    e.run()
+
+    # Save the results
+    e.save_results(f"baylor_mega.pkl")
