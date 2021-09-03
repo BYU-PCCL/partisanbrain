@@ -393,7 +393,7 @@ if __name__ == "__main__":
     ds = AddHealthDataset()
     backstories = ds.get_backstories_all_demos()
     for backstory in backstories:
-        print(f"{backstory[0]}\n\n{backstory[1]}")
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
     prompts = ds.get_prompts_sample()
     for prompt in prompts:
         print(f"{prompt}\n\n")
