@@ -87,13 +87,13 @@ class PRRIDataset(Dataset):
         elif education == "Master's degree" or education == "Professional or doctorate degree":
             backstory.append("I went to grad school.")
         elif education == "Some college, no degree" or education == "Associate degree":
-            backstory.append("I've completed some college.")
+            backstory.append("I have completed some college.")
         else:
-            backstory.append("I didn't go to college.")
+            backstory.append("I did not go to college.")
 
         # Ideology
         backstory.append(("In terms of political ideology, "
-                          "I'd consider myself "
+                          "I would consider myself "
                           f"to be {row['ideology'].lower()}."))
 
         # Income
@@ -108,7 +108,7 @@ class PRRIDataset(Dataset):
 
         # Religiosity
         if row["religion"] == "Nothing in particular":
-            backstory.append(("I don't identify with any religion "
+            backstory.append(("I do not identify with any religion "
                               "in particular."))
         else:
             if "Christian" in row["religion"]:
@@ -138,9 +138,9 @@ class PRRIDataset(Dataset):
         # Race/Ethnicity
         race = row['race_ethnicity'].replace(', non-Hispanic', '')
         if "Two plus" in race:
-            backstory.append(f"I'm multi-racial.")
+            backstory.append(f"I am multi-racial.")
         else:
-            backstory.append(f"I'm {race}.")
+            backstory.append(f"I am {race}.")
 
         # Region
         if row["region"] == "New England" or row["region"] == "Mid-Atlantic":
@@ -158,15 +158,15 @@ class PRRIDataset(Dataset):
 
         # Marital Status
         if row["marital_status"] == "Never married":
-            backstory.append("I've never been married.")
+            backstory.append("I have never been married.")
         elif row["marital_status"] == "Separated":
-            backstory.append(("I got married, but I'm now "
+            backstory.append(("I got married, but I am now "
                               "separated from my partner."))
         elif row["marital_status"] == "Living with partner":
             backstory.append("I am not married, but I am living "
                             "with my partner.")
         else:
-            backstory.append(f"I'm {row['marital_status'].lower()}.")
+            backstory.append(f"I am {row['marital_status'].lower()}.")
 
         # Date
         backstory.append("It is between September and October 2018.")
