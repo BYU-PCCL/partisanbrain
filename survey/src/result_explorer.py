@@ -36,20 +36,34 @@ class ResultExplorer:
         resp = self._results[dv_name][row_idx][1]
         logit_dict = resp["choices"][0]["logprobs"]["top_logprobs"][0]
         answer_map = self._ds._get_col_prompt_specs()[dv_name].answer_map
-        possible_vals = [val.split(" ")[0].lower() for val in list(answer_map.values())]
+        possible_vals = [val.split()[0].lower() for val in list(answer_map.values())]
         # print("A"*50)
         # print(logit_dict)
         # print(possible_vals)
         # print("B"*50)
+        kept_vals = []
+        for val in possible_vals:
+            for k, v in logit_dict.items():
+                if len(k.strip().lower()):
+                    if val.startswith(k.strip().lower()):
+                        kept_vals.append(k.strip().lower())
+        kept_vals = list(set(kept_vals))
         logit_dict = {k: v for (k, v) in logit_dict.items()
-                      if k.strip().lower() in possible_vals}
+                      if k.strip().lower() in kept_vals}
         # print(logit_dict)
         logit_dict = {k: np.exp(v) for (k, v) in logit_dict.items()}
         val_sum = sum(list(logit_dict.values()))
         logit_dict = {k: v/val_sum for (k, v) in logit_dict.items()}
         score_dict = dict(zip(possible_vals, [0]*len(possible_vals)))
         for k, v in logit_dict.items():
-            score_dict[k.strip().lower()] += v
+            match_count = 0
+            for pv, score in score_dict.items():
+                if pv.startswith(k.strip().lower()):
+                    match_count += 1
+                    if match_count == 2:
+                        raise Exception(f"Two matches for {k} in possible values {possible_vals}")
+                    score_dict[pv.strip().lower()] += v
+
         return score_dict
 
     def _sample(self, dv_name, row_idx):
@@ -60,10 +74,12 @@ class ResultExplorer:
         opt_scores = [score_dict[opt] for opt in possible_vals]
         # print(possible_vals)
         # print(opt_scores)
-        chosen = np.random.choice(possible_vals, p=opt_scores)[0]
+        chosen = np.random.choice(possible_vals, p=opt_scores)
+        # ARgmax
+        # chosen = possible_vals[np.argmax(opt_scores)]
         return chosen
 
-    def _make_summary_dfs(self, seed=0):
+    def _make_summary_dfs(self, seed=666):
         np.random.seed(seed)
         summary_dfs = dict()
         demographics = self._ds.demographics
@@ -336,7 +352,8 @@ class ResultExplorer:
             plt.savefig(f'experiments/{dv_name}.jpeg')
             plt.close()
 
-
+def threshold_testing(self):
+    pass
 
 
 
@@ -344,11 +361,11 @@ if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
     from anes import AnesDataset
-    re = ResultExplorer("anes_mega_ada.pkl",
-                        AnesDataset())
+    re = ResultExplorer("baylor_mega.pkl",
+                        BaylorReligionSurveyDataset())
     # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
-    print(re.get_raw_accs())
+    # print(re.get_raw_accs())
     # print(re.get_cramers_v_values())
     # re.get_cramers_quadriptych()
     # re.summary_dfs_to_excel("anes_ada.xlsx")
