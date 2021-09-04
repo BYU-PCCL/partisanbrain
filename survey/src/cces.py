@@ -38,6 +38,7 @@ class CCESDataset(Dataset):
         df = df[~df["race"].isin([7])]
         df = df[~df["ideo"].isin([8])]
         df = df[~df["income"].isin([97])]
+        df = df[~df["party"].isin([4])]
         new_df = df[~df["religion"].isin([12])]
         return new_df
 
@@ -92,7 +93,6 @@ class CCESDataset(Dataset):
                 1:  "I am a member of the Conservative Party.",
                 2:  "I am a member of the Constitution Party.",
                 3:  "I am a member of the Democratic Party.",
-                4:  "I prefer not to say which political party I belong to.",
                 5:  "I am a member of the Green Party.",
                 6:  "I am an Independent, politically speaking.",
                 7:  "I am a member of the Libertarian Party.",
@@ -160,21 +160,22 @@ class CCESDataset(Dataset):
                 8:  "I am Middle Eastern.",
                 },                                 
             "census_reg": {
-                1:  "I live in the Northeast.",
+                1:  "I live in the northeast of the United States.",
                 2:  "I live in the Midwest.",
                 3:  "I live in the South.",
-                4:  "I live in the West.",
+                4:  "I live in the western United States.",
                 },
             "marital": {
                 1:  "I am married.",
-                2:  "I am separated.",
+                2:  ("I got married, but I am now "
+                     "separated from my partner."),
                 3:  "I am divorced.",
                 4:  "I am widowed.",
                 5:  "I have never been married.",
                 6:  "I am in a domestic/civil partnership.",
                 },
         }
-        date_statement = ["It's November 2020."]
+        date_statement = ["It is fall 2020."]
         backstory = None
         try:
             backstory = " ".join([code_dic[k][row[k]] for k in code_dic] + date_statement)
@@ -214,7 +215,7 @@ class CCESDataset(Dataset):
                     }),
             "CC20_307": PromptSpecs(
                 question="Do the police make you feel safe or unsafe?",
-                answer_prefix="The police make me feel",
+                answer_prefix="the police make me feel",
                 answer_map={
                     1 : "safe",
                     2 : "safe",
@@ -306,12 +307,12 @@ class CCESDataset(Dataset):
                     2 : "oppose",
                     }),
             "CC20_441g": PromptSpecs(
-                question="Do you agree, disagree, or neither that whites do not go to great lengths to understand the problems African Americans face?",
+                question="Do you agree or disagree that whites do not go to great lengths to understand the problems African Americans face?",
                 answer_prefix="I",
                 answer_map={
                     1 : "agree",
                     2 : "agree",
-                    3 : "neither",
+                    3 : "neither agree nor disagree",
                     4 : "disagree",
                     5 : "disagree",
                     }),
@@ -321,7 +322,7 @@ class CCESDataset(Dataset):
                 answer_map={
                     1 : "agree",
                     2 : "agree",
-                    3 : "neither",
+                    3 : "neither agree nor disagree",
                     4 : "disagree",
                     5 : "disagree",
                     }),
@@ -331,15 +332,13 @@ class CCESDataset(Dataset):
                 answer_map={
                     1 : "agree",
                     2 : "agree",
-                    3 : "neither",
+                    3 : "neither agree nor disagree",
                     4 : "disagree",
                     5 : "disagree",
                     }),
         }
 
 if __name__ == '__main__':
-    import random
-
     ds = CCESDataset()
     backstories = ds.get_backstories_all_demos()
     for backstory in backstories:
