@@ -123,9 +123,9 @@ class AnesDataset(dataset.Dataset):
                         4: "None or ‘independent’",
                     },
                     'abs': {
-                        1: "I'm a Democrat.",
-                        2: "I'm a Republican.",
-                        4: "I'm an independent, politically speaking.",
+                        1: "I am a Democrat.",
+                        2: "I am a Republican.",
+                        4: "I am an independent, politically speaking.",
                     },
                 },
                 "education": {
@@ -143,7 +143,7 @@ class AnesDataset(dataset.Dataset):
                     'abs': {
                         1: "I didn't graduate from high school.",
                         2: "I graduated from high school.",
-                        3: "I did some college but didn't get a degree.",
+                        3: "I have done some college but have not gotten a college degree.",
                         4: "I have an associate's degree.",
                         5: "I have an associate's degree.",
                         6: "I have a bachelor’s degree.",
@@ -236,10 +236,10 @@ class AnesDataset(dataset.Dataset):
                         4: "West",
                     },
                     'abs': {
-                        1: "I am from the Northeast.",
+                        1: "I am from the northeast of the United States.",
                         2: "I am from the Midwest.",
                         3: "I am from the South.",
-                        4: "I am from the West.",
+                        4: "I am from the western United States.",
                     },
                 },
                 "marital": {
@@ -259,7 +259,8 @@ class AnesDataset(dataset.Dataset):
                         2: "I am married.",
                         3: "I am widowed.",
                         4: "I am divorced.",
-                        5: "I am separated.",
+                        5: ("I got married, but I am now "
+                            "separated from my partner."),
                         6: "I have never married.",
                     },
                 },
@@ -268,7 +269,7 @@ class AnesDataset(dataset.Dataset):
 
 
         backstory = ""
-        date_statement = ["It's November 2020."]
+        date_statement = ["It's fall 2020."]
         # if "format" == "QA":
         #     #For every Demographic question, ask the question asked in the survey.
         #     for code, dic in code_dic.items():
@@ -297,7 +298,7 @@ class AnesDataset(dataset.Dataset):
                 answer_map={
                     1: "more",
                     2: "less",
-                    3: "same",
+                    3: "the same amount they are doing now",
                 }
                 ), 
             "federal_spending_crime": PromptSpecs(
@@ -345,7 +346,7 @@ class AnesDataset(dataset.Dataset):
                 }
                 ), 
             "economy_good": PromptSpecs(
-                question="What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?",
+                question="What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?",
                 answer_prefix="the state of the economy is",
                 answer_map={
                     1: "excellent",
@@ -366,13 +367,13 @@ class AnesDataset(dataset.Dataset):
                 ), 
             "family_worse_better": PromptSpecs(
                 question="So far as you and your family are concerned, how worried are you about your current financial situation?",
-                answer_prefix="my worry is",
+                answer_prefix="I am",
                 answer_map={
-                    1: "extreme",
-                    2: "high",
-                    3: "moderate",
-                    4: "low",
-                    5: "zero",
+                    1: "extremely worried",
+                    2: "highly worried",
+                    3: "moderately worried",
+                    4: "slightly worried",
+                    5: "not worried at all",
                 }
                 ), 
             "welfare": PromptSpecs(
@@ -390,7 +391,7 @@ class AnesDataset(dataset.Dataset):
                 answer_map={
                     1: "marry",
                     2: "form civil unions",
-                    3: "neither",
+                    3: "do neither",
                 }
                 ), 
             "trump_foreign_relations": PromptSpecs(
@@ -422,25 +423,25 @@ class AnesDataset(dataset.Dataset):
                 ), 
             "sleep": PromptSpecs(
                 question="In the past week, how often has your sleep been restless?",
-                answer_prefix="my sleep has been restless",
+                answer_prefix="my sleep is",
                 answer_map={
-                    1: "all the time",
-                    2: "often",
-                    3: "sometimes",
-                    4: "rarely",
-                    5: "never",
+                    1: "always restless",
+                    2: "often restless",
+                    3: "sometimes restless",
+                    4: "rarely restless",
+                    5: "never restless",
                 }
                 ), 
             "health_insurance": PromptSpecs(
                 question="Do you presently have any kind of health insurance?",
-                answer_prefix="I",
+                answer_prefix="",
                 answer_map={
-                    1: "do have health insurance",
-                    2: "don't have health insurance",
+                    1: "yes",
+                    2: "no",
                 }
                 ), 
             "political_campaigns": PromptSpecs(
-                question="Some people don’t pay much attention to political campaigns.  How about you? Would you say that you have been very much interested, somewhat interested or not much interested in the political campaigns so far this year?",
+                question="Some people don’t pay much attention to political campaigns. How about you? Would you say that you have been very much interested, somewhat interested or not much interested in the political campaigns so far this year?",
                 answer_prefix="I have been",
                 answer_map={
                     1: "very much interested",
@@ -614,9 +615,10 @@ class AnesDataset(dataset.Dataset):
 
 
 if __name__ == '__main__':
-    import random
     ds = AnesDataset()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
     prompts = ds.get_prompts_sample()
-    print(prompts)
-    pass
-
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
