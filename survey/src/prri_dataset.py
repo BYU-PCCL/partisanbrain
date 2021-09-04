@@ -71,22 +71,26 @@ class PRRIDataset(Dataset):
 
         # Party
         if row["party"] == "An Independent":
-            backstory.append("In terms of political party I am an Independent.")
+            backstory.append("In terms of political parties I am independent.")
         else:
             if "A Democrat" == row["party"]:
                 backstory.append("In terms of political party "
-                                 "I am a Democrat")
+                                 "I am a Democrat.")
             elif "A Republican" == row['party']:
                 backstory.append("In terms of political party "
-                                 "I am a Republican")
+                                 "I am a Republican.")
 
         # Education
         education = row["education"]
-        if education == "Bachelor's degree":
-            backstory.append("I completed an undergraduate degree.")
-        elif education == "Master's degree" or education == "Professional or doctorate degree":
+        if education == "Associate degree":
+            backstory.append("I have earned an associate's degree.")
+        elif education == "Bachelor's degree":
+            backstory.append("I have earned a bachelor's degree.")
+        elif education == "Master's degree":
+            backstory.append("I have earned a master's degree.")
+        elif education == "Professional or doctorate degree":
             backstory.append("I went to grad school.")
-        elif education == "Some college, no degree" or education == "Associate degree":
+        elif education == "Some college, no degree":
             backstory.append("I have completed some college.")
         else:
             backstory.append("I did not go to college.")
@@ -114,7 +118,7 @@ class PRRIDataset(Dataset):
             if "Christian" in row["religion"]:
                 religion = "Christian"
             elif "Agnostic" in row["religion"]:
-                religion = "Agnostic"
+                religion = "agnostic"
             elif "Jewish" in row["religion"]:
                 religion = "Jewish"
             elif "Catholic" in row["religion"]:
@@ -122,7 +126,7 @@ class PRRIDataset(Dataset):
             elif "Protestant" in row["religion"]:
                 religion = "Protestant"
             elif "Atheist" in row["religion"]:
-                religion = "Atheist"
+                religion = "atheist"
             elif "Muslim" in row["religion"]:
                 religion = "Muslim"
             elif "Orthodox" in row["religion"]:
@@ -144,17 +148,17 @@ class PRRIDataset(Dataset):
 
         # Region
         if row["region"] == "New England" or row["region"] == "Mid-Atlantic":
-            backstory.append("I live in the Northeast of the United States.")
+            backstory.append("I live in the northeast of the United States.")
         elif row["region"] == "Mountain":
-            backstory.append("I live in the Western United States.")
+            backstory.append("I live in the western United States.")
         elif row["region"] == "East North Central" or row["region"] == "West North Central":
-            backstory.append("I live in the Midwest of the United States.")
+            backstory.append("I live in the Midwest.")
         elif row["region"] == "West South Central":
-            backstory.append("I live in the Southern United States.")
+            backstory.append("I live in the South.")
         elif row["region"] == "East South Central" or row["region"] == "South Atlantic":
-            backstory.append("I live in the Southeast of the United States.")
+            backstory.append("I live in the southeast of the United States.")
         else:
-            backstory.append("I live in the Western United States.")
+            backstory.append("I live in the western United States.")
 
         # Marital Status
         if row["marital_status"] == "Never married":
@@ -169,7 +173,7 @@ class PRRIDataset(Dataset):
             backstory.append(f"I am {row['marital_status'].lower()}.")
 
         # Date
-        backstory.append("It is between September and October 2018.")
+        backstory.append("It is fall 2018.")
 
         return " ".join(backstory)
 
@@ -197,7 +201,7 @@ class PRRIDataset(Dataset):
                                 "changes to give gay and lesbian people "
                                 "equal rights with other Americans": "no"}),
                 "immigrant_preference": PromptSpecs(
-                    question="Do you think we should give preference to immigrants from Western Europe. who share our values?",
+                    question="Do you think we should give preference to immigrants from Western Europe who share our values?",
                     answer_prefix="",
                     answer_map={"Completely agree": "yes",
                                 "Mostly agree" : "yes",
@@ -205,7 +209,7 @@ class PRRIDataset(Dataset):
                                 "Completely disagree": "no"}),
                 "putin_opinion": PromptSpecs(
                     question="How would you describe your overall opinion of Russian President Vladimir Putin?",
-                    answer_prefix="my opinion is",
+                    answer_prefix="",
                     answer_map={"Very favorable": "favorable",
                                 "Mostly favorable" : "favorable",
                                 "Mostly unfavorable": "unfavorable",
@@ -221,8 +225,8 @@ class PRRIDataset(Dataset):
                     question="Do you think that immigrants today are good or bad for the US?",
                     answer_prefix="I think that immigrants today are",
                     answer_map={"Immigrants today strengthen our country "
-                                "because of their hard work and talents": "good",
-                                "Immigrants today are a burden on our country because they take our jobs, housing and health care": "bad"}),
+                                "because of their hard work and talents": "good for the US",
+                                "Immigrants today are a burden on our country because they take our jobs, housing and health care": "bad for the US"}),
                 "laws_preventing_refugees": PromptSpecs(
                     question="Do you favor or oppose passing a law to prevent refugees from entering the US?",
                     answer_prefix="I",
@@ -236,16 +240,16 @@ class PRRIDataset(Dataset):
                     answer_map={"Allow them a way to become citizens provided "
                                 "they meet certain requirements": "allow them to become citizens",
                                 "Allow them to become permanent legal residents, "
-                                "but not citizens" : "allow them to become residents, not citizens",
+                                "but not citizens" : "make it possible for them to become permanent residents, but not citizens",
                                 "Identify and deport them": "deport them"}),
                 "voting_frequency": PromptSpecs(
                     question="How often would you say you vote?",
-                    answer_prefix="I vote",
-                    answer_map={"Always": "always",
-                                "Nearly always" : "sometimes",
-                                "In about half of elections": "sometimes",
-                                "Seldom": "sometimes",
-                                "Never": "never"}),
+                    answer_prefix="I",
+                    answer_map={"Always": "always vote",
+                                "Nearly always" : "sometimes vote",
+                                "In about half of elections": "sometimes vote",
+                                "Seldom": "sometimes vote",
+                                "Never": "never vote"}),
                 "trump_job_opinion": PromptSpecs(
                     question="Do you approve of the job Donald Trump is doing as president?",
                     answer_prefix="",
@@ -312,7 +316,7 @@ if __name__ == "__main__":
     ds = PRRIDataset()
     backstories = ds.get_backstories_all_demos()
     for backstory in backstories:
-        print(f"{backstory[0]}\n\n{backstory[1]}")
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
     prompts = ds.get_prompts_sample()
     for prompt in prompts:
         print(f"{prompt}\n\n")
