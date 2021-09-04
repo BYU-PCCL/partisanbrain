@@ -88,7 +88,8 @@ class PewAmericanTrendsWave67Dataset(Dataset):
         educ_map = {
             "Less than high school": (f"{pfx} I have less than a high "
                                       "school education."),
-            "High school graduate": (f"{pfx} I am a high school graduate."),
+            "High school graduate": ((f"{pfx} I am a high school graduate, "
+                                      "but I did not go to college.")),
             "Some college, no degree": (f"{pfx} I have completed some "
                                         "college but have not earned a "
                                         "college degree."),
