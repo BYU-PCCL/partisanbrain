@@ -16,6 +16,19 @@ class ResultExplorer:
         with open(result_fname, "rb") as f:
             self._results = pickle.load(f)
 
+        # pe = self._results["protect_environment"]
+        # print(pe[list(pe.keys())[0]][0])
+
+        # a = self._results[list(self._results.keys())[0]]
+        # print(a[list(a.keys())[0]])
+
+        # print("Prayer in school keys at init")
+        # for dv_name in ds.dvs.keys():
+        #     print(dv_name)
+        #     a = sorted(list(self._results[dv_name].keys()))
+        #     b = sorted(list(ds.dvs[dv_name].index))
+        #     print(a == b)
+
         self._ds = ds
         self._summary_dfs = self._make_summary_dfs()
 
@@ -23,9 +36,14 @@ class ResultExplorer:
         resp = self._results[dv_name][row_idx][1]
         logit_dict = resp["choices"][0]["logprobs"]["top_logprobs"][0]
         answer_map = self._ds._get_col_prompt_specs()[dv_name].answer_map
-        possible_vals = [val.lower() for val in list(answer_map.values())]
+        possible_vals = [val.split(" ")[0].lower() for val in list(answer_map.values())]
+        # print("A"*50)
+        # print(logit_dict)
+        # print(possible_vals)
+        # print("B"*50)
         logit_dict = {k: v for (k, v) in logit_dict.items()
                       if k.strip().lower() in possible_vals}
+        # print(logit_dict)
         logit_dict = {k: np.exp(v) for (k, v) in logit_dict.items()}
         val_sum = sum(list(logit_dict.values()))
         logit_dict = {k: v/val_sum for (k, v) in logit_dict.items()}
@@ -37,9 +55,12 @@ class ResultExplorer:
     def _sample(self, dv_name, row_idx):
         """Returns sampled GPT-3 answer lowercased"""
         score_dict = self._get_score_dict(dv_name, row_idx)
+        # print(score_dict)
         possible_vals = list(score_dict.keys())
         opt_scores = [score_dict[opt] for opt in possible_vals]
-        chosen = np.random.choice(possible_vals, 1, opt_scores)[0]
+        # print(possible_vals)
+        # print(opt_scores)
+        chosen = np.random.choice(possible_vals, p=opt_scores)[0]
         return chosen
 
     def _make_summary_dfs(self, seed=0):
@@ -48,12 +69,20 @@ class ResultExplorer:
         demographics = self._ds.demographics
         for (dv_name, dv_series) in self._ds.dvs.items():
 
+            # if dv_name == "prayer_in_school":
+            #     continue
+
             # Get demographics for this dv
             dv_demographics = demographics.loc[dv_series.index]
 
             # Get human responses for this dv
             human_resp = [r[-1] for r in list(self._results[dv_name].values())]
             human_resp = [r.strip().lower() for r in human_resp]
+
+            # if dv_name == "prayer_in_school":
+            #     print("Prayers in school code in make summary dfs")
+            #     print(sorted(list(self._results["prayer_in_school"].keys())))
+            #     print(sorted(list(dv_series.index)))
 
             # Get GPT-3 responses for this dv with sampling
             gpt_3_resp = [self._sample(dv_name, i) for i in dv_series.index]
@@ -84,13 +113,13 @@ class ResultExplorer:
 
     def get_cramers_quadriptych(self):
         # Rows are demographics, columns are DVs
-        dvs = list(self._ds.dvs.keys())
+        dvs = list(self._summary_dfs.keys())
         dv_map = list_to_val_map(dvs)
         demog_map = list_to_val_map(list(self._ds.demographics))
 
         # Make human response table
         human_tbl = np.zeros((len(demog_map), len(dv_map)))
-        for dv_name in self._ds.dvs.keys():
+        for dv_name in self._summary_dfs.keys():
             for demog_name in list(self._ds.demographics):
                 demographic = self._summary_dfs[dv_name][demog_name]
                 dv = self._summary_dfs[dv_name]["human"]
@@ -99,15 +128,15 @@ class ResultExplorer:
 
         # Make GPT-3 response table
         gpt_3_tbl = np.zeros((len(demog_map), len(dv_map)))
-        for dv_name in self._ds.dvs.keys():
+        for dv_name in self._summary_dfs.keys():
             for demog_name in list(self._ds.demographics):
                 demographic = self._summary_dfs[dv_name][demog_name]
                 dv = self._summary_dfs[dv_name]["gpt_3"]
                 v = cramers_v_from_vecs(demographic, dv)
                 gpt_3_tbl[demog_map[demog_name], dv_map[dv_name]] = v
 
-        width_ratios = [1, 1, 1, 1, 0.1]
-        fig, axs = plt.subplots(ncols=5,
+        width_ratios = [1, 1, 0.1]
+        fig, axs = plt.subplots(ncols=3,
                                 gridspec_kw=dict(width_ratios=width_ratios))
         sns.heatmap(human_tbl,
                     annot=True,
@@ -125,30 +154,30 @@ class ResultExplorer:
                     vmin=0,
                     vmax=1,
                     cbar=False)
-        sns.heatmap(np.abs(human_tbl-gpt_3_tbl),
-                    annot=True,
-                    xticklabels=dvs,
-                    yticklabels=list(self._ds.demographics),
-                    ax=axs[2],
-                    vmin=0,
-                    vmax=1,
-                    cbar=False)
-        sns.heatmap(np.abs(human_tbl-gpt_3_tbl) / human_tbl,
-                    annot=True,
-                    xticklabels=dvs,
-                    yticklabels=list(self._ds.demographics),
-                    ax=axs[3],
-                    vmin=0,
-                    vmax=1,
-                    cbar=False)
-        fig.colorbar(axs[3].collections[0],
-                     cax=axs[4])
-        for ax in range(4):
+        # sns.heatmap(np.abs(human_tbl-gpt_3_tbl),
+        #             annot=True,
+        #             xticklabels=dvs,
+        #             yticklabels=list(self._ds.demographics),
+        #             ax=axs[2],
+        #             vmin=0,
+        #             vmax=1,
+        #             cbar=False)
+        # sns.heatmap(np.abs(human_tbl-gpt_3_tbl) / human_tbl,
+        #             annot=True,
+        #             xticklabels=dvs,
+        #             yticklabels=list(self._ds.demographics),
+        #             ax=axs[3],
+        #             vmin=0,
+        #             vmax=1,
+        #             cbar=False)
+        fig.colorbar(axs[1].collections[0],
+                     cax=axs[2])
+        for ax in range(2):
             axs[ax].set_xticklabels(dvs, rotation=45, ha="right")
         axs[0].set_title("Human")
         axs[1].set_title("GPT-3")
-        axs[2].set_title("Absolute Differences")
-        axs[3].set_title("Normalized by Human")
+        # axs[2].set_title("Absolute Differences")
+        # axs[3].set_title("Normalized by Human")
         plt.show()
 
 
@@ -313,10 +342,13 @@ class ResultExplorer:
 
 if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
-    re = ResultExplorer("patsy_87_davinci_200.pkl",
-                        PewAmericanTrendsWave78Dataset())
+    from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
+    from anes import AnesDataset
+    re = ResultExplorer("anes_mega_ada.pkl",
+                        AnesDataset())
     # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
-    # print(re.get_raw_accs())
+    print(re.get_raw_accs())
     # print(re.get_cramers_v_values())
-    re.get_cramers_triptych()
+    # re.get_cramers_quadriptych()
+    # re.summary_dfs_to_excel("anes_ada.xlsx")
