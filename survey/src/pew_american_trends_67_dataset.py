@@ -26,7 +26,6 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                 "F_INCOME": "income",
                 "F_RELIG": "religion",
                 "F_RACETHN": "race_1",
-                "F_RACECMB": "race_2",
                 "F_CREGION": "census_reg",
                 "F_MARITAL": "marital"}
 
@@ -48,11 +47,12 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                                       "Independent"])]
         new_df = new_df[new_df["religion"] != "Other"]
         new_df = new_df[new_df["race_1"] != "Other"]
-        new_df = new_df[new_df["race_2"] != "Or some other race"]
-        new_df = new_df[new_df["race_2"] != "Mixed Race"]
 
         for col_name in list(new_df):
             new_df = new_df[new_df[col_name] != "Refused"]
+
+        print(new_df["race_1"].value_counts())
+
         return new_df
 
     def _make_backstory(self, row):
@@ -75,11 +75,11 @@ class PewAmericanTrendsWave67Dataset(Dataset):
         backstory.append(gender_map[row["gender"]])
 
         # Party
-        pfx = "In terms of political parties"
+        pfx = "In terms of political parties, I am"
         party_map = {
-            "Democrat": f"{pfx} I'm a Democrat.",
-            "Republican": f"{pfx} I'm a Republican.",
-            "Independent": f"{pfx} I'm independent."
+            "Democrat": f"{pfx} a Democrat.",
+            "Republican": f"{pfx} a Republican.",
+            "Independent": f"{pfx} independent."
         }
         backstory.append(party_map[row["party"]])
 
@@ -88,15 +88,15 @@ class PewAmericanTrendsWave67Dataset(Dataset):
         educ_map = {
             "Less than high school": (f"{pfx} I have less than a high "
                                       "school education."),
-            "High school graduate": (f"{pfx} I'm a high school graduate."),
-            "Some college, no degree": (f"{pfx} I've completed some "
-                                        "college but haven't earned a "
+            "High school graduate": (f"{pfx} I am a high school graduate."),
+            "Some college, no degree": (f"{pfx} I have completed some "
+                                        "college but have not earned a "
                                         "college degree."),
-            "Associate's degree": (f"{pfx} I've earned an "
+            "Associate's degree": (f"{pfx} I have earned an "
                                    "Associate's degree."),
-            "College graduate/some post grad": (f"{pfx} I've graduated "
+            "College graduate/some post grad": (f"{pfx} I have graduated "
                                                 "from college."),
-            "Postgraduate": (f"{pfx} I've earned a postgraduate degree.")
+            "Postgraduate": (f"{pfx} I have earned a postgraduate degree.")
         }
         backstory.append(educ_map[row["educ"]])
 
@@ -148,22 +148,19 @@ class PewAmericanTrendsWave67Dataset(Dataset):
             ("Mormon (Church of Jesus Christ of "
              "Latter-day Saints or LDS)"): f"{pfx} Mormon.",
             "Agnostic": f"{pfx} agnostic.",
-            "Nothing in particular": ("I don't identify with any "
+            "Nothing in particular": ("I do not identify with any "
                                       "religion in particular.")
         }
         backstory.append(religion_map[row["religion"]])
 
         # Race/Ethnicity
-        pfx = "I'm"
-        if row["race_1"] == "Hispanic":
-            backstory.append(f"{pfx} hispanic.")
-        else:
-            race_map = {
-                "White": f"{pfx} white.",
-                "Asian or Asian-American": f"{pfx} asian.",
-                "Black or African American": f"{pfx} black."
-            }
-            backstory.append(race_map[row["race_2"]])
+        pfx = "I am"
+        race_map = {
+            "White non-Hispanic": f"{pfx} White.",
+            "Hispanic": f"{pfx} Hispanic.",
+            "Black non-Hispanic": f"{pfx} Black.",
+        }
+        backstory.append(race_map[row["race_1"]])
 
         # Region
         pfx = "I live in the"
@@ -177,18 +174,18 @@ class PewAmericanTrendsWave67Dataset(Dataset):
 
         # Marital Status
         marital_map = {
-            "Widowed": "I'm widowed.",
-            "Never been married": "I've never been married.",
-            "Married": "I'm married.",
-            "Divorced": "I'm divorced.",
-            "Living with a partner": "I'm living with a partner.",
-            "Separated": ("I got married, but I'm now "
+            "Widowed": "I am widowed.",
+            "Never been married": "I have never been married.",
+            "Married": "I am married.",
+            "Divorced": "I am divorced.",
+            "Living with a partner": "I am living with a partner.",
+            "Separated": ("I got married, but I am now "
                           "separated from my partner.")
         }
         backstory.append(marital_map[row["marital"]])
 
         # Date
-        backstory.append("It's November 2020.")
+        backstory.append("It is spring 2020.")
 
         return " ".join(backstory)
 
@@ -197,30 +194,30 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                                      "expansion of coal mining "
                                      "in the United States?"),
                                     "",
-                                    {"Favor": "Support",
-                                     "Oppose": "Oppose"}),
+                                    {"Favor": "support",
+                                     "Oppose": "oppose"}),
                 "solar": PromptSpecs(("Do you support or oppose "
                                       "expansion of solar power "
                                       "\"farms\" "
                                       "in the United States?"),
                                      "",
-                                     {"Favor": "Support",
-                                      "Oppose": "Oppose"}),
+                                     {"Favor": "support",
+                                      "Oppose": "oppose"}),
                 "wind": PromptSpecs(("Do you support or oppose "
                                      "expansion of wind turbine "
                                      "\"farms\" "
                                      "in the United States?"),
                                     "",
-                                    {"Favor": "Support",
-                                     "Oppose": "Oppose"}),
+                                    {"Favor": "support",
+                                     "Oppose": "oppose"}),
                 "trees": PromptSpecs(("Do you support or oppose "
                                       "planting about a trillion "
                                       "trees around the world to "
                                       "absorb carbon emissions "
                                       "in the atmosphere?"),
                                      "",
-                                     {"Favor": "Support",
-                                      "Oppose": "Oppose"}),
+                                     {"Favor": "support",
+                                      "Oppose": "oppose"}),
                 "gov_climate": PromptSpecs(("Do you think what "
                                             "the federal government is "
                                             "doing to reduce the effects "
@@ -240,19 +237,19 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                                                   "least some "
                                                   "to global climate change?"),
                                                  "",
-                                                 {"A great deal": "Yes",
-                                                  "Some": "Yes",
-                                                  "Not too much": "No",
-                                                  "Not at all": "No"}),
+                                                 {"A great deal": "yes",
+                                                  "Some": "yes",
+                                                  "Not too much": "no",
+                                                  "Not at all": "no"}),
                 "climate_local": PromptSpecs(("Do you think global climate "
                                               "change is currently "
                                               "having some affect "
                                               "on your local community?"),
                                              "",
-                                             {"A great deal": "Yes",
-                                              "Some": "Yes",
-                                              "Not too much": "No",
-                                              "Not at all": "No"}),
+                                             {"A great deal": "yes",
+                                              "Some": "yes",
+                                              "Not too much": "no",
+                                              "Not at all": "no"}),
                 "med_researcher_view": PromptSpecs(("Medical research "
                                                     "scientists conduct "
                                                     "research to "
@@ -302,14 +299,17 @@ class PewAmericanTrendsWave67Dataset(Dataset):
                                            "if it will lengthen the time it "
                                            "takes to develop new treatments?"),
                                           "",
-                                          {"Very important": "Yes",
-                                           "Somewhat important": "Yes",
-                                           "Not too important": "No",
-                                           "Not at all important": "No"})}
+                                          {"Very important": "yes",
+                                           "Somewhat important": "yes",
+                                           "Not too important": "no",
+                                           "Not at all important": "no"})}
 
 
 if __name__ == "__main__":
     ds = PewAmericanTrendsWave67Dataset()
-    for sample in ds.get_prompts_sample():
-        print(sample)
-        print()
+    backstories = ds.get_backstories_all_demos()
+    for backstory in backstories:
+        print(f"{backstory[0]}\n\n{backstory[1]}\n\n")
+    prompts = ds.get_prompts_sample()
+    for prompt in prompts:
+        print(f"{prompt}\n\n")
