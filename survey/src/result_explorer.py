@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
-import plotly.express as px
 import seaborn as sns
 
 
@@ -32,101 +31,6 @@ class ResultExplorer:
 
         self._ds = ds
         self._summary_dfs = self._make_summary_dfs()
-
-    def visualize_gpt_3_responses(self, dv_name):
-        dv_data = self._summary_dfs[dv_name]
-        first_key = list(dv_data["gpt_3_probs"].iloc[0].keys())[0]
-        print(first_key)
-
-
-    def get_best_accs(self):
-        for dv_name in list(self._ds.dvs.keys()):
-            self._get_best_acc(dv_name)
-
-    def _get_best_acc(self, dv_name):
-        """
-        Find the best raw accuracy possible by setting new
-        decision boundary.
-        """
-        dv_data = self._summary_dfs[dv_name]
-        if len(dv_data["gpt_3_probs"].iloc[0].keys()) != 2:
-            print("Skipping", dv_name)
-        else:
-            probs = list(dv_data["gpt_3_probs"])
-            trgts = np.array(list(dv_data["human"]))
-            first_key, second_key = list(probs[0].keys())
-
-            # for i, x in enumerate(probs):
-            #     for k in x.keys():
-            #         probs[i][k] = 0.5
-
-            # for i, x in enumerate(probs):
-            #     p = np.random.uniform()
-            #     probs[i][first_key] = p
-            #     probs[i][second_key] = 1 - p
-
-            def get_acc(a, b):
-                return np.mean(a == b)
-
-            best_db = -1
-            best_acc = 0
-            for decision_boundary in np.linspace(0, 1, 1000):
-                first_key_probs = [x[first_key] for x in probs]
-                chosen = [first_key if p >= decision_boundary else second_key for p in first_key_probs]
-                chosen = np.array(chosen)
-                acc = get_acc(trgts, chosen)
-                if acc > best_acc:
-                    best_acc = acc
-                    best_db = decision_boundary
-            print(dv_name)
-            print(best_db, 'acc', best_acc)
-
-    def plot_simplexes(self):
-        for dv_name in list(self._ds.dvs.keys()):
-            self._plot_simplex(dv_name)
-
-    def _plot_simplex(self, dv_name):
-        dv_data = self._summary_dfs[dv_name]
-        levels = dv_data["gpt_3_probs"].iloc[0].keys()
-        plot_dim = len(levels)
-
-        if not (2 <= plot_dim <= 3):
-            print(("Can't plot simplex for dv "
-                   f"{dv_name} with dimension {plot_dim}"))
-            return
-
-        human_resps = dv_data["human"]
-        gpt_3_resps = dv_data["gpt_3_probs"]
-        row_idxs = list(gpt_3_resps.index)
-
-        # Make GPT-3 points
-        gpt_3_data = {k: np.zeros(1000,) for k in levels}
-        for i, resp in enumerate(gpt_3_resps):
-            for level in levels:
-                gpt_3_data[level][i] = gpt_3_resps[row_idxs[i]][level]
-
-        # Make dataframe for plotting
-        df_dict = {f"GPT-3: {level}": gpt_3_data[level] for level in levels}
-        df_dict["Human"] = human_resps
-        df = pd.DataFrame.from_dict(df_dict)
-
-        if plot_dim == 2:
-            fig = px.scatter(df,
-                             x=df[list(df_dict)[0]],
-                             y=df[list(df_dict)[1]],
-                             color="Human",
-                             range_x=(0, 1),
-                             range_y=(0, 1))
-        else:
-            fig = px.scatter_3d(df,
-                                x=df[list(df_dict)[0]],
-                                y=df[list(df_dict)[1]],
-                                z=df[list(df_dict)[2]],
-                                color="Human",
-                                range_x=(0, 1),
-                                range_y=(0, 1),
-                                range_z=(0, 1))
-        fig.show()
 
     def _get_score_dict(self, dv_name, row_idx):
         resp = self._results[dv_name][row_idx][1]
@@ -188,9 +92,8 @@ class ResultExplorer:
             dv_demographics = demographics.loc[dv_series.index]
 
             # Get human responses for this dv
-            human_resp = list(self._ds.dvs[dv_name])
-            answer_map = self._ds._get_col_prompt_specs()[dv_name].answer_map
-            human_resp = [answer_map[r].split()[0] for r in human_resp]
+            human_resp = [r[-1] for r in list(self._results[dv_name].values())]
+            human_resp = [r.strip().lower() for r in human_resp]
 
             # if dv_name == "prayer_in_school":
             #     print("Prayers in school code in make summary dfs")
@@ -458,13 +361,11 @@ if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
     from anes import AnesDataset
-    re = ResultExplorer("patsy_87_davinci_200.pkl",
-                        PewAmericanTrendsWave78Dataset())
+    re = ResultExplorer("baylor_mega.pkl",
+                        BaylorReligionSurveyDataset())
     # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
     # print(re.get_raw_accs())
     # print(re.get_cramers_v_values())
     # re.get_cramers_quadriptych()
-    re.summary_dfs_to_excel("output.xlsx")
-    # re.plot_simplexes()
-    # re.get_best_accs()
+    # re.summary_dfs_to_excel("anes_ada.xlsx")
