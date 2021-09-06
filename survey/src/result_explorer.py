@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import seaborn as sns
+import itertools
 
 
 class ResultExplorer:
@@ -352,8 +353,33 @@ class ResultExplorer:
             plt.savefig(f'experiments/{dv_name}.jpeg')
             plt.close()
 
-def threshold_testing(self):
-    pass
+    def threshold_testing(self):
+        results = self._summary_dfs
+        heaven = results['heaven']
+        gpt3probs = heaven['gpt_3_probs']
+        ind_outcomes = gpt3probs.iloc[0].keys()
+        outcomes = list(itertools.combinations(ind_outcomes, 2))
+        for pair, grid in zip(outcomes, len(outcomes) * [np.linspace(0,1,100)]):
+
+            print(pair, grid)
+        print(pair, grid)
+        pass 
+            
+
+
+
+
+    
+
+        pass
+
+    def _decide(self, outcomes, thresholds, probabilities):
+        """Given a list of probabilities and thresholds deciding the boundary
+        between each outcome, decide which outcome this set of probabilities
+        gets mapped to"""
+
+
+
 
 
 
@@ -363,6 +389,7 @@ if __name__ == "__main__":
     from anes import AnesDataset
     re = ResultExplorer("baylor_mega.pkl",
                         BaylorReligionSurveyDataset())
+    re.threshold_testing()
     # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
     # print(re.get_raw_accs())
