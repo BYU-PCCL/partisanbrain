@@ -16,7 +16,7 @@ df = pd.DataFrame({'gpt': gpt, 'coder0': coder0, 'coder1': coder1, 'coder2': cod
 df = df.dropna()
 question_numbers = df.index.to_list()
 
-coders = ['coder0', 'coder1', 'coder2', 'gpt']
+coders = ['coder0', 'coder1', 'coder2']
 # coders = ['gpt', 'true']
 # target = df.true
 
