@@ -58,10 +58,37 @@ class Shuffler:
 	# from the dataframe take the first 200 republicans and democrats
 	def sample_democrats_and_republicans(self):
 		democrats = self.shuffled_data[self.shuffled_data['party'] == 1]
+		democrats = democrats.drop(columns='party')
 		republicans = self.shuffled_data[self.shuffled_data['party'] == 2]
+		republicans = republicans.drop(columns='party')
 		# get a sample of 200 each
 		self.democrats = democrats.head(200)
 		self.republicans = republicans.head(200)
+
+	def make_df_descriptive(self, df):
+		descriptive_df = df.copy()
+		value_encodings = {'gender':
+					   			{1: "female",
+						   		 2: "male"},
+						   'education':
+						   		{1: "no high school degree",
+						   		 2: "high school graduate",
+						   		 3: "some college",
+						   		 4: "bachelor's degree",
+						   		 5: "graduate degree"},
+						   'race': 
+						   		{1: "White",
+						   		 2: "Black",
+						   		 3: "Hispanic",
+						   		 4: "Asian/Native Hawaiian/Pacific Islander",
+						   		 5: "Native American/Alaskan Native"}
+						   }
+		col_names = ['gender', 'education', 'race']
+		for col in col_names:
+			descriptive_df[col] = descriptive_df[col].map(value_encodings[col])
+
+		return descriptive_df
+
 
 	# sees how close the random sample of democrats matches our desired sample
 	def validate_democrat_sample(self):
@@ -154,13 +181,15 @@ class Shuffler:
 				lowest_democrat_error = percent_error_democrats
 				print("new lowest democrat error:")
 				print(lowest_democrat_error)
-				self.democrats.to_csv("best_democrat_sample.csv", index=False)
+				descriptive_df = self.make_df_descriptive(self.democrats)
+				descriptive_df.to_csv("best_democrat_sample.csv", index=False)
 			percent_error_republicans = self.validate_republican_sample()
 			if percent_error_republicans < lowest_republican_error:
 				lowest_republican_error = percent_error_republicans
 				print("new lowest republican error:")
 				print(lowest_republican_error)
-				self.republicans.to_csv("best_republican_sample.csv", index=False)
+				descriptive_df = self.make_df_descriptive(self.republicans)
+				descriptive_df.to_csv("best_republican_sample.csv", index=False)
 			iterations += 1
 
 
