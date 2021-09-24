@@ -151,16 +151,16 @@ class Shuffler:
 			self.sample_democrats_and_republicans()
 			percent_error_democrats = self.validate_democrat_sample()
 			if percent_error_democrats < lowest_democrat_error:
-				self.best_democrat_sample = self.democrats
 				lowest_democrat_error = percent_error_democrats
 				print("new lowest democrat error:")
 				print(lowest_democrat_error)
+				self.democrats.to_csv("best_democrat_sample.csv", index=False)
 			percent_error_republicans = self.validate_republican_sample()
 			if percent_error_republicans < lowest_republican_error:
-				self.best_republican_sample = self.republicans
 				lowest_republican_error = percent_error_republicans
 				print("new lowest republican error:")
 				print(lowest_republican_error)
+				self.republicans.to_csv("best_republican_sample.csv", index=False)
 			iterations += 1
 
 
