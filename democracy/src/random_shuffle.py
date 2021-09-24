@@ -50,7 +50,6 @@ class Shuffler:
 		data = data.replace(to_replace=8, value=5)
 
 		self.data = data
-		print(self.data['gender'].unique())
 		
 	# shuffling the dataframe so we get a random sample
 	def shuffle_data(self):
@@ -58,75 +57,115 @@ class Shuffler:
 
 	# from the dataframe take the first 200 republicans and democrats
 	def sample_democrats_and_republicans(self):
-		democrats = self.data[self.data['party'] == 1]
-		republicans = self.data[self.data['party'] == 2]
+		democrats = self.shuffled_data[self.shuffled_data['party'] == 1]
+		republicans = self.shuffled_data[self.shuffled_data['party'] == 2]
 		# get a sample of 200 each
 		self.democrats = democrats.head(200)
 		self.republicans = republicans.head(200)
 
 	# sees how close the random sample of democrats matches our desired sample
-	# EXPECTED PERCENTAGES:
-		# Sex: 
-			# 57% F (1)
-			# 43% M (2)
-		# Age: 
-			# 13% 18-24
-			# 17% 25-34
-			# 17% 35-44
-			# 15% 45-54
-			# 17% 55-64
-			# 15% 65-75
-			# 5% 75+
-		# Ethnicity:
-			# White (non-Hispanic) (1) 54%
-			# Black (non-Hispanic) (2) 20%
-			# Hispanic (3) 16%
-			# Asian / Native Hawaiian / Pacific Islander (4) 5%
-			# Native American / Alaskan Native (5) 2%
-			# Multiple Races (non-Hispanic) (6) 4%
-		# Education:
-			# No high school degree (1) 7%
-			# High school graduate (2) 24%
-			# Some college (3) 26%
-			# Bachelor's degree (4) 26%
-			# Graduate degree (5) 17%
 	def validate_democrat_sample(self):
-		pass
+		# expected percentages. Division on ones where the % didn't add up to 1
+		true_prop_dictionary = {'age_range': 
+							   		{'18-24': .13/.99,
+							   		 '25-34': .17/.99,
+							   		 '35-44': .17/.99,
+							   		 '45-54': .15/.99,
+							   		 '55-64': .17/.99,
+							   		 '65-75': .15/.99,
+							   		 '75+'  : .05/.99},
+							   	'gender':
+							   		{1: .57,
+							   		 2: .43},
+							   	'education':
+							   		{1: .07,
+							   		 2: .24,
+							   		 3: .26,
+							   		 4: .26,
+							   		 5: .17},
+							   	'race': 
+							   		{1: .54/1.01,
+							   		 2: .2/1.01,
+							   		 3: .16/1.01,
+							   		 4: .05/1.01,
+							   		 5: .02/1.01,
+							   		 6: .04/1.01}
+							   	}
+		col_names = ['age_range', 'gender', 'education', 'race']
+		total_diff = 0
+		for name in col_names:
+			props = self.democrats[name].value_counts(normalize=True)
+			true_props = true_prop_dictionary[name]
+			col_value_counts = props.tolist()
+			for i, col_value in enumerate(props.index.tolist()):
+				total_diff += abs(true_props[col_value] - col_value_counts[i])
+
+		return(total_diff / 20) # 20 is number of possible column values
 
 	# sees how close the random sample of republicans matches our desired sample
-	#EXPECTED PERCENTAGES: 
-		# Sex: 
-			# 47% F (1)
-			# 53% M (2)
-		# Age: 
-			# 7% 18-24
-			# 14% 25-34
-			# 16% 35-44
-			# 17% 45-54
-			# 21% 55-64
-			# 16% 65-75
-			# 9% 75+
-		# Ethnicity:
-			# White (non-Hispanic) (1) 82%
-			# Black (non-Hispanic) (2) 3%
-			# Hispanic (3) 8%
-			# Asian / Native Hawaiian / Pacific Islander (4) 3%
-			# Native American / Alaskan Native (5) 2%
-			# Multiple Races (non-Hispanic) (6) 2%
-		# Education:
-			# No high school degree (1) 7%
-			# High school graduate (2) 28%
-			# Some college (3) 32%
-			# Bachelor's degree (4) 23%
-			# Graduate degree (5) 11%
 	def validate_republican_sample(self):
-		pass
+		# expected percentages. Division on ones where the % didn't add up to 1
+		true_prop_dictionary = {'age_range': 
+							   		{'18-24': .07,
+							   		 '25-34': .14,
+							   		 '35-44': .16,
+							   		 '45-54': .17,
+							   		 '55-64': .21,
+							   		 '65-75': .16,
+							   		 '75+'  : .09},
+							   	'gender':
+							   		{1: .47,
+							   		 2: .53},
+							   	'education':
+							   		{1: .07/1.01,
+							   		 2: .28/1.01,
+							   		 3: .32/1.01,
+							   		 4: .23/1.01,
+							   		 5: .11/1.01},
+							   	'race': 
+							   		{1: .82,
+							   		 2: .03,
+							   		 3: .08,
+							   		 4: .03,
+							   		 5: .02,
+							   		 6: .02}
+							   	}
+		col_names = ['age_range', 'gender', 'education', 'race']
+		total_diff = 0
+		for name in col_names:
+			props = self.republicans[name].value_counts(normalize=True)
+			true_props = true_prop_dictionary[name]
+			col_value_counts = props.tolist()
+			for i, col_value in enumerate(props.index.tolist()):
+				total_diff += abs(true_props[col_value] - col_value_counts[i])
+
+		return(total_diff / 20) # 20 is number of possible column values
+
+	def find_good_random_sample(self):
+		max_iterations = 10000
+		iterations = 0
+		lowest_democrat_error = 1
+		lowest_republican_error = 1
+		while iterations <= max_iterations:
+			self.shuffle_data()
+			self.sample_democrats_and_republicans()
+			percent_error_democrats = self.validate_democrat_sample()
+			if percent_error_democrats < lowest_democrat_error:
+				self.best_democrat_sample = self.democrats
+				lowest_democrat_error = percent_error_democrats
+				print("new lowest democrat error:")
+				print(lowest_democrat_error)
+			percent_error_republicans = self.validate_republican_sample()
+			if percent_error_republicans < lowest_republican_error:
+				self.best_republican_sample = self.republicans
+				lowest_republican_error = percent_error_republicans
+				print("new lowest republican error:")
+				print(lowest_republican_error)
+			iterations += 1
+
 
 shuffler = Shuffler()
-shuffler.shuffle_data()
-shuffler.sample_democrats_and_republicans()
-print(shuffler.democrats)
-print(shuffler.republicans)
+shuffler.find_good_random_sample()
 
 
 
