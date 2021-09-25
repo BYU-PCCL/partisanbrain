@@ -37,7 +37,7 @@ class SampleValidator:
 				data.at[index, 'age_range'] = "65-75"
 			else:
 				data.at[index, 'age_range'] = "75+"
-		data = data.drop(columns='age')
+		# data = data.drop(columns='age')
 
 		# updating education groupings. New groupings are:
 			# 1 - No high school degree 
@@ -200,3 +200,4 @@ class SampleValidator:
 if __name__ == "__main__":
 	validator = SampleValidator()
 	print(validator.get_data_converted())
+	validator.find_good_random_sample(500)
