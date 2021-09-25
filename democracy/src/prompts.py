@@ -432,7 +432,8 @@ class Prompt(ABC):
 
     def get_prompt(self):
         prompt = self._get_backstory() + "\n\n"
-        prompt += self._get_treatment() + "\n\n"
+        if self._get_treatment() is not None:
+            prompt += self._get_treatment() + "\n\n"
         prompt += self.get_question().get_text(self._party)
         return prompt
 
@@ -451,7 +452,8 @@ def run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
                    context_fn,
-                   exp_name):
+                   exp_name,
+                   dry_run=False):
 
     party_fnames = {"republican": republican_csv_fname,
                     "democrat": democrat_csv_fname}
@@ -480,39 +482,55 @@ def run_experiment(republican_csv_fname,
                                            party_name,
                                            dv_idx,
                                            context=context)
-                    api_resp = proc.process_prompt(prompt.get_prompt())
-                    question = prompt.get_question()
-                    possible_answers = question.get_possible_answers()
-                    results["prompt"].append(prompt.get_prompt())
-                    results["possible_answers"].append(possible_answers)
-                    results["api_resp"].append(api_resp)
+                    if not dry_run:
+                        api_resp = proc.process_prompt(prompt.get_prompt())
+                        question = prompt.get_question()
+                        possible_answers = question.get_possible_answers()
+                        results["prompt"].append(prompt.get_prompt())
+                        results["possible_answers"].append(possible_answers)
+                        results["api_resp"].append(api_resp)
+                    else:
+                        print(prompt.get_prompt())
+                        print("=" * 50)
 
-            out_fname = f"{exp_name}_{party_name}.csv"
-            pd.DataFrame.from_dict(results).to_csv(out_fname,
-                                                   index=False)
+            if not dry_run:
+                out_fname = f"{exp_name}_{party_name}.csv"
+                pd.DataFrame.from_dict(results).to_csv(out_fname,
+                                                       index=False)
 
 
 def run_passive_experiment(republican_csv_fname,
                            democrat_csv_fname,
                            engine,
-                           exp_name="passive"):
+                           exp_name="passive",
+                           dry_run=False):
     run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
                    exp_name=exp_name,
-                   context_fn=lambda x: "")
+                   context_fn=lambda: [None],
+                   dry_run=dry_run)
 
 
 def run_kalmoe_experiment(republican_csv_fname,
                           democrat_csv_fname,
                           engine,
-                          exp_name="kalmoe"):
+                          exp_name="kalmoe",
+                          dry_run=False):
     run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
                    exp_name=exp_name,
-                   context_fn=lambda x: QUOTES)
+                   context_fn=lambda: QUOTES,
+                   dry_run=dry_run)
 
 
 if __name__ == "__main__":
-    run_kalmoe_experiment()
+    run_kalmoe_experiment("best_republican_sample.csv",
+                          "best_democrat_sample.csv",
+                          "ada",
+                          dry_run=False)
+    # run_passive_experiment("best_republican_sample.csv",
+    #                        "best_democrat_sample.csv",
+    #                        "ada",
+    #                        dry_run=True)
