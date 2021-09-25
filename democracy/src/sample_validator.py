@@ -50,6 +50,7 @@ class SampleValidator:
 		data = data.replace(to_replace=8, value=5)
 
 		self.data = data
+
 		
 	# shuffling the dataframe so we get a random sample
 	def shuffle_data(self):
@@ -88,6 +89,9 @@ class SampleValidator:
 			descriptive_df[col] = descriptive_df[col].map(value_encodings[col])
 
 		return descriptive_df
+
+	def get_data_converted(self):
+		return self.make_df_descriptive(self.data)
 
 
 	# sees how close the random sample of democrats matches our desired sample
@@ -194,4 +198,4 @@ class SampleValidator:
 
 
 validator = SampleValidator()
-validator.find_good_random_sample(100)
+print(validator.get_data_converted())
