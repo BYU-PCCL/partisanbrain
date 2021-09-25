@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import openai
 import os
+import pickle
 
 # Authenticate with openai
 openai.api_key = os.getenv("GPT_3_API_KEY")
@@ -432,13 +433,13 @@ class Prompt(ABC):
     def _get_treatment(self):
         pass
 
-    def _get_question(self):
+    def get_question(self):
         return QUESTIONS[self._question_idx]
 
     def get_prompt(self):
         prompt = self._get_backstory() + "\n\n"
         prompt += self._get_treatment() + "\n\n"
-        prompt += self._get_question().get_text(self._party)
+        prompt += self.get_question().get_text(self._party)
         return prompt
 
 
@@ -468,18 +469,35 @@ if __name__ == "__main__":
     # Load ANES
     df = SampleValidator().get_data_converted()
 
-    # Filter to just democrats or just republicans
-    pass
+    for party in [1, 2]:  # 1 is democrats, 2 is republicans
 
-    # Set up processing
-    proc = PromptProcessor(engine="ada")
+        party_name = "republican" if party == 1 else "democrat"
 
-    # Loop through
-    for _, row in tqdm.tqdm(df.iterrows()):
-        for dv_idx in range(10):
-            for quote in QUOTES:
-                prompt = KalmoePrompt(row,
-                                      "republican",
-                                      dv_idx,
-                                      quote).get_prompt()
-                print(prompt)
+        # Filter to just democrats or just republicans
+        party_df = df[df["party"] == party]
+
+        # Set up processing
+        proc = PromptProcessor(engine="ada")
+
+        # Loop through
+        results = []
+        for _, row in tqdm.tqdm(party_df.iterrows(),
+                                total=party_df.shape[0]):
+            for dv_idx in tqdm.tqdm(range(10)):
+                for quote in QUOTES:
+                    prompt = KalmoePrompt(row,
+                                          party_name,
+                                          dv_idx,
+                                          quote)
+                    api_resp = proc.process_prompt(prompt.get_prompt())
+                    question = prompt.get_question()
+                    possible_answers = question.get_possible_answers()
+                    to_store = {
+                        "prompt": prompt.get_prompt(),
+                        "possible_answers": possible_answers,
+                        "api_resp": api_resp
+                    }
+                    results.append(to_store)
+
+        with open(f"{party_name}.pickle", "wb") as f:
+            pickle.dump(results, f)
