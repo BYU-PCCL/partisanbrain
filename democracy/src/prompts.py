@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 
 import openai
 import os
-import pickle
+import pandas as pd
+import tqdm
 
 # Authenticate with openai
 openai.api_key = os.getenv("GPT_3_API_KEY")
@@ -246,7 +248,7 @@ QUOTES = [
     ("In 2020, the popular Black Lives Matter social "
      "movement burst into political violence on several "
      "occasions. Former U.S. President Barack Obama "
-     "said, \"The small minority of folks whosve "
+     "said, \"The small minority of folks who've "
      "resorted to violence in various forms, whether out "
      "of genuine anger or mere opportunism, are putting "
      "innocent people at risk, compounding the destruction "
@@ -435,61 +437,82 @@ class Prompt(ABC):
         return prompt
 
 
-class PassivePrompt(Prompt):
+class ContextPrompt(Prompt):
 
-    def __init__(self, respondent_data, party, question_idx):
+    def __init__(self, respondent_data, party, question_idx, context):
         super().__init__(respondent_data, party, question_idx)
+        self._context = context
 
     def _get_treatment(self):
-        return ""
+        return self._context
 
 
-class KalmoePrompt(Prompt):
+def run_experiment(republican_csv_fname,
+                   democrat_csv_fname,
+                   engine,
+                   context_fn,
+                   exp_name):
 
-    def __init__(self, respondent_data, party, question_idx, context_quote):
-        super().__init__(respondent_data, party, question_idx)
-        self._context_quote = context_quote
+    party_fnames = {"republican": republican_csv_fname,
+                    "democrat": democrat_csv_fname}
 
-    def _get_treatment(self):
-        return self._context_quote
+    for party_name, fname in party_fnames.items():
 
-
-if __name__ == "__main__":
-    from sample_validator import SampleValidator
-    import tqdm
-
-    # Load ANES
-    df = SampleValidator().get_data_converted()
-
-    for party in [1, 2]:  # 1 is democrats, 2 is republicans
-
-        party_name = "republican" if party == 1 else "democrat"
-
-        # Filter to just democrats or just republicans
-        party_df = df[df["party"] == party]
+        # Load data
+        df = pd.read_csv(fname)
 
         # Set up processing
-        proc = PromptProcessor(engine="ada")
+        proc = PromptProcessor(engine=engine)
 
         # Loop through
-        results = []
-        for _, row in tqdm.tqdm(party_df.iterrows(),
-                                total=party_df.shape[0]):
+        results = defaultdict(list)
+        for _, row in tqdm.tqdm(df.iterrows(),
+                                total=df.shape[0]):
             for dv_idx in tqdm.tqdm(range(10)):
-                for quote in QUOTES:
-                    prompt = KalmoePrompt(row,
-                                          party_name,
-                                          dv_idx,
-                                          quote)
+
+                # Get context here
+                contexts = context_fn()
+
+                for context in contexts:
+
+                    # Process prompt made from the context
+                    prompt = ContextPrompt(row,
+                                           party_name,
+                                           dv_idx,
+                                           context=context)
                     api_resp = proc.process_prompt(prompt.get_prompt())
                     question = prompt.get_question()
                     possible_answers = question.get_possible_answers()
-                    to_store = {
-                        "prompt": prompt.get_prompt(),
-                        "possible_answers": possible_answers,
-                        "api_resp": api_resp
-                    }
-                    results.append(to_store)
+                    results["prompt"].append(prompt.get_prompt())
+                    results["possible_answers"].append(possible_answers)
+                    results["api_resp"].append(api_resp)
 
-            with open(f"{party_name}.pickle", "wb") as f:
-                pickle.dump(results, f)
+            out_fname = f"{exp_name}_{party_name}.csv"
+            pd.DataFrame.from_dict(results).to_csv(out_fname,
+                                                   index=False)
+
+
+def run_passive_experiment(republican_csv_fname,
+                           democrat_csv_fname,
+                           engine,
+                           exp_name="passive"):
+    run_experiment(republican_csv_fname,
+                   democrat_csv_fname,
+                   engine,
+                   exp_name=exp_name,
+                   context_fn=lambda x: "")
+
+
+def run_kalmoe_experiment(republican_csv_fname,
+                          democrat_csv_fname,
+                          engine,
+                          exp_name="kalmoe"):
+    run_experiment(republican_csv_fname,
+                   democrat_csv_fname,
+                   engine,
+                   exp_name=exp_name,
+                   context_fn=lambda x: QUOTES)
+
+
+if __name__ == "__main__":
+    run_kalmoe_experiment()
