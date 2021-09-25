@@ -400,22 +400,14 @@ class Prompt(ABC):
             "White": "White",
             "Black": "Black",
             "Hispanic": "Hispanic",
-            "Asian/Native Hawaiian/Pacific Islander": None,
-            "Native American/Alaskan Native": None
+            ("Asian/Native Hawaiian/"
+             "Pacific Islander"): "Asian American/Pacific Islander",
+            "Native American/Alaskan Native": "Native American"
         }
         backstory.append(f"I am {race_dict[self._row.race]}.")
 
         # Age
-        age_dict = {
-            "18-24": "I am between 18 and 24 years old.",
-            "25-34": "I am between 25 and 34 years old.",
-            "35-44": "I am between 35 and 44 years old.",
-            "45-54": "I am between 45 and 54 years old.",
-            "55-64": "I am between 55 and 64 years old.",
-            "65-75": "I am between 65 and 75 years old.",
-            "75+": "I am older than 75 years old."
-        }
-        backstory.append(age_dict[self._row.age_range])
+        backstory.append(f"I am {self._row.age} years old.")
 
         # Education
         educ_dict = {
@@ -499,5 +491,5 @@ if __name__ == "__main__":
                     }
                     results.append(to_store)
 
-        with open(f"{party_name}.pickle", "wb") as f:
-            pickle.dump(results, f)
+            with open(f"{party_name}.pickle", "wb") as f:
+                pickle.dump(results, f)
