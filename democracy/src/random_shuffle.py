@@ -164,8 +164,10 @@ class Shuffler:
 			iterations += 1
 
 
-shuffler = Shuffler()
-shuffler.find_good_random_sample()
+
+if __name__ == "__main__":
+	shuffler = Shuffler()
+	shuffler.find_good_random_sample()
 
 
 
