@@ -197,5 +197,6 @@ class SampleValidator:
 			iterations += 1
 
 
-validator = SampleValidator()
-print(validator.get_data_converted())
+if __name__ == "__main__":
+	validator = SampleValidator()
+	print(validator.get_data_converted())
