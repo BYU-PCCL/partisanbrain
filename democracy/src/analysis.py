@@ -6,6 +6,31 @@ from pdb import set_trace as breakpoint
 import openai
 import os
 
+def make_good_bad_dict():
+    """Returns a dictionary which maps from the dichotomous 
+    outcomes across all DVs to the words "good" and "bad" to make them easier.
+
+    Note, it does NOT map from TOKENS, but rather outcomes, so you want to
+    do this mapping after you've already collapsed probabilities from all 
+    tokens into a single outcome, which should be represented by the keys of
+    this dictionary.
+    """
+    return {
+        'reduce':'bad',
+        'maintain':'good',
+        'ignore':'bad',
+        'heed':'good',
+        'prosecute':'bad',
+        'tolerate':'good',
+        'accept':'good',
+        'deny':'bad',
+        'always':'bad',
+        'never':'good',
+        'warm':'good',
+        'cold':'bad',
+        'all of it':'good',
+        'none of it':'bad',
+    }
 
 def get_logprobs(response):
     '''
