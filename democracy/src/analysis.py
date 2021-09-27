@@ -3,21 +3,106 @@ import pandas as pd
 from scipy.stats import ttest_ind
 from matplotlib import pyplot as plt
 from pdb import set_trace as breakpoint
+import pickle
 import openai
 import os
 
+def read_data(path):
+    '''
+    Given a path to a csv, read the data into a pandas dataframe.
+    Columns:
+        prompt (str): the prompt
+        possible_answers (list of strings): potential responses
+        api_resp (dict): the response from the api
+    '''
+    data = pd.read_csv(path)
+    # convert possible_answers to a list
+    data['possible_answers'] = data['possible_answers'].apply(lambda x: eval(x))
+    # convert api_resp to a dict
+    data['api_resp'] = data['api_resp'].apply(lambda x: eval(x))
+    # TODO - best idea? Change?
+    # add party column, 'democrat' if the path contains 'democrat', 'republican' if the prompt contains 'republican', else 'other'
+    party = 'other'
+    if 'democrat' in path:
+        party = 'democrat'
+    elif 'republican' in path:
+        party = 'republican'
+    data['party'] = party
+    return data
+
+def read_many_data(paths):
+    '''
+    Read data from each path and combine into a single dataframe.
+    '''
+    dfs = []
+    for path in paths:
+        dfs.append(read_data(path))
+    return pd.concat(dfs)
+
+def make_good_bad_dict():
+    """Returns a dictionary which maps from the dichotomous 
+    outcomes across all DVs to the words "good" and "bad" to make them easier.
+
+    Note, it does NOT map from TOKENS, but rather outcomes, so you want to
+    do this mapping after you've already collapsed probabilities from all 
+    tokens into a single outcome, which should be represented by the keys of
+    this dictionary.
+    """
+    return {
+        'reduce':'bad',
+        'maintain':'good',
+        'ignore':'bad',
+        'heed':'good',
+        'prosecute':'bad',
+        'tolerate':'good',
+        'accept':'good',
+        'deny':'bad',
+        'always':'bad',
+        'never':'good',
+        'warm':'good',
+        'cold':'bad',
+        'all of it':'good',
+        'none of it':'bad',
+    }
 
 def get_logprobs(response):
     '''
     Given an instance of gpt3 response, return the logprobs of the first sampled token.
     Returns a sorted list of tuples of (token, logprob)
     '''
-    logprobs = response['choices'][0].logprobs.top_logprobs[0]
+    # logprobs = response['choices'][0].logprobs.top_logprobs[0]
+    logprobs = response['choices'][0]['logprobs']['top_logprobs'][0]
     # sort by logprob
     logprobs = sorted(logprobs.items(), key=lambda x: x[1], reverse=True)
     return logprobs
 
-def parse_response(response, candidates):
+def matches(token, category, matching_strategy):
+    '''
+    Returns True if token matches category according to the matching strategy.
+    Arguments:
+        token: the token to match
+        category: the category to match
+        matching_strategy: the matching strategy to use
+            Accepted values:
+                'starts_with': token starts with category
+                'substr': token is a substring of category
+                'exact': token is the exact category
+    '''
+    # strip token and category and change to lowercase
+    token = token.lower().strip()
+    category = category.lower().strip()
+
+    # check matching strategy
+    if matching_strategy == 'starts_with':
+        return category.startswith(token)
+    elif matching_strategy == 'substr':
+        return token in category
+    elif matching_strategy == 'exact':
+        return category == token
+    else:
+        raise ValueError('Invalid matching strategy')
+
+def parse_response(response, candidates, matching_strategy='starts_with'):
     '''
     Given the response, measure the total probability mass
     on each candidate.
@@ -31,17 +116,46 @@ def parse_response(response, candidates):
     for token, logprob in logprobs:
         # see if lower and strip is a candidate
         token = token.lower().strip()
-        if token in candidates:
-            cand_probs[token] += np.exp(logprob)
+        for cand in candidates:
+            if matches(token, cand, matching_strategy):
+                cand_probs[cand] += np.exp(logprob)
     # normalize, and store coverage
     coverage = sum(cand_probs.values())
     cand_probs = {cand: prob/coverage for cand, prob in cand_probs.items()}
     cand_probs['coverage'] = coverage
     return cand_probs
 
-def plot_treatments(treatment_dict, y_label='', x_label='Treatments', save_path=''):
+def parse_responses(df):
     '''
-    Given a dictionary of treatment results, plot the results.
+    Given a dataframe of responses, parse the responses and add columns to df.
+    Get the response from the 'api_resp' column, and the candidates from the 'possible_answers' column.
+    '''
+    df['parsed_resp'] = df.apply(lambda x: parse_response(x['api_resp'], x['possible_answers']), axis=1)
+    # make 'score' column which contains the probability of 'good' outcome
+    good_dict = make_good_bad_dict()
+    def get_score(row):
+        resp = row['parsed_resp']
+        for key in resp.keys():
+            if good_dict[key] == 'good':
+                return resp[key]
+        raise ValueError('No good outcome found')
+    def get_dv(row):
+        resp = row['parsed_resp']
+        for key in resp.keys():
+            if good_dict[key] == 'good':
+                return key
+        raise ValueError('No good outcome found')
+    def get_coverage(row):
+        resp = row['parsed_resp']
+        return resp['coverage']
+    df['score'] = df.apply(lambda x: get_score(x), axis=1)
+    df['dv'] = df.apply(lambda x: get_dv(x), axis=1)
+    df['coverage'] = df.apply(lambda x: get_coverage(x), axis=1)
+    return df
+
+def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
+    '''
+    Given a dictionary of results, plot a bar chart.
     Arguments:
         treatment_dict: a dictionary of the treatment results. The keys are the treatment names,
             and the values are the treatment results (array-like).
@@ -54,7 +168,10 @@ def plot_treatments(treatment_dict, y_label='', x_label='Treatments', save_path=
         std = np.std(results)
         means.append(mean)
         stds.append(std)
+    plt.figure(figsize=(10,5))
     plt.bar(treatments, means, yerr=stds)
+    # rotate x labels
+    plt.xticks(rotation=15)
     if y_label:
         plt.ylabel(y_label)
     if x_label:
@@ -81,6 +198,13 @@ def t_test(treatment_dict):
                 p_values.loc[treatment1, treatment2] = p_value
     return p_values
 
+def make_dict(df, key, value):
+    '''
+    Given a dataframe, make a dictionary where the keys are the unique values of the key column,
+    and the values are all the values of the value column for that key.
+    '''
+    return {k: df[value][df[key] == k] for k in df[key].unique()}
+
 
 if __name__ == '__main__':
     # prompt = ''' Would you say that you agree or disagree that mexican food is good?
@@ -95,9 +219,47 @@ if __name__ == '__main__':
 
     # candidates = ['agree', 'disagree']
     # print(parse_response(response, candidates))
-    treatments = {
-        'a': 3 * np.random.rand(100) + 1,
-        'b': 2 * np.random.rand(100) + 1.4,
-    }
-    # plot_treatments(treatments, y_label='Mean', x_label='Treatments', save_path='test.png')
-    print(t_test(treatments))
+
+    # treatments = {
+        # 'a': 3 * np.random.rand(100) + 1,
+        # 'b': 2 * np.random.rand(100) + 1.4,
+    # }
+    # # plot_treatments(treatments, y_label='Mean', x_label='Treatments', save_path='test.png')
+    # print(t_test(treatments))
+
+    ###########
+    # # read in data from data/kalmoe_republican.csv and data/passive_republican.csv
+    # # merge in both into one dataframe
+    # data1, data2 = read_data('data/kalmoe_republican.csv'), read_data('data/passive_republican.csv')
+    # data1, data2 = parse_responses(data1), parse_responses(data2)
+
+    # breakpoint()
+    # # make a dictionary of the dataframes
+    # dict1 = make_dict(data1, 'dv', 'score')
+    # dict2 = make_dict(data2, 'dv', 'score')
+    # # plot
+    # plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.png')
+
+    ###########
+    # read in many dataframes
+    paths = [
+        'data/passive_democrat.csv',
+        'data/passive_republican.csv',
+        # 'data/kalmoe_democrat.csv',
+        'data/kalmoe_republican.csv',
+    ]
+    data = read_many_data(paths)
+    data = parse_responses(data)
+    # plot 'dv' againts 'score'
+    dict1 = make_dict(data, 'dv', 'score')
+    plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.pdf')
+    # plot 'dv' againts 'coverage'
+    dict2 = make_dict(data, 'dv', 'coverage')
+    plot_bar(dict2, y_label='Coverage', x_label='dv', save_path='coverage.pdf')
+    # plot 'education' against 'score'
+    dict3 = make_dict(data, 'education', 'score')
+    plot_bar(dict3, y_label='Score', x_label='education', save_path='education.pdf')
+    # plot 'treatment' against 'score'
+    dict4 = make_dict(data, 'treatment', 'score')
+    plot_bar(dict4, y_label='Score', x_label='treatment', save_path='treatment.pdf')
+    pass
