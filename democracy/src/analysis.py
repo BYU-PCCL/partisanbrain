@@ -20,7 +20,24 @@ def read_data(path):
     data['possible_answers'] = data['possible_answers'].apply(lambda x: eval(x))
     # convert api_resp to a dict
     data['api_resp'] = data['api_resp'].apply(lambda x: eval(x))
+    # TODO - best idea? Change?
+    # add party column, 'democrat' if the path contains 'democrat', 'republican' if the prompt contains 'republican', else 'other'
+    party = 'other'
+    if 'democrat' in path:
+        party = 'democrat'
+    elif 'republican' in path:
+        party = 'republican'
+    data['party'] = party
     return data
+
+def read_many_data(paths):
+    '''
+    Read data from each path and combine into a single dataframe.
+    '''
+    dfs = []
+    for path in paths:
+        dfs.append(read_data(path))
+    return pd.concat(dfs)
 
 def make_good_bad_dict():
     """Returns a dictionary which maps from the dichotomous 
@@ -114,11 +131,31 @@ def parse_responses(df):
     Get the response from the 'api_resp' column, and the candidates from the 'possible_answers' column.
     '''
     df['parsed_resp'] = df.apply(lambda x: parse_response(x['api_resp'], x['possible_answers']), axis=1)
+    # make 'score' column which contains the probability of 'good' outcome
+    good_dict = make_good_bad_dict()
+    def get_score(row):
+        resp = row['parsed_resp']
+        for key in resp.keys():
+            if good_dict[key] == 'good':
+                return resp[key]
+        raise ValueError('No good outcome found')
+    def get_dv(row):
+        resp = row['parsed_resp']
+        for key in resp.keys():
+            if good_dict[key] == 'good':
+                return key
+        raise ValueError('No good outcome found')
+    def get_coverage(row):
+        resp = row['parsed_resp']
+        return resp['coverage']
+    df['score'] = df.apply(lambda x: get_score(x), axis=1)
+    df['dv'] = df.apply(lambda x: get_dv(x), axis=1)
+    df['coverage'] = df.apply(lambda x: get_coverage(x), axis=1)
     return df
 
-def plot_treatments(treatment_dict, y_label='', x_label='Treatments', save_path=''):
+def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
     '''
-    Given a dictionary of treatment results, plot the results.
+    Given a dictionary of results, plot a bar chart.
     Arguments:
         treatment_dict: a dictionary of the treatment results. The keys are the treatment names,
             and the values are the treatment results (array-like).
@@ -131,7 +168,10 @@ def plot_treatments(treatment_dict, y_label='', x_label='Treatments', save_path=
         std = np.std(results)
         means.append(mean)
         stds.append(std)
+    plt.figure(figsize=(10,5))
     plt.bar(treatments, means, yerr=stds)
+    # rotate x labels
+    plt.xticks(rotation=15)
     if y_label:
         plt.ylabel(y_label)
     if x_label:
@@ -158,6 +198,13 @@ def t_test(treatment_dict):
                 p_values.loc[treatment1, treatment2] = p_value
     return p_values
 
+def make_dict(df, key, value):
+    '''
+    Given a dataframe, make a dictionary where the keys are the unique values of the key column,
+    and the values are all the values of the value column for that key.
+    '''
+    return {k: df[value][df[key] == k] for k in df[key].unique()}
+
 
 if __name__ == '__main__':
     # prompt = ''' Would you say that you agree or disagree that mexican food is good?
@@ -180,9 +227,39 @@ if __name__ == '__main__':
     # # plot_treatments(treatments, y_label='Mean', x_label='Treatments', save_path='test.png')
     # print(t_test(treatments))
 
-    # read in data from data/kalmoe_republican.csv and data/passive_republican.csv
-    # merge in both into one dataframe
-    data1, data2 = read_data('data/kalmoe_republican.csv'), read_data('data/passive_republican.csv')
-    data1, data2 = parse_responses(data1), parse_responses(data2)
-    breakpoint()
+    ###########
+    # # read in data from data/kalmoe_republican.csv and data/passive_republican.csv
+    # # merge in both into one dataframe
+    # data1, data2 = read_data('data/kalmoe_republican.csv'), read_data('data/passive_republican.csv')
+    # data1, data2 = parse_responses(data1), parse_responses(data2)
+
+    # breakpoint()
+    # # make a dictionary of the dataframes
+    # dict1 = make_dict(data1, 'dv', 'score')
+    # dict2 = make_dict(data2, 'dv', 'score')
+    # # plot
+    # plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.png')
+
+    ###########
+    # read in many dataframes
+    paths = [
+        'data/passive_democrat.csv',
+        'data/passive_republican.csv',
+        # 'data/kalmoe_democrat.csv',
+        'data/kalmoe_republican.csv',
+    ]
+    data = read_many_data(paths)
+    data = parse_responses(data)
+    # plot 'dv' againts 'score'
+    dict1 = make_dict(data, 'dv', 'score')
+    plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.pdf')
+    # plot 'dv' againts 'coverage'
+    dict2 = make_dict(data, 'dv', 'coverage')
+    plot_bar(dict2, y_label='Coverage', x_label='dv', save_path='coverage.pdf')
+    # plot 'education' against 'score'
+    dict3 = make_dict(data, 'education', 'score')
+    plot_bar(dict3, y_label='Score', x_label='education', save_path='education.pdf')
+    # plot 'treatment' against 'score'
+    dict4 = make_dict(data, 'treatment', 'score')
+    plot_bar(dict4, y_label='Score', x_label='treatment', save_path='treatment.pdf')
     pass
