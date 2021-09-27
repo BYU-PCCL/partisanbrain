@@ -83,9 +83,14 @@ class SampleValidator:
 						   		 2: "Black",
 						   		 3: "Hispanic",
 						   		 4: "Asian/Native Hawaiian/Pacific Islander",
-						   		 5: "Native American/Alaskan Native"}
+						   		 5: "Native American/Alaskan Native"},
+							'party':
+								{
+									1: "Democrat",
+									2: "Republican"
+								}
 						   }
-		col_names = ['gender', 'education', 'race']
+		col_names = ['gender', 'education', 'race', 'party']
 		for col in col_names:
 			descriptive_df[col] = descriptive_df[col].map(value_encodings[col])
 
@@ -201,4 +206,4 @@ class SampleValidator:
 if __name__ == "__main__":
 	validator = SampleValidator()
 	print(validator.get_data_converted())
-	validator.find_good_random_sample(500)
+	validator.find_good_random_sample(100)
