@@ -365,12 +365,11 @@ class PromptProcessor:
         assert engine in possible_engines, f"{engine} is not a valid engine"
         self._engine = engine
 
-    def process_prompt(self, prompt, create_kwargs=None):
-        # TODO: Actually make create_kwargs do something
+    def process_prompt(self, prompt, max_tokens=1):
         try:
             return openai.Completion.create(engine=self._engine,
                                             prompt=prompt,
-                                            max_tokens=1,
+                                            max_tokens=max_tokens,
                                             logprobs=100)
         # TODO: Catch more specific exception here
         except Exception as e:
@@ -389,6 +388,13 @@ class Prompt(ABC):
     def _get_backstory(self):
 
         backstory = []
+
+        # Party
+        party_dict = {
+            "Democrat": "Democrat",
+            "Republican": "Republican"
+        }
+        backstory.append(f"I am a {party_dict[self._row.party]}.")
 
         # Gender
         gender_dict = {
@@ -452,7 +458,7 @@ def run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
                    context_fn,
-                   exp_name,
+                   treatment,
                    dry_run=False):
 
     party_fnames = {"republican": republican_csv_fname,
@@ -489,12 +495,19 @@ def run_experiment(republican_csv_fname,
                         results["prompt"].append(prompt.get_prompt())
                         results["possible_answers"].append(possible_answers)
                         results["api_resp"].append(api_resp)
+                        results["gender"].append(row.gender)
+                        results["race"].append(row.race)
+                        results["age"].append(row.age)
+                        results["education"].append(row.education)
+                        results["treatment"].append(treatment)
+                        results["dv_idx"].append(dv_idx)
+                        results["party"].append(party_name)
                     else:
                         print(prompt.get_prompt())
                         print("=" * 50)
 
             if not dry_run:
-                out_fname = f"{exp_name}_{party_name}.csv"
+                out_fname = f"{treatment}_{party_name}.csv"
                 pd.DataFrame.from_dict(results).to_csv(out_fname,
                                                        index=False)
 
@@ -502,35 +515,63 @@ def run_experiment(republican_csv_fname,
 def run_passive_experiment(republican_csv_fname,
                            democrat_csv_fname,
                            engine,
-                           exp_name="passive",
+                           treatment="passive",
                            dry_run=False):
     run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
-                   exp_name=exp_name,
+                   treatment=treatment,
                    context_fn=lambda: [None],
                    dry_run=dry_run)
+
+
+def get_gpt_reflection(prompt, processor):
+    resp_obj = processor.process_prompt(prompt, max_tokens=200)
+    resp_str = resp_obj.choices[0].text
+    resp_str = resp_str.replace("  ", " ")
+    resp_str = resp_str.split("\n")[0]
+    # resp_str = resp_str.split(".")[:-1]
+    return resp_str
 
 
 def run_kalmoe_experiment(republican_csv_fname,
                           democrat_csv_fname,
                           engine,
-                          exp_name="kalmoe",
+                          treatment="kalmoe",
                           dry_run=False):
     run_experiment(republican_csv_fname,
                    democrat_csv_fname,
                    engine,
-                   exp_name=exp_name,
+                   treatment=treatment,
                    context_fn=lambda: QUOTES,
                    dry_run=dry_run)
 
 
+def run_mixed_affect_experiment(republican_csv_fname,
+                                democrat_csv_fname,
+                                engine,
+                                treatment="mixed_affect",
+                                dry_run=False):
+
+    pass
+
+
 if __name__ == "__main__":
-    run_kalmoe_experiment("best_republican_sample.csv",
-                          "best_democrat_sample.csv",
-                          "ada",
-                          dry_run=False)
-    # run_passive_experiment("best_republican_sample.csv",
-    #                        "best_democrat_sample.csv",
-    #                        "ada",
-    #                        dry_run=True)
+    # run_kalmoe_experiment("best_republican_sample_sml.csv",
+    #                       "best_democrat_sample_sml.csv",
+    #                       "ada",
+    #                       dry_run=False)
+    run_passive_experiment("best_republican_sample.csv",
+                           "best_democrat_sample.csv",
+                           "ada",
+                           dry_run=True)
+    # run_mixed_affect_experiment("best_republican_sample.csv",
+    #                             "best_democrat_sample.csv",
+    #                             "ada",
+    #                             dry_run=True)
+
+#     prompt = '''The other day, I read that "When reading messages about political opponents, many people feel mixed emotions because the messages often challenge some beliefs while affirming others. Important research from psychology shows that when people feel such mixed emotions, their unconscious reaction is often to resolve their discomfort by doubling down on their initial beliefs even more and becoming less open to opposing perspectives. But research also shows that simply being mindful of these mixed reactions can change us, allowing us to focus on what we have in common and find ways to work together, even across lines of difference.
+# In the box below, please briefly describe a time when you felt mixed emotion in response to a message about political opponents, but consciously resolved those feelings by focusing on what you have in common with those people:"
+# In my response, I wrote that these thoughts'''
+
+#     print(get_gpt_reflection(prompt, PromptProcessor(engine="davinci")))
