@@ -1,4 +1,5 @@
 # Algorithm to randomly sample a dataframe and see how good the random samples are, keeping the best one
+import numpy as np
 import pandas as pd
 
 class SampleValidator:
@@ -59,9 +60,9 @@ class SampleValidator:
 	# from the dataframe take the first n republicans and democrats
 	def sample_democrats_and_republicans(self, n):
 		democrats = self.shuffled_data[self.shuffled_data['party'] == 1]
-		democrats = democrats.drop(columns='party')
+		# democrats = democrats.drop(columns='party')
 		republicans = self.shuffled_data[self.shuffled_data['party'] == 2]
-		republicans = republicans.drop(columns='party')
+		# republicans = republicans.drop(columns='party')
 		# get a sample of 200 each
 		self.democrats = democrats.head(n)
 		self.republicans = republicans.head(n)
@@ -123,15 +124,15 @@ class SampleValidator:
 							   		 6: .04/1.01}
 							   	}
 		col_names = ['age_range', 'gender', 'education', 'race']
-		total_diff = 0
+		diffs = []
 		for name in col_names:
 			props = self.democrats[name].value_counts(normalize=True)
 			true_props = true_prop_dictionary[name]
 			col_value_counts = props.tolist()
 			for i, col_value in enumerate(props.index.tolist()):
-				total_diff += abs(true_props[col_value] - col_value_counts[i])
+				diffs.append(abs(true_props[col_value] - col_value_counts[i]))
 
-		return(total_diff / 20) # 20 is number of possible column values
+		return np.max(diffs)
 
 	# sees how close the random sample of republicans matches our desired sample
 	def validate_republican_sample(self):
@@ -162,18 +163,18 @@ class SampleValidator:
 							   		 6: .02}
 							   	}
 		col_names = ['age_range', 'gender', 'education', 'race']
-		total_diff = 0
+		diffs = []
 		for name in col_names:
 			props = self.republicans[name].value_counts(normalize=True)
 			true_props = true_prop_dictionary[name]
 			col_value_counts = props.tolist()
 			for i, col_value in enumerate(props.index.tolist()):
-				total_diff += abs(true_props[col_value] - col_value_counts[i])
+				diffs.append(abs(true_props[col_value] - col_value_counts[i]))
 
-		return(total_diff / 20) # 20 is number of possible column values
+		return np.max(diffs)
 
 	def find_good_random_sample(self, n):
-		max_iterations = 10000
+		max_iterations = float("inf")  # 10000
 		iterations = 0
 		lowest_democrat_error = 1
 		lowest_republican_error = 1
