@@ -1,7 +1,7 @@
 # Algorithm to randomly sample a dataframe and see how good the random samples are, keeping the best one
 import pandas as pd
 
-class Shuffler:
+class SampleValidator:
 
 	def __init__(self):
 		# Setting up data
@@ -37,7 +37,7 @@ class Shuffler:
 				data.at[index, 'age_range'] = "65-75"
 			else:
 				data.at[index, 'age_range'] = "75+"
-		data = data.drop(columns='age')
+		# data = data.drop(columns='age')
 
 		# updating education groupings. New groupings are:
 			# 1 - No high school degree 
@@ -50,20 +50,21 @@ class Shuffler:
 		data = data.replace(to_replace=8, value=5)
 
 		self.data = data
+
 		
 	# shuffling the dataframe so we get a random sample
 	def shuffle_data(self):
 		self.shuffled_data = self.data.sample(frac=1).reset_index(drop=True)
 
-	# from the dataframe take the first 200 republicans and democrats
-	def sample_democrats_and_republicans(self):
+	# from the dataframe take the first n republicans and democrats
+	def sample_democrats_and_republicans(self, n):
 		democrats = self.shuffled_data[self.shuffled_data['party'] == 1]
 		democrats = democrats.drop(columns='party')
 		republicans = self.shuffled_data[self.shuffled_data['party'] == 2]
 		republicans = republicans.drop(columns='party')
 		# get a sample of 200 each
-		self.democrats = democrats.head(200)
-		self.republicans = republicans.head(200)
+		self.democrats = democrats.head(n)
+		self.republicans = republicans.head(n)
 
 	def make_df_descriptive(self, df):
 		descriptive_df = df.copy()
@@ -88,6 +89,9 @@ class Shuffler:
 			descriptive_df[col] = descriptive_df[col].map(value_encodings[col])
 
 		return descriptive_df
+
+	def get_data_converted(self):
+		return self.make_df_descriptive(self.data)
 
 
 	# sees how close the random sample of democrats matches our desired sample
@@ -168,14 +172,14 @@ class Shuffler:
 
 		return(total_diff / 20) # 20 is number of possible column values
 
-	def find_good_random_sample(self):
+	def find_good_random_sample(self, n):
 		max_iterations = 10000
 		iterations = 0
 		lowest_democrat_error = 1
 		lowest_republican_error = 1
 		while iterations <= max_iterations:
 			self.shuffle_data()
-			self.sample_democrats_and_republicans()
+			self.sample_democrats_and_republicans(n)
 			percent_error_democrats = self.validate_democrat_sample()
 			if percent_error_democrats < lowest_democrat_error:
 				lowest_democrat_error = percent_error_democrats
@@ -193,9 +197,7 @@ class Shuffler:
 			iterations += 1
 
 
-shuffler = Shuffler()
-shuffler.find_good_random_sample()
-
-
-
-
+if __name__ == "__main__":
+	validator = SampleValidator()
+	print(validator.get_data_converted())
+	validator.find_good_random_sample(500)
