@@ -17,22 +17,22 @@ QUOTES = [
      "that violence is self-destructive and self-defeating. "
      "Nothing is gained by violence and so much is lost. "
      "Let us pray for reconciliation and peace.\""),
-    ("Gandhi said, \"Power is of two kinds. One is obtained "
-     "by the fear of punishment and the other by acts of love. "
-     "Power based on love is a thousand times more effective and "
-     "permanent then the one derived from fear of punishment.\""),
+    # ("Gandhi said, \"Power is of two kinds. One is obtained "
+    #  "by the fear of punishment and the other by acts of love. "
+    #  "Power based on love is a thousand times more effective and "
+    #  "permanent then the one derived from fear of punishment.\""),
     ("Gandhi said, \"True love is boundless like the ocean "
      "and rising and swelling within one spreads itself out "
      "and crossing all boundaries and frontiers envelops "
      "the whole world.\""),
-    ("The Bible says, \"Ye have heard that it hath been said, "
-     "Thou shalt love thy neighbour, and hate thine enemy. But "
-     "I say unto you, Love your enemies, bless them that curse you, "
-     "do good to them that hate you, and pray for them which "
-     "despitefully use you, and persecute you; That ye may be "
-     "the children of your Father which is in heaven: for he "
-     "maketh his sun to rise on the evil and on the good, "
-     "and sendeth rain on the just and on the unjust.\""),
+    # ("The Bible says, \"Ye have heard that it hath been said, "
+    #  "Thou shalt love thy neighbour, and hate thine enemy. But "
+    #  "I say unto you, Love your enemies, bless them that curse you, "
+    #  "do good to them that hate you, and pray for them which "
+    #  "despitefully use you, and persecute you; That ye may be "
+    #  "the children of your Father which is in heaven: for he "
+    #  "maketh his sun to rise on the evil and on the good, "
+    #  "and sendeth rain on the just and on the unjust.\""),
     ("The Bible says, \"There is no fear in love; but perfect love "
      "casteth out fear: because fear hath torment. He that feareth "
      "is not made perfect in love. We love him [God], because "
@@ -63,65 +63,65 @@ QUOTES = [
      "and death, according to the captivity and power of the devil; "
      "for he seeketh that all men might be miserable "
      "like unto himself.\""),
-    ("The Book of Mormon says, \"And now, my sons, remember, "
-     "remember that it is upon the rock of our Redeemer, who is "
-     "Christ, the Son of God, that ye must build your foundation; "
-     "that when the devil shall send forth his mighty winds, yea, "
-     "his shafts in the whirlwind, yea, when all his hail and his "
-     "mighty storm shall beat upon you, it shall have no power over "
-     "you to drag you down to the gulf of misery and endless wo, "
-     "because of the rock upon which ye are built, which is a sure "
-     "foundation, a foundation whereon if men build they cannot fall.\""),
-    ("The Bible says, \"For God so loved the world, that he "
-     "gave his only begotten Son, that whosoever believeth "
-     "in him should not perish, but have everlasting life.\""),
-    ("The Bible says, \"A new commandment I give unto you, "
-     "That ye love one another; as I have loved you, that "
-     "ye also love one another. By this shall all men "
-     "know that ye are my disciples, if ye have love one to another.\""),
-    ("The Koran says, \"O mankind! Reverence your Guardian-Lord, "
-     "who created you from a single soul, created, of like nature, "
-     "the mate, and from them twain scattered (like seeds) "
-     "countless men and women;- reverence Allah, through whom "
-     "ye demand your mutual (rights), and (reverence) the wombs "
-     "(That bore you): for Allah ever watches over you.\""),
-    ("The Koran says, \"He created you (all) from a single "
-     "person: then created, of like nature, his mate; and "
-     "he sent down for you eight head of cattle in pairs: "
-     "He makes you, in the wombs of your mothers, in stages, "
-     "one after another, in three veils of darkness. such is Allah, "
-     "your Lord and Cherisher: to Him belongs (all) dominion. "
-     "There is no god but He: then how are ye turned away "
-     "(from your true Centre)?\""),
-    ("Pope Francis said \"Human dignity is the same for all "
-     "human beings: when I trample on the dignity of another, "
-     "I am trampling on my own.\""),
+    # ("The Book of Mormon says, \"And now, my sons, remember, "
+    #  "remember that it is upon the rock of our Redeemer, who is "
+    #  "Christ, the Son of God, that ye must build your foundation; "
+    #  "that when the devil shall send forth his mighty winds, yea, "
+    #  "his shafts in the whirlwind, yea, when all his hail and his "
+    #  "mighty storm shall beat upon you, it shall have no power over "
+    #  "you to drag you down to the gulf of misery and endless wo, "
+    #  "because of the rock upon which ye are built, which is a sure "
+    #  "foundation, a foundation whereon if men build they cannot fall.\""),
+    # ("The Bible says, \"For God so loved the world, that he "
+    #  "gave his only begotten Son, that whosoever believeth "
+    #  "in him should not perish, but have everlasting life.\""),
+    # ("The Bible says, \"A new commandment I give unto you, "
+    #  "That ye love one another; as I have loved you, that "
+    #  "ye also love one another. By this shall all men "
+    #  "know that ye are my disciples, if ye have love one to another.\""),
+    # ("The Koran says, \"O mankind! Reverence your Guardian-Lord, "
+    #  "who created you from a single soul, created, of like nature, "
+    #  "the mate, and from them twain scattered (like seeds) "
+    #  "countless men and women;- reverence Allah, through whom "
+    #  "ye demand your mutual (rights), and (reverence) the wombs "
+    #  "(That bore you): for Allah ever watches over you.\""),
+    # ("The Koran says, \"He created you (all) from a single "
+    #  "person: then created, of like nature, his mate; and "
+    #  "he sent down for you eight head of cattle in pairs: "
+    #  "He makes you, in the wombs of your mothers, in stages, "
+    #  "one after another, in three veils of darkness. such is Allah, "
+    #  "your Lord and Cherisher: to Him belongs (all) dominion. "
+    #  "There is no god but He: then how are ye turned away "
+    #  "(from your true Centre)?\""),
+    # ("Pope Francis said \"Human dignity is the same for all "
+    #  "human beings: when I trample on the dignity of another, "
+    #  "I am trampling on my own.\""),
     ("Anton Chekhov said, \"Everything on earth is beautiful, "
      "everything -- except what we ourselves think and do when "
      "we forget the higher purposes of life and our "
      "own human dignity.\""),
-    ("Helen Keller said, \"If we make up our minds that "
-     "this is a drab and purposeless universe, it will be "
-     "that, and nothing else. On the other hand, if we believe "
-     "that the earth is ours, and that the sun and moon hang in "
-     "the sky for our delight, there will be joy upon the hills and "
-     "gladness in the fields because the Artist in our souls "
-     "glorifies creation. Surely, it gives dignity to life to "
-     "believe that we are born into this world for noble ends, "
-     "and that we have a higher destiny than can be "
-     "accomplished within the narrow limits of this physical life.\""),
+    # ("Helen Keller said, \"If we make up our minds that "
+    #  "this is a drab and purposeless universe, it will be "
+    #  "that, and nothing else. On the other hand, if we believe "
+    #  "that the earth is ours, and that the sun and moon hang in "
+    #  "the sky for our delight, there will be joy upon the hills and "
+    #  "gladness in the fields because the Artist in our souls "
+    #  "glorifies creation. Surely, it gives dignity to life to "
+    #  "believe that we are born into this world for noble ends, "
+    #  "and that we have a higher destiny than can be "
+    #  "accomplished within the narrow limits of this physical life.\""),
     ("In January 2021, many Republicans and then-U.S. President "
      "Donald Trump supporters rioted and stormed the US Capitol. "
      "GOP House Minority Leader Kevin McCarthy said, \"We can "
      "disagree but we should not take it to this level. This is "
      "unacceptable.... You do not do what is happening right now. "
      "People are being hurt. This is unacceptable.\""),
-    ("In January 2021, many Republicans and then-U.S. President "
-     "Donald Trump supporters rioted and stormed the US Capitol. "
-     "GOP House Minority Whip Steve Scalise said, \"United States "
-     "Capitol Police saved my life, attacks on law enforcement "
-     "officers trying to do their jobs are never acceptable. "
-     "Period. We can passionately protest without being violent.\""),
+    # ("In January 2021, many Republicans and then-U.S. President "
+    #  "Donald Trump supporters rioted and stormed the US Capitol. "
+    #  "GOP House Minority Whip Steve Scalise said, \"United States "
+    #  "Capitol Police saved my life, attacks on law enforcement "
+    #  "officers trying to do their jobs are never acceptable. "
+    #  "Period. We can passionately protest without being violent.\""),
     ("In January 2021, many Republicans and then-U.S. President "
      "Donald Trump supporters rioted and stormed the US Capitol. "
      "Senator Ted Cruz, a Texas Republican, said, \"Violence is "
@@ -160,13 +160,13 @@ QUOTES = [
      "antifa in Berkeley this weekend deserve unequivocal "
      "condemnation, and the perpetrators should be "
      "arrested and prosecuted.\""),
-    ("In June 2020, Representative James Clyburn of South Carolina, "
-     "the House majority whip, said violence related to the Black "
-     "Lives Matter movement was hijacking the social justice "
-     "movement. \"Peaceful protest is our game. Violence is their "
-     "game. Purposeful protest is our game. This looting and "
-     "rioting, that's their game. We cannot allow ourselves "
-     "to play their game,\" he said."),
+    # ("In June 2020, Representative James Clyburn of South Carolina, "
+    #  "the House majority whip, said violence related to the Black "
+    #  "Lives Matter movement was hijacking the social justice "
+    #  "movement. \"Peaceful protest is our game. Violence is their "
+    #  "game. Purposeful protest is our game. This looting and "
+    #  "rioting, that's their game. We cannot allow ourselves "
+    #  "to play their game,\" he said."),
     ("In 2020, the popular Black Lives Matter social movement "
      "burst into political violence on several occasions. Former "
      "U.S. President Barack Obama said, \"Let's not excuse "
@@ -174,14 +174,14 @@ QUOTES = [
      "we want our criminal justice system, and American "
      "society at large, to operate on a higher ethical "
      "code, then we have to model that code ourselves.\""),
-    ("In August 2020, Black Lives Matter protests became "
-     "destructive in Denver, CO. Colorado's Democratic "
-     "Governor Jared Polis criticized Denver protesters "
-     "who started fires, destroyed property and injured a "
-     "police officer, tweeting they had committed \"acts "
-     "of criminal terrorism.\" He said, \"An attack against "
-     "any of our lives and property is an attack against "
-     "all of our lives and property.\""),
+    # ("In August 2020, Black Lives Matter protests became "
+    #  "destructive in Denver, CO. Colorado's Democratic "
+    #  "Governor Jared Polis criticized Denver protesters "
+    #  "who started fires, destroyed property and injured a "
+    #  "police officer, tweeting they had committed \"acts "
+    #  "of criminal terrorism.\" He said, \"An attack against "
+    #  "any of our lives and property is an attack against "
+    #  "all of our lives and property.\""),
     ("In 2020, the popular Black Lives Matter social "
      "movement burst into political violence on several "
      "occasions. Senator Kamala Harris said, \"We must "
@@ -191,14 +191,14 @@ QUOTES = [
      "who was arrested for murder. Make no mistake, we will "
      "not let these vigilantes and extremists derail "
      "the path to justice.\""),
-    ("In 2020, the popular Black Lives Matter social "
-     "movement burst into political violence on several "
-     "occasions. Former U.S. President Joe Biden said, \"The "
-     "deadly violence we saw overnight in Portland is "
-     "unacceptable...as a country we must condemn the "
-     "incitement of hate and resentment that led to this "
-     "deadly clash. It is not a peaceful protest when you "
-     "go out spoiling for a fight.\""),
+    # ("In 2020, the popular Black Lives Matter social "
+    #  "movement burst into political violence on several "
+    #  "occasions. Former U.S. President Joe Biden said, \"The "
+    #  "deadly violence we saw overnight in Portland is "
+    #  "unacceptable...as a country we must condemn the "
+    #  "incitement of hate and resentment that led to this "
+    #  "deadly clash. It is not a peaceful protest when you "
+    #  "go out spoiling for a fight.\""),
     ("In January 2021, many Republicans and then-U.S. "
      "President Donald Trump supporters rioted and stormed "
      "the US Capitol. Former U.S. President George W. Bush "
@@ -218,33 +218,33 @@ QUOTES = [
      "politics of the moment. Let the officials elected "
      "by the people fulfill their duties and represent "
      "our voices in peace and safety.\""),
-    ("In January 2021, many Republicans and then-U.S. "
-     "President Donald Trump supporters rioted and stormed "
-     "the US Capitol. Senator Josh Hawley said, \"I hope "
-     "that this body will not miss the opportunity to take "
-     "affirmative action to address the concerns of so "
-     "many millions of Americans to say to millions of "
-     "Americans tonight that violence is never warranted, "
-     "that violence will not be tolerated, those that "
-     "engage in it will be prosecuted but that this body "
-     "will act to address the concerns of all "
-     "Americans across the country.\""),
-    ("In January 2021, many Republicans and then-U.S. "
-     "President Donald Trump supporters rioted and stormed "
-     "the US Capitol. Utah Governor Spencer Cox "
-     "said, \"I'm deeply troubled at the chaos, the "
-     "devastation, the cowardly acts of violence that "
-     "we are seeing in our nation's capital on this day. "
-     "As patriots, … as Americans, as people who care deeply "
-     "about each other, and care deeply about this great "
-     "nation, I urge you to stand up and speak out against "
-     "the violence, against the terrorists, against the "
-     "evil we have seen in our nations capitol "
-     "today. ... We are better than this in America. We "
-     "have been an example to the rest of the world when "
-     "it comes to our elections when it comes to the way that "
-     "we protest when it comes to the freedoms and the "
-     "freedoms and liberties that we so enjoy.\""),
+    # ("In January 2021, many Republicans and then-U.S. "
+    #  "President Donald Trump supporters rioted and stormed "
+    #  "the US Capitol. Senator Josh Hawley said, \"I hope "
+    #  "that this body will not miss the opportunity to take "
+    #  "affirmative action to address the concerns of so "
+    #  "many millions of Americans to say to millions of "
+    #  "Americans tonight that violence is never warranted, "
+    #  "that violence will not be tolerated, those that "
+    #  "engage in it will be prosecuted but that this body "
+    #  "will act to address the concerns of all "
+    #  "Americans across the country.\""),
+    # ("In January 2021, many Republicans and then-U.S. "
+    #  "President Donald Trump supporters rioted and stormed "
+    #  "the US Capitol. Utah Governor Spencer Cox "
+    #  "said, \"I'm deeply troubled at the chaos, the "
+    #  "devastation, the cowardly acts of violence that "
+    #  "we are seeing in our nation's capital on this day. "
+    #  "As patriots, … as Americans, as people who care deeply "
+    #  "about each other, and care deeply about this great "
+    #  "nation, I urge you to stand up and speak out against "
+    #  "the violence, against the terrorists, against the "
+    #  "evil we have seen in our nations capitol "
+    #  "today. ... We are better than this in America. We "
+    #  "have been an example to the rest of the world when "
+    #  "it comes to our elections when it comes to the way that "
+    #  "we protest when it comes to the freedoms and the "
+    #  "freedoms and liberties that we so enjoy.\""),
     ("In 2020, the popular Black Lives Matter social "
      "movement burst into political violence on several "
      "occasions. Former U.S. President Barack Obama "
@@ -351,7 +351,7 @@ QUESTIONS = [
               "towards [Pso], I would say that I feel \""),
              ["warm", "cold"]),
     Question(("If I were given a dollar and then asked "
-              "whether I would share \"all of it\" or "
+              "whether I would share \"all of kalmoeit\" or "
               "\"none of it\" with a [Ppo], I would "
               "answer that I would share \""),
              ["none of it", "all of it"])
@@ -465,6 +465,11 @@ def run_experiment(republican_csv_fname,
                     "democrat": democrat_csv_fname}
 
     for party_name, fname in party_fnames.items():
+        if exp_name == 'kalmoe':
+            data_dir = f'data/{party_name}_kalmoe_firstpass.csv'
+        elif exp_name == 'composite':
+            data_dir = f'data/{party_name}_composite'
+
 
         # Load data
         df = pd.read_csv(fname)
