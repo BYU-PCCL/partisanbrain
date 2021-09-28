@@ -8,7 +8,7 @@ import pandas as pd
 import tqdm
 
 # Authenticate with openai
-openai.api_key = os.getenv("GPT_3_API_KEY")
+openai.api_key = "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"
 
 
 QUOTES = [
@@ -475,8 +475,14 @@ def run_experiment(republican_csv_fname,
         for _, row in tqdm.tqdm(df.iterrows(),
                                 total=df.shape[0]):
 
+            backstory_context = ContextPrompt(row,
+                                    party_name,
+                                    0,
+                                    context="")
+            bsc = backstory_context._get_backstory()
+
             # Get respondent context here
-            resp_context = respondent_context_fn()
+            resp_context = respondent_context_fn(bsc)
 
             for dv_idx in tqdm.tqdm(range(10)):
 
@@ -530,11 +536,12 @@ def run_passive_experiment(republican_csv_fname,
                    engine,
                    treatment=treatment,
                    context_fn=lambda: [None],
+                   respondent_context_fn=lambda x: None,
                    dry_run=dry_run)
 
 
-def get_gpt_reflection(prompt, processor):
-    resp_obj = processor.process_prompt(prompt, max_tokens=200)
+def get_gpt_reflection(backstory, prompt, processor):
+    resp_obj = processor.process_prompt(backstory + '\n\n' + prompt, max_tokens=200)
     resp_str = resp_obj.choices[0].text
     resp_str = resp_str.replace("  ", " ")
     resp_str = resp_str.split("\n")[0]
@@ -552,6 +559,7 @@ def run_kalmoe_experiment(republican_csv_fname,
                    engine,
                    treatment=treatment,
                    context_fn=lambda: QUOTES,
+                   respondent_context_fn=lambda x: None,
                    dry_run=dry_run)
 
 
@@ -641,19 +649,19 @@ def run_composite_experiment(republican_csv_fname,
 
 
 if __name__ == "__main__":
-    # run_kalmoe_experiment("best_republican_sample_sml.csv",
-    #                       "best_democrat_sample_sml.csv",
+    # run_kalmoe_experiment("best_republican_sample.csv",
+    #                       "best_democrat_sample.csv",
     #                       "ada",
-    #                       dry_run=False)
+    #                       dry_run=True)
     # run_passive_experiment("best_republican_sample.csv",
     #                        "best_democrat_sample.csv",
     #                        "ada",
-    #                        dry_run=False)
-    run_mixed_affect_experiment("best_republican_sample.csv",
-                                "best_democrat_sample.csv",
-                                "davinci",
-                                dry_run=False)
+    #                        dry_run=True)
+    # run_mixed_affect_experiment("best_republican_sample.csv",
+    #                             "best_democrat_sample.csv",
+    #                             "davinci",
+    #                             dry_run=True)
     # run_composite_experiment("best_republican_sample.csv",
     #                          "best_democrat_sample.csv",
     #                          "davinci",
-    #                          dry_run=False)
+    #                          dry_run=True)
