@@ -207,7 +207,7 @@ def make_dict(df, key, value):
     '''
     return {k: df[value][df[key] == k] for k in df[key].unique()}
 
-def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
+def plot_bar(treatment_dict, y_label='', x_label='', title='', save_path=''):
     '''
     Given a dictionary of results, plot a bar chart.
     Arguments:
@@ -230,11 +230,13 @@ def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
         plt.ylabel(y_label)
     if x_label:
         plt.xlabel(x_label)
+    if title:
+        plt.title(title)
     if save_path:
         plt.savefig(save_path)
     plt.show()
 
-def grouped_bar(means, stds, x_label='', y_label='', save_path=''):
+def grouped_bar(means, stds, x_label='', y_label='', title='', save_path=''):
     '''
     Given a 2d dataframe of means and stds, plot a grouped bar chart.
     Arguments:
@@ -265,6 +267,8 @@ def grouped_bar(means, stds, x_label='', y_label='', save_path=''):
         plt.xlabel(x_label)
     if y_label:
         plt.ylabel(y_label)
+    if title:
+        plt.title(title)
     if save_path:
         plt.savefig(save_path)
     plt.show()
@@ -442,19 +446,30 @@ if __name__ == '__main__':
         'data/kalmoe_republican.csv',
     ]
     data = read_many_data(paths)
-    breakpoint()
 
     # plot 'dv' and 'treatment' against 'score'
     means, stds = get_means_and_stds(data, 'dv', 'treatment', 'score')
-    grouped_bar(means, stds, x_label='Question', y_label='Score', save_path='dv_treatment_score.pdf')
+    grouped_bar(means, stds, x_label='Measure', y_label='Score', save_path='measure_treatment_score.pdf')
 
     # plot 'category' and 'treatment' against 'score'
     means, stds = get_means_and_stds(data, 'category', 'treatment', 'score')
-    grouped_bar(means, stds, x_label='Category', y_label='Score', save_path='category_treatment_score.pdf')
+    grouped_bar(means, stds, x_label='DV', y_label='Score', save_path='dv_treatment_score.pdf')
 
     # plot 'treatment' against 'score'
     dict1 = make_dict(data, 'treatment', 'score')
     plot_bar(dict1, y_label='Score', x_label='Treatment', save_path='treatment_score.pdf')
+
+    # plot democrats vs. republicans
+    for party in ['democrat', 'republican']:
+        data_party = data[data['party'] == party]
+        means, stds = get_means_and_stds(data_party, 'dv', 'treatment', 'score')
+        grouped_bar(means, stds, x_label='Measure', y_label='Score', title=party, save_path=f'{party}_measure_treatment_score.pdf')
+
+        means, stds = get_means_and_stds(data_party, 'category', 'treatment', 'score')
+        grouped_bar(means, stds, x_label='DV', y_label='Score', title=party, save_path=f'{party}_dv_treatment_score.pdf')
+
+        dict1 = make_dict(data_party, 'treatment', 'score')
+        plot_bar(dict1, y_label='Score', x_label='Treatment', title=party, save_path=f'{party}_treatment_score.pdf')
 
 
     pass
