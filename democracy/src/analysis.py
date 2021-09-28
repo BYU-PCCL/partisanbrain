@@ -28,6 +28,53 @@ def read_data(path):
     elif 'republican' in path:
         party = 'republican'
     data['party'] = party
+    # map dv_idx to dv
+    name_map = {
+        0: '0: reduce polling stations',
+        1: '1: ignore court rulings',
+        2: '2: prosecute journalists',
+        3: '3: reject election results',
+        4: '4: threatening messages',
+        5: '5: harrassment',
+        6: '6: violence for political goals',
+        7: '7: violence if win more races',
+        8: '8: temperature',
+        9: '9: money split',
+    }
+    # map using name_map
+    data['dv'] = data['dv_idx'].map(name_map)
+    # map dv_idx to category
+    cat_map = {
+        0: 'anti-democratic',
+        1: 'anti-democratic',
+        2: 'anti-democratic',
+        3: 'anti-democratic',
+        4: 'violence',
+        5: 'violence',
+        6: 'violence',
+        7: 'violence',
+        8: 'polarization',
+        9: 'polarization',
+    }
+    # map using cat_map
+    data['category'] = data['dv_idx'].map(cat_map)
+    # parse
+    data = parse_responses(data)
+    def treatment(row):
+        # if 'treatment' is 'composite' or 'kalmoe'
+        if row['treatment'] in ['composite', 'kalmoe']:
+            possible_quotes = [
+                'McConnell',
+                'Cruz',
+                'Biden',
+                'Pelosi',
+            ]
+            for person in possible_quotes:
+                if person in row['prompt']:
+                    return row['treatment'] + '-' + person
+        else:
+            return row['treatment']
+    data['treatment'] = data.apply(treatment, axis=1)
     return data
 
 def read_many_data(paths):
@@ -149,11 +196,18 @@ def parse_responses(df):
         resp = row['parsed_resp']
         return resp['coverage']
     df['score'] = df.apply(lambda x: get_score(x), axis=1)
-    df['dv'] = df.apply(lambda x: get_dv(x), axis=1)
+    # df['dv'] = df.apply(lambda x: get_dv(x), axis=1)
     df['coverage'] = df.apply(lambda x: get_coverage(x), axis=1)
     return df
 
-def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
+def make_dict(df, key, value):
+    '''
+    Given a dataframe, make a dictionary where the keys are the unique values of the key column,
+    and the values are all the values of the value column for that key.
+    '''
+    return {k: df[value][df[key] == k] for k in df[key].unique()}
+
+def plot_bar(treatment_dict, y_label='', x_label='', title='', save_path=''):
     '''
     Given a dictionary of results, plot a bar chart.
     Arguments:
@@ -168,7 +222,7 @@ def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
         std = np.std(results)
         means.append(mean)
         stds.append(std)
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=(10,7))
     plt.bar(treatments, means, yerr=stds)
     # rotate x labels
     plt.xticks(rotation=15)
@@ -176,9 +230,64 @@ def plot_bar(treatment_dict, y_label='', x_label='', save_path=''):
         plt.ylabel(y_label)
     if x_label:
         plt.xlabel(x_label)
+    if title:
+        plt.title(title)
     if save_path:
         plt.savefig(save_path)
     plt.show()
+
+def grouped_bar(means, stds, x_label='', y_label='', title='', save_path=''):
+    '''
+    Given a 2d dataframe of means and stds, plot a grouped bar chart.
+    Arguments:
+        means: a 2d dataframe of means. Index is the x-axis, columns are the groups (colors).
+        stds: a 2d dataframe of stds. Index is the x-axis, columns are the groups (colors).
+        x_label: the x-axis label
+        y_label: the y-axis label
+        save_path: the path to save the plot to.
+    '''
+    n_x, n_groups = means.shape
+    x = np.arange(n_x)
+    width = 1/(n_groups+1)
+
+    x_labels = means.index.values
+    groups = means.columns.values
+
+    plt.figure(figsize=(10,7))
+    for i, group in enumerate(groups):
+        # plt.bar(x + (i - n_groups/2)*width, means[group], width, yerr=stds[group], label=group[:10], color=f'C{i}', alpha=.8)
+        plt.bar(x + (i - n_groups/2)*width, means[group], width, yerr=stds[group], label=group, color=f'C{i}', alpha=.8)
+
+    plt.xticks(x - width/2, x_labels)
+    # rotate x labels
+    plt.xticks(rotation=15, ha='right')
+
+    plt.legend()
+    if x_label:
+        plt.xlabel(x_label)
+    if y_label:
+        plt.ylabel(y_label)
+    if title:
+        plt.title(title)
+    if save_path:
+        plt.savefig(save_path)
+    plt.show()
+
+def get_means_and_stds(df, index, col, value, scale_by_n=False):
+    '''
+    Groupby the index and col, and get the mean and std of the value column.
+    '''
+    agg = df.groupby([index, col]).agg({value: ['mean', 'std', 'count']})
+    means, std = agg[value]['mean'], agg[value]['std']
+    # unstack the index and col
+    means = means.unstack(level=1)
+    stds = std.unstack(level=1)
+    counts = agg[value]['count'].unstack(level=1)
+    if scale_by_n:
+        stds = stds/np.sqrt(counts)
+    return means, stds
+
+
 
 def t_test(treatment_dict):
     '''
@@ -198,12 +307,7 @@ def t_test(treatment_dict):
                 p_values.loc[treatment1, treatment2] = p_value
     return p_values
 
-def make_dict(df, key, value):
-    '''
-    Given a dataframe, make a dictionary where the keys are the unique values of the key column,
-    and the values are all the values of the value column for that key.
-    '''
-    return {k: df[value][df[key] == k] for k in df[key].unique()}
+
 
 
 if __name__ == '__main__':
@@ -241,25 +345,131 @@ if __name__ == '__main__':
     # plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.png')
 
     ###########
-    # read in many dataframes
+    # # read in many dataframes
+    # paths = [
+    #     'data/passive_democrat.csv',
+    #     'data/passive_republican.csv',
+    #     # 'data/kalmoe_democrat.csv',
+    #     'data/kalmoe_republican.csv',
+    # ]
+    # data = read_many_data(paths)
+    # # data = parse_responses(data)
+    # # plot 'dv' againts 'score'
+    # dict1 = make_dict(data, 'dv', 'score')
+    # plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.pdf')
+    # # plot 'dv' againts 'coverage'
+    # dict2 = make_dict(data, 'dv', 'coverage')
+    # plot_bar(dict2, y_label='Coverage', x_label='dv', save_path='coverage.pdf')
+    # # plot 'education' against 'score'
+    # dict3 = make_dict(data, 'education', 'score')
+    # plot_bar(dict3, y_label='Score', x_label='education', save_path='education.pdf')
+    # # plot 'treatment' against 'score'
+    # dict4 = make_dict(data, 'treatment', 'score')
+    # plot_bar(dict4, y_label='Score', x_label='treatment', save_path='treatment.pdf')
+
+    ###########
+    # test grouped bar
+    # means = pd.DataFrame([
+    #     ['A', 10, 20, 10, 30],
+    #     ['B', 20, 25, 15, 25],
+    #     ['C', 12, 15, 19, 6],
+    #     ['D', 10, 29, 13, 19]],
+    #     columns=['Team', 'Round 1', 'Round 2', 'Round 3', 'Round 4']
+    # )
+    # # make 'Team' index
+    # means.set_index('Team', inplace=True)
+    # stds = pd.DataFrame([
+    #     ['A', 1, 2, 1, 3],
+    #     ['B', 2, 2, 2, 2],
+    #     ['C', 1, 1, 1, 1],
+    #     ['D', 1, 3, 1, 1]],
+    #     columns=['Team', 'Round 1', 'Round 2', 'Round 3', 'Round 4']
+    # )
+    # # make 'Team' index
+    # stds.set_index('Team', inplace=True)
+    # grouped_bar(means, stds, save_path='bar.pdf')
+
+    ###########
+    # get means and std for 'dv' and 'treatment', averaging over 'score'
+    # paths = [
+    #     'data/passive_democrat.csv',
+    #     'data/passive_republican.csv',
+    #     # 'data/kalmoe_democrat.csv',
+    #     'data/kalmoe_republican.csv',
+    # ]
+    # data = read_many_data(paths)
+    # means, stds = get_means_and_stds(data, 'dv', 'treatment', 'score')
+    # grouped_bar(means, stds, x_label='dv', y_label='score', save_path='dv_treatment_score.pdf')
+
+    ###########
+    # get means and std for 'dv' and 'party', averaging over 'score'
+    # paths = [
+    #     'data/passive_democrat.csv',
+    #     'data/passive_republican.csv',
+    #     # 'data/kalmoe_democrat.csv',
+    #     'data/kalmoe_republican.csv',
+    # ]
+    # data = read_many_data(paths)
+    # means, stds = get_means_and_stds(data, 'dv', 'party', 'score')
+    # grouped_bar(means, stds, x_label='dv', y_label='score', save_path='dv_party_score.pdf')
+
+    ###########
+    # paths = [
+    #     'data/kalmoe_republican.csv',
+    # ]
+    # data = read_many_data(paths)
+    # # make a new column called 'quote' that is the 'prompt' field, split by \n\n, 1th element
+    # data['quote'] = data['prompt'].apply(lambda x: x.split('\n\n')[1])
+
+    # # # plot 'dv' againts 'score'
+    # # dict1 = make_dict(data, 'dv_idx', 'score')
+    # # plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.pdf')
+    # # geat means and std for 'quote' and 'dv_idx', averaging over 'score'
+    # # means, stds = get_means_and_stds(data, 'dv_idx', 'quote', 'score')
+    # means, stds = get_means_and_stds(data, 'quote', 'dv_idx', 'score')
+    # grouped_bar(means, stds, x_label='dv', y_label='score', save_path='dv_quote_score.pdf')
+    # breakpoint()
+
+    # # group by 'quote' and average score
+    # means = data.groupby('quote').agg({'score': 'mean'})
+    # # sort by 'score'
+    # means.sort_values('score', inplace=True)
+
     paths = [
+        'data/composite_democrat.csv',
+        'data/composite_republican.csv',
         'data/passive_democrat.csv',
         'data/passive_republican.csv',
-        # 'data/kalmoe_democrat.csv',
+        'data/mixed_affect_republican.csv',
+        'data/mixed_affect_democrat.csv',
+        'data/kalmoe_democrat.csv',
         'data/kalmoe_republican.csv',
     ]
     data = read_many_data(paths)
-    data = parse_responses(data)
-    # plot 'dv' againts 'score'
-    dict1 = make_dict(data, 'dv', 'score')
-    plot_bar(dict1, y_label='Score', x_label='dv', save_path='test.pdf')
-    # plot 'dv' againts 'coverage'
-    dict2 = make_dict(data, 'dv', 'coverage')
-    plot_bar(dict2, y_label='Coverage', x_label='dv', save_path='coverage.pdf')
-    # plot 'education' against 'score'
-    dict3 = make_dict(data, 'education', 'score')
-    plot_bar(dict3, y_label='Score', x_label='education', save_path='education.pdf')
+
+    # plot 'dv' and 'treatment' against 'score'
+    means, stds = get_means_and_stds(data, 'dv', 'treatment', 'score')
+    grouped_bar(means, stds, x_label='Measure', y_label='Score', save_path='measure_treatment_score.pdf')
+
+    # plot 'category' and 'treatment' against 'score'
+    means, stds = get_means_and_stds(data, 'category', 'treatment', 'score')
+    grouped_bar(means, stds, x_label='DV', y_label='Score', save_path='dv_treatment_score.pdf')
+
     # plot 'treatment' against 'score'
-    dict4 = make_dict(data, 'treatment', 'score')
-    plot_bar(dict4, y_label='Score', x_label='treatment', save_path='treatment.pdf')
+    dict1 = make_dict(data, 'treatment', 'score')
+    plot_bar(dict1, y_label='Score', x_label='Treatment', save_path='treatment_score.pdf')
+
+    # plot democrats vs. republicans
+    for party in ['democrat', 'republican']:
+        data_party = data[data['party'] == party]
+        means, stds = get_means_and_stds(data_party, 'dv', 'treatment', 'score')
+        grouped_bar(means, stds, x_label='Measure', y_label='Score', title=party, save_path=f'{party}_measure_treatment_score.pdf')
+
+        means, stds = get_means_and_stds(data_party, 'category', 'treatment', 'score')
+        grouped_bar(means, stds, x_label='DV', y_label='Score', title=party, save_path=f'{party}_dv_treatment_score.pdf')
+
+        dict1 = make_dict(data_party, 'treatment', 'score')
+        plot_bar(dict1, y_label='Score', x_label='Treatment', title=party, save_path=f'{party}_treatment_score.pdf')
+
+
     pass
