@@ -205,5 +205,5 @@ class SampleValidator:
 
 if __name__ == "__main__":
 	validator = SampleValidator()
-	print(validator.get_data_converted())
-	validator.find_good_random_sample(100)
+	# print(validator.get_data_converted())
+	validator.find_good_random_sample(500)
