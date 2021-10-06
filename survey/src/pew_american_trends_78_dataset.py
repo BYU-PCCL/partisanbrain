@@ -10,7 +10,7 @@ class PewAmericanTrendsWave78Dataset(Dataset):
         # Do not copy samples=500 for other survey subclasses
         # It is unique to the Pew American Trends datasets
         super().__init__(survey_fname,
-                         samples=500)
+                         samples=200)
 
     def _filter_to_usa(self, df):
         # Since everyone in Pew American Trends Wave 78

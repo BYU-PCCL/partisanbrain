@@ -132,12 +132,12 @@ class ResultExplorer:
     def _get_score_dict(self, dv_name, row_idx):
         resp = self._results[dv_name][row_idx][1]
         logit_dict = resp["choices"][0]["logprobs"]["top_logprobs"][0]
+        logit_dict_exp = {k: np.exp(v) for (k, v) in logit_dict.items()}
+        logit_exp_sum = sum(logit_dict_exp.values())
+        probs = {k: v / logit_exp_sum for (k, v) in logit_dict_exp.items()}
         answer_map = self._ds._get_col_prompt_specs()[dv_name].answer_map
         possible_vals = [val.split()[0].lower() for val in list(answer_map.values())]
-        # print("A"*50)
-        # print(logit_dict)
-        # print(possible_vals)
-        # print("B"*50)
+
         kept_vals = []
         for val in possible_vals:
             for k, v in logit_dict.items():
@@ -145,16 +145,18 @@ class ResultExplorer:
                     if val.startswith(k.strip().lower()):
                         kept_vals.append(k.strip().lower())
         kept_vals = list(set(kept_vals))
-        logit_dict = {k: v for (k, v) in logit_dict.items()
-                      if k.strip().lower() in kept_vals}
-        # print(logit_dict)
-        logit_dict = {k: np.exp(v) for (k, v) in logit_dict.items()}
-        val_sum = sum(list(logit_dict.values()))
-        logit_dict = {k: v/val_sum for (k, v) in logit_dict.items()}
+
+        probs = {k: v for (k, v) in probs.items()
+                 if k.strip().lower() in kept_vals}
+
+        # Normalize to add to 1
+        probs_tot = sum(probs.values())
+        probs = {k: v / probs_tot for (k, v) in probs.items()}
+
         score_dict = dict(zip(possible_vals, [0]*len(possible_vals)))
-        for k, v in logit_dict.items():
+        for k, v in probs.items():
             match_count = 0
-            for pv, score in score_dict.items():
+            for pv, _ in score_dict.items():
                 if pv.startswith(k.strip().lower()):
                     match_count += 1
                     if match_count == 2:
@@ -484,14 +486,14 @@ if __name__ == "__main__":
     from pew_american_trends_78_dataset import PewAmericanTrendsWave78Dataset
     from baylor_religion_survey_dataset import BaylorReligionSurveyDataset
     from anes import AnesDataset
-    re = ResultExplorer("patsy_87_davinci_200.pkl",
-                        PewAmericanTrendsWave78Dataset())
+    re = ResultExplorer("baylor_mega.pkl",
+                        BaylorReligionSurveyDataset())
     # re.average_demographics()
     # re.summary_dfs_to_excel("output.xlsx")
-    # print(re.get_raw_accs())
+    print(re.get_raw_accs())
     # print(re.get_cramers_v_values())
-    # re.get_cramers_quadriptych()
-    re.summary_dfs_to_excel("output.xlsx")
+    re.get_cramers_quadriptych()
+    # re.summary_dfs_to_excel("output.xlsx")
     # re.plot_simplexes()
     # re.get_best_accs()
 
