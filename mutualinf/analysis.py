@@ -28,18 +28,38 @@ def calculate_accuracy(df):
 
     Returns modified df.
     '''
-    raise NotImplementedError
+    df = df.copy()
+
+    # Get the possible target values
+    y = eval(df.categories.iloc[0])
+
+    # Calculate the accuracy for each row
+    df['accuracy'] = (df[y].idxmax(axis=1) == df.ground_truth).astype(int)
+
+    return df
 
 def calculate_mutual_info(df):
     '''
-    Calculates the mutual information of the model. Adds a column called 'mutual info' to df.
+    Calculates the mutual information, up to a constant. Adds a column called 'mutual info' to df.
     df (pandas.DataFrame): dataframe with columns 'template', 'categories', and 'ground truth'
 
     Returns modified df.
     '''
-    raise NotImplementedError
+    df = df.copy()
+
+    # Get the possible target values
+    y = eval(df.categories.iloc[0])
+
+    # Our function for calculating conditional entropy
+    h = lambda row: - sum([ row[y_i] * np.log(row[y_i]) for y_i in y])
+
+    # Calculate conditional entropy for each row
+    df['mutual_info'] = [h(row) for _, row in df.iterrows()]
+
+    return df
 
 # TODO - do correlation analysis between templates and ground truth. Add in functions for this?
+
 
 if __name__ == '__main__':
     # read in 'example.csv'
@@ -48,4 +68,6 @@ if __name__ == '__main__':
     df = calculate_accuracy(df)
     # calculate mutual info
     df = calculate_mutual_info(df)
+
+    print(df)
     # TODO - correlation analysis between templates and ground truth.
