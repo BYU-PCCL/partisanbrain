@@ -9,7 +9,7 @@ def read_df(path):
     Expected columns are:
         - 'template_name' (str): name of templatizing strategy
         - 'categories' (list): list of potential categories. For example, ['Trump', 'Clinton']
-        - 'ground truth' (string): ground truth response. One of the categories in df['categories']
+        - 'ground_truth' (string): ground truth response. One of the categories in df['categories']
         - category1, category2, ... (float): each category will be a column in the df, corresponds to probability mass for each respones. Should sum to one across all categories.
     '''
     if path.endswith('csv'):
@@ -25,7 +25,7 @@ def read_df(path):
 def calculate_accuracy(df):
     '''
     Calculates the accuracy of the model. Adds a column called 'accuracy' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
 
     Returns modified df.
     '''
@@ -42,7 +42,7 @@ def calculate_accuracy(df):
 def calculate_mutual_info(df):
     '''
     Calculates the mutual information, up to a constant. Adds a column called 'mutual info' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
 
     Returns modified df.
     '''
@@ -52,24 +52,24 @@ def calculate_mutual_info(df):
     y = df.categories.iloc[0]
 
     # Our function for calculating conditional entropy
-    h = lambda row: - sum([ row[y_i] * np.log(row[y_i]) for y_i in y])
+    get_cond_entropy = lambda row: -sum([row[y_i] * np.log(row[y_i]) for y_i in y])
 
     # Calculate conditional entropy for each row
-    df['mutual_info'] = [h(row) for _, row in df.iterrows()]
+    df['mutual_info'] = [get_cond_entropy(row) for _, row in df.iterrows()]
 
     return df
 
 def calculate_correct_weight(df):
     '''
     Calculates the correct_weight. Adds a column called 'correct_weight' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
 
     Returns modified df.
     '''
     df = df.copy()
 
     # Our function for calculating weight on ground truth
-    get_correct_weight = lambda row: row[f'{row.ground_truth}']
+    get_correct_weight = lambda row: row[row.ground_truth]
 
     # Calculate conditional entropy for each row
     df['correct_weight'] = [get_correct_weight(row) for _, row in df.iterrows()]
