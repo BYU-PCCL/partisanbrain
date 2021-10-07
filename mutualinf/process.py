@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import numpy as np
 import openai
 import os
 
@@ -8,8 +9,8 @@ openai.api_key = os.getenv("GPT_3_API_KEY")
 
 
 TEMPLATES = {
-    "template_1": lambda row: f"I am {row['age']} and I am {row['party']}. Between cat and bird I like",
-    "template_2": lambda row: f"I am {row['age']} and I am {row['party']}. Between cat and bird I love"
+    "template_1": lambda row: f"I am {row['food']} and I am {row['age']}. Between carrots and bacon I prefer",
+    "template_2": lambda row: f"I am {row['age']} and I am {row['food']}. Between carrots and bacon I prefer"
 }
 
 
@@ -27,14 +28,22 @@ def process_prompt(prompt, gpt_3_engine):
 
 def extract_category_probs(gpt_3_response, categories_key_sets):
     probs_dict = gpt_3_response["choices"][0]["logprobs"]["top_logprobs"][0]
-    allowed_vals = [item.strip().lower() for sublist in
-                    list(categories_key_sets.values())
-                    for item in sublist]
-    print(allowed_vals)
-    print(probs_dict)
-    relevant = {k: v for (k, v) in probs_dict.items()
-                if k.strip().lower() in allowed_vals}
-    print(relevant)
+
+    # Do softmax
+    probs_dict_exp = {k: np.exp(v) for (k, v) in probs_dict.items()}
+
+    score_dict = {k: 0 for k in categories_key_sets.keys()}
+
+    # Only take the keys from probs_dict_exp that match allowed values
+    # and aggregate
+    for prob_key, prob in probs_dict_exp.items():
+        prob_key = prob_key.strip().lower()
+        for category_name in score_dict:
+            for category_key in categories_key_sets[category_name]:
+                if category_key.strip().lower().startswith(prob_key):
+                    score_dict[category_name] += prob
+
+    return score_dict
 
 
 def process_df(df,
@@ -45,10 +54,11 @@ def process_df(df,
 
     new_df_dict = defaultdict(list)
 
-    categories = df[dv_col_name].unique().tolist()
-
     if categories_key_sets is None:
+        categories = df[dv_col_name].unique().tolist()
         categories_key_sets = dict(zip(categories, [[c] for c in categories]))
+    else:
+        categories = list(categories_key_sets.keys())
 
     for _, row in df.iterrows():
 
@@ -58,13 +68,18 @@ def process_df(df,
 
             prompt = make_prompt(row, template_name)
             new_df_dict["prompt"].append(prompt)
-            new_df_dict["ground_truth"].append(row[dv_col_name])
             new_df_dict["categories"].append(categories)
+            new_df_dict["ground_truth"].append(row[dv_col_name])
 
             response = process_prompt(prompt, gpt_3_engine)
-            extract_category_probs(response, categories_key_sets)
-            import sys  # DELETE
-            sys.exit()  # DELETE
+            category_probs = extract_category_probs(response,
+                                                    categories_key_sets)
+
+            coverage = sum(category_probs.values())
+
+            # Normalize category_probs
+            category_probs = {k: v / coverage
+                              for (k, v) in category_probs.items()}
 
             try:
                 response = process_prompt(prompt, gpt_3_engine)
@@ -73,15 +88,21 @@ def process_df(df,
                 print("Exception in process_df:", e)
                 new_df_dict["response"].append(None)
 
+            new_df_dict["coverage"].append(coverage)
+
+            for category in categories:
+                new_df_dict[category].append(category_probs[category])
+
     return pd.DataFrame(new_df_dict)
 
 
 if __name__ == "__main__":
     import pandas as pd
     toy_df = pd.DataFrame(dict(
-        age=[1, 2, 3],
-        party=["r", "d", "r"],
-        dv=["bird", "cat", "bird"]
+        age=["male", "male", "female"],
+        food=["vegan", "a meat lover", "vegan"],
+        dv=["carrots", "bacon", "carrots"]
     ))
 
-    print(process_df(toy_df, "ada", TEMPLATES.keys(), "dv", {"bird": ["bird", "parrot"], "cat": ["cat"]}))
+    df = process_df(toy_df, "davinci", TEMPLATES.keys(), "dv", {"bacon": ["bacon", "meat"], "carrots": ["carrots"]})
+    df.to_csv("temp.csv", index=False)
