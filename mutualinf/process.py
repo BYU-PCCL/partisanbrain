@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv("formatted_anes.csv")
     df = df.dropna()
-    df = df.sample(n=2)
+    df = df.sample(n=200)
 
     out = process_df(df, "davinci", TEMPLATES.keys(), "2016_presidential_vote",
                      {"Hillary Clinton": ["Hillary", "Clinton"],
