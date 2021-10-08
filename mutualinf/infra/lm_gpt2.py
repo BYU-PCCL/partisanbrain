@@ -1,16 +1,21 @@
-from lmsampler import LMSampler
+from lmsampler_baseclass import LMSamplerBaseClass
 
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import numpy as np
 
-class LM_GPT2(LMSampler):
+class LM_GPT2(LMSamplerBaseClass):
     def __init__(self, model_name):
         super().__init__(model_name)
-
+        '''
+        Supported models: 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'
+        '''
         # initialize model with model_name
-        self.model = None # TODO load docker img file
-        self.tokenizer = None
+        print(f'Loading {model_name}...')
+        # TODO - add GPU support
+        self.model = GPT2LMHeadModel.from_pretrained(model_name)
+        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):
         # encode prompt and pass to model
