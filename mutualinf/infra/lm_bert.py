@@ -45,27 +45,7 @@ class LM_BERT(LMSamplerBaseClass):
         # get the output from the model
         with torch.no_grad():
             output = self.model(**input)
-        # logits = output.logits.to('cpu').numpy()
 
-        # # run softmax on logits
-        # # softmax = F.softmax(logits, dim = -1)
-        # breakpoint()
-        # softmax = torch.nn.functional.softmax(logits, dim=0)
-        
-        # # get the softmaxed logits for the masked word
-        # mask_word = softmax[0, mask_index, :]
-        # pred_index = mask_index[0].item()
-
-        # # get n_probs for masked token
-        # top_n = torch.topk(mask_word, n_probs, dim = 1)[1][0]
-
-        # # create dictionary and map prediction word to log prob
-        # self.pred_dict = {}
-        # for token in top_100:
-        #     pred = self.tokenizer.decode([token])
-        #     self.pred_dict[pred] = np.log((softmax[-1][pred_index][token].item()))
-        
-        # logits = output.logits[-1][-1].to('cpu')
         logits = output.logits[0, mask_index].to('cpu').reshape(-1)
 
 
