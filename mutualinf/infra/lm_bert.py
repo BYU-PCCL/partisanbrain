@@ -28,7 +28,7 @@ class LM_BERT(LMSamplerBaseClass):
 
     def send_prompt(self, prompt, n_probs):
         # add mask to end of prompt and period after mask for accurate predictions
-        bert_prompt = prompt + ' ' + tokenizer.mask_token + '.'
+        bert_prompt = prompt + ' ' + self.tokenizer.mask_token + '.'
 
         # encode bert_prompt
         input = self.tokenizer.encode_plus(bert_prompt, return_tensors = "pt").to(self.device)
