@@ -18,6 +18,12 @@ class LM_BERT(LMSamplerBaseClass):
         # TODO - add GPU support
         self.model = BertForMaskedLM.from_pretrained(model_name)
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        if torch.cuda.is_available():
+            self.device = 'cuda:0'
+        else:
+            self.device = 'cpu'
+        # send to device
+        self.model = self.model.to(self.device)
         print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):
@@ -25,14 +31,15 @@ class LM_BERT(LMSamplerBaseClass):
         bert_prompt = prompt + ' ' + tokenizer.mask_token + '.'
 
         # encode bert_prompt
-        input = self.tokenizer.encode_plus(bert_prompt, return_tensors = "pt")
+        input = self.tokenizer.encode_plus(bert_prompt, return_tensors = "pt").to(self.device)
 
         # store the masked token index
         mask_index = torch.where(input["input_ids"][0] == self.tokenizer.mask_token_id)
 
         # get the output from the model
-        output = self.model(**input)
-        logits = output.logits
+        with torch.no_grad():
+            output = self.model(**input)
+        logits = output.logits.to('cpu').numpy()
 
         # run softmax on logits
         softmax = F.softmax(logits, dim = -1)

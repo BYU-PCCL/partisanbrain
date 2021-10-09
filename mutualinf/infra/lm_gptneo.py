@@ -19,8 +19,9 @@ class LM_GPTNEO(LMSamplerBaseClass):
         self.model = GPTNeoForCausalLM.from_pretrained(model_name)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
         if torch.cuda.is_available():
-            # all models fit on one GPU usually
+            # 1.3B and 125M fit on one GPU
             self.device = 'cuda:0'
+            # TODO - add parallelization support for biggest model
         else:
             self.device = 'cpu'
         # send to device
