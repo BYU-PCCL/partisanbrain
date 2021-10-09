@@ -1,7 +1,7 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 
 import torch
-from torch import functional as F
+# from torch import functional as F
 from transformers import BertTokenizer, BertForMaskedLM
 import numpy as np
 
@@ -43,7 +43,9 @@ class LM_BERT(LMSamplerBaseClass):
         logits = output.logits.to('cpu').numpy()
 
         # run softmax on logits
-        softmax = F.softmax(logits, dim = -1)
+        # softmax = F.softmax(logits, dim = -1)
+        breakpoint()
+        softmax = torch.nn.functional.softmax(logits, dim=0)
         
         # get the softmaxed logits for the masked word
         mask_word = softmax[0, mask_index, :]
