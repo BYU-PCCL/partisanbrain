@@ -1,4 +1,4 @@
-from lmsampler import LMSampler
+from lmsampler_baseclass import LMSamplerBaseClass
 
 from transformers import GPTJForCausalLM, AutoTokenizer
 

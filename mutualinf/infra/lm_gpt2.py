@@ -15,15 +15,23 @@ class LM_GPT2(LMSamplerBaseClass):
         # TODO - add GPU support
         self.model = GPT2LMHeadModel.from_pretrained(model_name)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        if torch.cuda.is_available():
+            # all models fit on one GPU usually
+            self.device = 'cuda:0'
+        else:
+            self.device = 'cpu'
+        # send to device
+        self.model = self.model.to(self.device)
         print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):
         # encode prompt and pass to model
-        inputs = self.tokenizer.encode(prompt, return_tensors="pt")
-        output = self.model(inputs)
+        inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
+        with torch.no_grad():
+            output = self.model(inputs)
 
         # get logits for final word (the prediction) from model output
-        logits = output.logits[-1][-1]
+        logits = output.logits[-1][-1].to('cpu')
 
         # get 'n_probs' predicted tokens associated with the above logits
         tokens = torch.argsort(logits, descending=True)[:n_probs]
