@@ -1,7 +1,6 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 
 import torch
-# from torch import functional as F
 from transformers import BertTokenizer, BertForMaskedLM
 import numpy as np
 
@@ -28,8 +27,14 @@ class LM_BERT(LMSamplerBaseClass):
         print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):
-        # add mask to end of prompt and period after mask for accurate predictions
-        bert_prompt = prompt + ' ' + self.tokenizer.mask_token + '.'
+        '''
+        For BERT style prompts, you can put the '[MASK]' token in where you would like the model to predict.
+        '''
+        if '[MASK]' not in prompt:
+            # add mask to end of prompt and period after mask for accurate predictions
+            bert_prompt = prompt + ' ' + self.tokenizer.mask_token + '.'
+        else:
+            bert_prompt = prompt
 
         # encode bert_prompt
         input = self.tokenizer.encode_plus(bert_prompt, return_tensors = "pt").to(self.device)
@@ -82,4 +87,3 @@ class LM_BERT(LMSamplerBaseClass):
             self.pred_dict[preds[i]] = np.log(logits_probs[probs[i]].item())
 
         return self.pred_dict
-
