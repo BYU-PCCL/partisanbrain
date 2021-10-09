@@ -40,25 +40,42 @@ class LM_BERT(LMSamplerBaseClass):
         # get the output from the model
         with torch.no_grad():
             output = self.model(**input)
-        logits = output.logits.to('cpu').numpy()
+        # logits = output.logits.to('cpu').numpy()
 
-        # run softmax on logits
-        # softmax = F.softmax(logits, dim = -1)
-        breakpoint()
-        softmax = torch.nn.functional.softmax(logits, dim=0)
+        # # run softmax on logits
+        # # softmax = F.softmax(logits, dim = -1)
+        # breakpoint()
+        # softmax = torch.nn.functional.softmax(logits, dim=0)
         
-        # get the softmaxed logits for the masked word
-        mask_word = softmax[0, mask_index, :]
-        pred_index = mask_index[0].item()
+        # # get the softmaxed logits for the masked word
+        # mask_word = softmax[0, mask_index, :]
+        # pred_index = mask_index[0].item()
 
-        # get n_probs for masked token
-        top_n = torch.topk(mask_word, n_probs, dim = 1)[1][0]
+        # # get n_probs for masked token
+        # top_n = torch.topk(mask_word, n_probs, dim = 1)[1][0]
+
+        # # create dictionary and map prediction word to log prob
+        # self.pred_dict = {}
+        # for token in top_100:
+        #     pred = self.tokenizer.decode([token])
+        #     self.pred_dict[pred] = np.log((softmax[-1][pred_index][token].item()))
+        
+        logits = output.logits[-1][-1].to('cpu')
+
+        # get 'n_probs' predicted tokens associated with the above logits
+        tokens = torch.argsort(logits, descending=True)[:n_probs]
+        
+        # decode tokens into text
+        preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+
+        # calculate real probabilities associated with each prediction
+        logits_probs = torch.nn.functional.softmax(logits, dim=0)
+        probs = torch.argsort(logits_probs, descending=True)[:n_probs]
 
         # create dictionary and map prediction word to log prob
         self.pred_dict = {}
-        for token in top_100:
-            pred = self.tokenizer.decode([token])
-            self.pred_dict[pred] = np.log((softmax[-1][pred_index][token].item()))
+        for i in range(len(preds)):
+            self.pred_dict[preds[i]] = np.log(logits_probs[probs[i]].item())
 
         return self.pred_dict
 
