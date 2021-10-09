@@ -1,6 +1,7 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 
 import torch
+from torch import functional as F
 from transformers import BertTokenizer, BertForMaskedLM
 import numpy as np
 
