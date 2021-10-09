@@ -8,8 +8,11 @@ class LM_BERT(LMSamplerBaseClass):
     def __init__(self, model_name):
         super().__init__(model_name)
         '''
-        Supported models: 'bert-base-uncased', ...
+        Supported models: 'bert-base-uncased', 'bert-base-cased'
         '''
+        # check if model_name is supported
+        if model_name not in ['bert-base-uncased', 'bert-base-cased']:
+            raise ValueError('Model name not supported. Must be one of: bert-base-uncased, bert-base-cased')
         # initialize model with model_name
         print(f'Loading {model_name}...')
         # TODO - add GPU support

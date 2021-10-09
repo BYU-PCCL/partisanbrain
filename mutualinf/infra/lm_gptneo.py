@@ -8,8 +8,11 @@ class LM_GPTNEO(LMSamplerBaseClass):
     def __init__(self, model_name):
         super().__init__(model_name)
         '''
-        Supported models: 'EleutherAI/gpt-neo-1.3B', ...
+        Supported models: 'EleutherAI/gpt-neo-2.7B', 'EleutherAI/gpt-neo-1.3B', 'EleutherAI/gpt-neo-125M'
         '''
+        # check if model name is supported
+        if model_name not in ['EleutherAI/gpt-neo-2.7B', 'EleutherAI/gpt-neo-1.3B', 'EleutherAI/gpt-neo-125M']:
+            raise ValueError('Model name not supported. Supported models: EleutherAI/gpt-neo-2.7B, EleutherAI/gpt-neo-1.3B, EleutherAI/gpt-neo-125M')
         # initialize model with model_name
         print(f'Loading {model_name}...')
         # TODO - add GPU support
