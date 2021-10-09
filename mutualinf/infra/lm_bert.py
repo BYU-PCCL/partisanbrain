@@ -60,16 +60,20 @@ class LM_BERT(LMSamplerBaseClass):
         #     pred = self.tokenizer.decode([token])
         #     self.pred_dict[pred] = np.log((softmax[-1][pred_index][token].item()))
         
-        logits = output.logits[-1][-1].to('cpu')
+        # logits = output.logits[-1][-1].to('cpu')
+        logits = output.logits[0, mask_index].to('cpu').reshape(-1)
+
 
         # get 'n_probs' predicted tokens associated with the above logits
         tokens = torch.argsort(logits, descending=True)[:n_probs]
         
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+        # for some reason, bert tokenizer adds a bunch of whitespace. Remove
+        preds = [p.replace(' ', '') for p in preds]
 
         # calculate real probabilities associated with each prediction
-        logits_probs = torch.nn.functional.softmax(logits, dim=0)
+        logits_probs = torch.nn.functional.softmax(logits, dim=-1)
         probs = torch.argsort(logits_probs, descending=True)[:n_probs]
 
         # create dictionary and map prediction word to log prob
