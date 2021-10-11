@@ -15,17 +15,22 @@ class LM_GPTNEO(LMSamplerBaseClass):
             raise ValueError('Model name not supported. Supported models: EleutherAI/gpt-neo-2.7B, EleutherAI/gpt-neo-1.3B, EleutherAI/gpt-neo-125M')
         # initialize model with model_name
         print(f'Loading {model_name}...')
-        # TODO - add GPU support
         self.model = GPTNeoForCausalLM.from_pretrained(model_name)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+        # get the number of attention layers
+        n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
-            # 1.3B and 125M fit on one GPU
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
-            # TODO - add parallelization support for biggest model
+            if len(gpus) > 1:
+                device_map = get_device_map(gpus, n_blocks)
+                self.model.parallelize(device_map)
+            else:
+                self.model = self.model.to(self.device)
         else:
             self.device = 'cpu'
-        # send to device
-        self.model = self.model.to(self.device)
         print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):

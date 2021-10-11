@@ -18,12 +18,26 @@ class LM_BERT(LMSamplerBaseClass):
         # TODO - add GPU support
         self.model = BertForMaskedLM.from_pretrained(model_name)
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        # if torch.cuda.is_available():
+        #     self.device = 'cuda:0'
+        # else:
+        #     self.device = 'cpu'
+        # # send to device
+        # self.model = self.model.to(self.device)
+
+        # get the number of attention layers
+        n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
+            if len(gpus) > 1:
+                device_map = get_device_map(gpus, n_blocks)
+                self.model.parallelize(device_map)
+            else:
+                self.model = self.model.to(self.device)
         else:
             self.device = 'cpu'
-        # send to device
-        self.model = self.model.to(self.device)
         print(f'Loaded!')
 
     def send_prompt(self, prompt, n_probs):

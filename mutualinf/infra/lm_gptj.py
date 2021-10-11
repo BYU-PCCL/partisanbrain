@@ -46,8 +46,8 @@ class LM_GPTJ(LMSamplerBaseClass):
 
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
-# TODO - better way to do this?
-# Sometimes symbols don't come out great in ascii encoding
+        # TODO - better way to do this?
+        # Sometimes symbols don't come out great in ascii encoding
         preds = [p.encode('ascii', 'ignore').decode('ascii') for p in preds]
 
         # calculate real probabilities associated with each prediction
