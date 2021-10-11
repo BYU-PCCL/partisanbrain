@@ -19,23 +19,21 @@ class LM_GPTJ(LMSamplerBaseClass):
         # TODO - add GPU support
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        # if torch.cuda.is_available():
-        #     self.device = 'cuda:0'
-        # else:
-        #     self.device = 'cpu'
-        # TODO - support parallelization. GPT-J doesn't fit on one GPU
-        # self.device = 'cpu'
-        # # send to device
-        # self.model = self.model.to(self.device)
 
+        breakpoint()
         n_blocks = self.model.config.n_layer
-        # split model into n_devices blocks
-        # TODO - make sure this isn't manual
-        gpus = [0, 1]
-        device_map = get_device_map(gpus, n_blocks)
-        self.model.parallelize(device_map)
-        # device is the first GPU
-        self.device = 'cuda:' + str(gpus[0])
+        if torch.cuda.is_available():
+            # self.device = 'cuda:0'
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
+            self.device = 'cuda:0'
+            if len(gpus) > 1:
+                device_map = get_device_map(gpus, n_blocks)
+                self.model.parallelize(device_map)
+            else:
+                self.model = self.model.to(self.device)
+        else:
+            self.device = 'cpu'
 
     def send_prompt(self, prompt, n_probs):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
