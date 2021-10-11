@@ -1,6 +1,9 @@
 from lmsampler_baseclass import LMSamplerBaseClass
+from lm_utils import get_device_map
+import torch
+from pdb import set_trace as breakpoint
 
-from transformers import GPTJForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class LM_GPTJ(LMSamplerBaseClass):
     def __init__(self, model_name):
@@ -14,24 +17,27 @@ class LM_GPTJ(LMSamplerBaseClass):
 
         # initialize model with model_name
         # TODO - add GPU support
-        self.model = GPTJForCausalLM.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         # if torch.cuda.is_available():
         #     self.device = 'cuda:0'
         # else:
         #     self.device = 'cpu'
         # TODO - support parallelization. GPT-J doesn't fit on one GPU
-        self.device = 'cpu'
-        # send to device
-        self.model = self.model.to(self.device)
+        # self.device = 'cpu'
+        # # send to device
+        # self.model = self.model.to(self.device)
+
+        n_blocks = self.model.config.n_layer
+        # split model into n_devices blocks
+        # TODO - make sure this isn't manual
+        gpus = [0, 1]
+        device_map = get_device_map(gpus, n_blocks)
+        self.model.parallelize(device_map)
+        # device is the first GPU
+        self.device = 'cuda:' + str(gpus[0])
 
     def send_prompt(self, prompt, n_probs):
-        # # send prompt to LM_GPTJ -- TODO how to test gptj (too big for colab)
-        # input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-        # gen_tokens = self.model.generate(input_ids, do_sample=True, max_length=1,)
-        # logits = gen_tokens[0][:,-1,:]
-        # create dictionary of output
-                # encode prompt and pass to model
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
         with torch.no_grad():
             output = self.model(inputs)

@@ -37,6 +37,7 @@ class LMSampler(LMSamplerBaseClass):
 
 if __name__ == '__main__':
     # model_name = 'gpt3-ada'
-    model_name = 'gpt2'
+    model_name = 'EleutherAI/gpt-j-6B'
     sampler = LMSampler(model_name)
     print(sampler.send_prompt('The best city in Spain is', 5))
+    print(sampler.send_prompt('In 2016, I voted for', 5))
