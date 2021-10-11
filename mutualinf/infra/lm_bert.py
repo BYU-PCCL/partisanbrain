@@ -4,6 +4,7 @@ from lm_utils import get_device_map
 import torch
 from transformers import BertTokenizer, BertForMaskedLM
 import numpy as np
+from pdb import set_trace as breakpoint
 
 class LM_BERT(LMSamplerBaseClass):
     def __init__(self, model_name):
@@ -27,17 +28,11 @@ class LM_BERT(LMSamplerBaseClass):
         # self.model = self.model.to(self.device)
 
         # get the number of attention layers
-        n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
             # get all available GPUs
-            gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
-            if len(gpus) > 1:
-                device_map = get_device_map(gpus, n_blocks)
-                self.model.parallelize(device_map)
-            else:
-                self.model = self.model.to(self.device)
-            print(f'Loaded model on {len(gpus)} GPUs.')
+            self.model = self.model.to(self.device)
+            print(f'Loaded model on 1 GPU.')
         else:
             self.device = 'cpu'
             print('Loaded model on cpu.')
