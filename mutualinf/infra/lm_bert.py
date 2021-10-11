@@ -36,9 +36,10 @@ class LM_BERT(LMSamplerBaseClass):
                 self.model.parallelize(device_map)
             else:
                 self.model = self.model.to(self.device)
+            print(f'Loaded model on {len(gpus)} GPUs.')
         else:
             self.device = 'cpu'
-        print(f'Loaded!')
+            print('Loaded model on cpu.')
 
     def send_prompt(self, prompt, n_probs):
         '''

@@ -17,9 +17,11 @@ class LM_GPTJ(LMSamplerBaseClass):
         super().__init__(model_name)
 
         # initialize model with model_name
+        print(f'Loading {model_name}...')
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
+        # get the number of attention layers
         n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
             # get all available GPUs
@@ -30,8 +32,10 @@ class LM_GPTJ(LMSamplerBaseClass):
                 self.model.parallelize(device_map)
             else:
                 self.model = self.model.to(self.device)
+            print(f'Loaded model on {len(gpus)} GPUs.')
         else:
             self.device = 'cpu'
+            print('Loaded model on cpu.')
 
     def send_prompt(self, prompt, n_probs):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
