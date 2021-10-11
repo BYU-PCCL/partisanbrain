@@ -1,6 +1,7 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 from lm_utils import get_device_map
 import torch
+import numpy as np
 from pdb import set_trace as breakpoint
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -16,14 +17,11 @@ class LM_GPTJ(LMSamplerBaseClass):
         super().__init__(model_name)
 
         # initialize model with model_name
-        # TODO - add GPU support
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        breakpoint()
         n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
-            # self.device = 'cuda:0'
             # get all available GPUs
             gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
@@ -48,6 +46,9 @@ class LM_GPTJ(LMSamplerBaseClass):
 
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+# TODO - better way to do this?
+# Sometimes symbols don't come out great in ascii encoding
+        preds = [p.encode('ascii', 'ignore').decode('ascii') for p in preds]
 
         # calculate real probabilities associated with each prediction
         logits_probs = torch.nn.functional.softmax(logits, dim=0)
