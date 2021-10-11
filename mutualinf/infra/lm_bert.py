@@ -1,4 +1,5 @@
 from lmsampler_baseclass import LMSamplerBaseClass
+from lm_utils import get_device_map
 
 import torch
 from transformers import BertTokenizer, BertForMaskedLM
