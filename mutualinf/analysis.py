@@ -77,20 +77,45 @@ def calculate_mutual_information(df, groupby='template_name'):
     '''
     Calculate the mutual information between the template and the output distribution.
     '''
-    # TODO - verify correctness? Estimated with KL divergence?
+    #######################
+    # KL-divergence method
+    # # TODO - verify correctness? Estimated with KL divergence?
+    # marginal_df = get_marginal_distribution(df, groupby)
+    # # function to apply per row
+    # def mutual_inf(row):
+    #     categories = row.categories
+    #     marginal_dist_index = row[groupby]
+    #     marginal_dist = marginal_df.loc[marginal_dist_index].values
+    #     dist = row[categories].astype(float).values
+    #     # calculate KL divergence
+    #     divergence = KL_divergence(dist, marginal_dist)
+    #     return divergence
+    
+    # # apply function to each row
+    # df['mutual_inf'] = df.apply(mutual_inf, axis=1)
+    #######################
+    # H(Y) - H(Y|X) method
+    # first, calculate conditional entropy
+    df = calculate_conditional_entropy(df)
+    # get marginal distributions
     marginal_df = get_marginal_distribution(df, groupby)
+    # get entropy over all columns
+    p = marginal_df.values
+    plogp = -p * np.log(p)
+    # sum over H(Y)
+    H = plogp.sum(axis=1)
+    # make df of H(Y)
+    breakpoint()
+    H_df = pd.DataFrame(H, columns=['H(Y)'], index=marginal_df.index)
     # function to apply per row
     def mutual_inf(row):
-        categories = row.categories
-        marginal_dist_index = row[groupby]
-        marginal_dist = marginal_df.loc[marginal_dist_index].values
-        dist = row[categories].astype(float).values
-        # calculate KL divergence
-        divergence = KL_divergence(dist, marginal_dist)
-        return divergence
+        index = row[groupby]
+        mutual_info = H_df.loc[index] - row['conditional_entropy']
+        return mutual_info
     
     # apply function to each row
     df['mutual_inf'] = df.apply(mutual_inf, axis=1)
+
     return df
 
 
