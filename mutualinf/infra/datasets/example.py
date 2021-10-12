@@ -1,5 +1,5 @@
 from collections import defaultdict
-from dataset import Dataset
+from ..dataset import Dataset
 
 import pandas as pd
 
@@ -19,12 +19,13 @@ class ExampleDataset(Dataset):
     def _get_templates(self):
         templates = {
             "sells": lambda row: ("The company that sells "
-                                  f"{row['product']} is "),
+                                  f"{row['product']} is"),
             "sold_by": lambda row: (f"{row['product'].capitalize()} "
-                                    "are sold by "),
+                                    "are sold by"),
         }
         return templates
 
 
 if __name__ == "__main__":
+    # Data should be at data/example/raw.csv
     ed = ExampleDataset()
