@@ -1,6 +1,7 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 from lm_utils import get_device_map
 import torch
+import numpy as np
 from pdb import set_trace as breakpoint
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -16,26 +17,25 @@ class LM_GPTJ(LMSamplerBaseClass):
         super().__init__(model_name)
 
         # initialize model with model_name
-        # TODO - add GPU support
+        print(f'Loading {model_name}...')
         self.model = AutoModelForCausalLM.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        # if torch.cuda.is_available():
-        #     self.device = 'cuda:0'
-        # else:
-        #     self.device = 'cpu'
-        # TODO - support parallelization. GPT-J doesn't fit on one GPU
-        # self.device = 'cpu'
-        # # send to device
-        # self.model = self.model.to(self.device)
 
+        # get the number of attention layers
         n_blocks = self.model.config.n_layer
-        # split model into n_devices blocks
-        # TODO - make sure this isn't manual
-        gpus = [0, 1]
-        device_map = get_device_map(gpus, n_blocks)
-        self.model.parallelize(device_map)
-        # device is the first GPU
-        self.device = 'cuda:' + str(gpus[0])
+        if torch.cuda.is_available():
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
+            self.device = 'cuda:0'
+            if len(gpus) > 1:
+                device_map = get_device_map(gpus, n_blocks)
+                self.model.parallelize(device_map)
+            else:
+                self.model = self.model.to(self.device)
+            print(f'Loaded model on {len(gpus)} GPUs.')
+        else:
+            self.device = 'cpu'
+            print('Loaded model on cpu.')
 
     def send_prompt(self, prompt, n_probs):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
@@ -50,6 +50,9 @@ class LM_GPTJ(LMSamplerBaseClass):
 
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+        # TODO - better way to do this?
+        # Sometimes symbols don't come out great in ascii encoding
+        preds = [p.encode('ascii', 'ignore').decode('ascii') for p in preds]
 
         # calculate real probabilities associated with each prediction
         logits_probs = torch.nn.functional.softmax(logits, dim=0)

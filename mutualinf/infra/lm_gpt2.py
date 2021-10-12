@@ -1,4 +1,5 @@
 from lmsampler_baseclass import LMSamplerBaseClass
+from lm_utils import get_device_map
 
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
@@ -15,14 +16,22 @@ class LM_GPT2(LMSamplerBaseClass):
         # TODO - add GPU support
         self.model = GPT2LMHeadModel.from_pretrained(model_name)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+        # get the number of attention layers
+        n_blocks = self.model.config.n_layer
         if torch.cuda.is_available():
-            # all models fit on one GPU usually
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
+            if len(gpus) > 1:
+                device_map = get_device_map(gpus, n_blocks)
+                self.model.parallelize(device_map)
+            else:
+                self.model = self.model.to(self.device)
+            print(f'Loaded model on {len(gpus)} GPUs.')
         else:
             self.device = 'cpu'
-        # send to device
-        self.model = self.model.to(self.device)
-        print(f'Loaded!')
+            print('Loaded model on cpu.')
 
     def send_prompt(self, prompt, n_probs):
         # encode prompt and pass to model
@@ -38,6 +47,9 @@ class LM_GPT2(LMSamplerBaseClass):
         
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+        # TODO - better way to do this?
+        # Sometimes symbols don't come out great in ascii encoding
+        preds = [p.encode('ascii', 'ignore').decode('ascii') for p in preds]
 
         # calculate real probabilities associated with each prediction
         logits_probs = torch.nn.functional.softmax(logits, dim=0)

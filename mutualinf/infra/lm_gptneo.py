@@ -3,6 +3,7 @@ from lmsampler_baseclass import LMSamplerBaseClass
 import torch
 from transformers import GPTNeoForCausalLM, GPT2Tokenizer
 import numpy as np
+from pdb import set_trace as breakpoint
 
 class LM_GPTNEO(LMSamplerBaseClass):
     def __init__(self, model_name):
@@ -15,18 +16,19 @@ class LM_GPTNEO(LMSamplerBaseClass):
             raise ValueError('Model name not supported. Supported models: EleutherAI/gpt-neo-2.7B, EleutherAI/gpt-neo-1.3B, EleutherAI/gpt-neo-125M')
         # initialize model with model_name
         print(f'Loading {model_name}...')
-        # TODO - add GPU support
         self.model = GPTNeoForCausalLM.from_pretrained(model_name)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+        # get the number of attention layers
         if torch.cuda.is_available():
-            # 1.3B and 125M fit on one GPU
+            # get all available GPUs
+            gpus = np.arange(torch.cuda.device_count())
             self.device = 'cuda:0'
-            # TODO - add parallelization support for biggest model
+            self.model = self.model.to(self.device)
+            print(f'Loaded model on 1 GPU.')
         else:
             self.device = 'cpu'
-        # send to device
-        self.model = self.model.to(self.device)
-        print(f'Loaded!')
+            print('Loaded model on cpu.')
 
     def send_prompt(self, prompt, n_probs):
         # encode prompt and pass to model
@@ -42,6 +44,9 @@ class LM_GPTNEO(LMSamplerBaseClass):
 
         # decode tokens into text
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+        # TODO - better way to do this?
+        # Sometimes symbols don't come out great in ascii encoding
+        preds = [p.encode('ascii', 'ignore').decode('ascii') for p in preds]
 
         # calculate real probabilities associated with each prediction
         logits_probs = torch.nn.functional.softmax(logits, dim=0)
