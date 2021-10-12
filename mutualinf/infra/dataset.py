@@ -121,7 +121,7 @@ class Dataset(abc.ABC):
         result_dict = defaultdict(list)
         for i, row in self._df.iterrows():
             for template_name, template_fn in self._templates.items():
-                result_dict["id"].append(i)
+                result_dict["raw_idx"].append(i)
                 result_dict["template_name"].append(template_name)
                 result_dict["prompt"].append(template_fn(row))
                 result_dict["ground_truth"].append(row["ground_truth"])
