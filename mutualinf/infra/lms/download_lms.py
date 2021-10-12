@@ -11,16 +11,20 @@ def download_models():
         - BERT: 'bert-base-uncased', 'bert-base-cased'
     '''
     models = [
-        'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl',
-        'EleutherAI/gpt-j-6B',
-        'EleutherAI/gpt-neo-2.7B', 'EleutherAI/gpt-neo-1.3B', 'EleutherAI/gpt-neo-125M',
+        # 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl',
+        # 'EleutherAI/gpt-j-6B',
+        # 'EleutherAI/gpt-neo-2.7B',
+        'EleutherAI/gpt-neo-1.3B', 'EleutherAI/gpt-neo-125M',
         'bert-base-uncased', 'bert-base-cased'
     ]
     for model in models:
         # instantiate model
-        lm = LMSampler(model)
-        # make sure it runs
-        print(lm.send_prompt('My favorite city in Spain is', 5))
+        try:
+            lm = LMSampler(model)
+            # make sure it runs
+            print(lm.send_prompt('My favorite city in Spain is', 5))
+        except:
+            print(f'Somethind went wrong!')
 
 if __name__ == '__main__':
     download_models()
