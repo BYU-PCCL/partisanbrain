@@ -59,19 +59,19 @@ class Opener:
 class Dataset(abc.ABC):
 
     def __init__(self,
-                 raw_ds_fname=None,
+                 in_fname=None,
                  opening_func=None,
-                 save_fname=None):
+                 out_fname=None):
 
         snake_case_cls_name = self._get_snake_case_cls_name()
         recommended_ds_dir = f"data/{snake_case_cls_name}"
 
-        if raw_ds_fname is None:
-            raw_ds_fname = self._get_raw_data_fname(recommended_ds_dir)
+        if in_fname is None:
+            in_fname = self._get_raw_data_fname(recommended_ds_dir)
 
-        # Turn the dataset specified by raw_ds_fname
+        # Turn the dataset specified by in_fname
         # into a pandas dataframe
-        self._df = Opener().open(fname=raw_ds_fname,
+        self._df = Opener().open(fname=in_fname,
                                  opening_func=opening_func)
 
         # Modify the dataframe based on child class
@@ -92,7 +92,7 @@ class Dataset(abc.ABC):
 
         # Save results dataframe
         save_fname = f"{recommended_ds_dir}/ds.pkl"
-        result_df.to_pickle(save_fname or save_fname)
+        result_df.to_pickle(out_fname or save_fname)
 
     @abc.abstractmethod
     def _modify_raw_data(self, df):
