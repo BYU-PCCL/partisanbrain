@@ -63,8 +63,8 @@ class Dataset(abc.ABC):
                  opening_func=None,
                  out_fname=None):
 
-        snake_case_cls_name = self._get_snake_case_cls_name()
-        recommended_ds_dir = f"data/{snake_case_cls_name}"
+        self._snake_case_cls_name = self._get_snake_case_cls_name()
+        recommended_ds_dir = f"data/{self._snake_case_cls_name}"
 
         if in_fname is None:
             in_fname = self._get_raw_data_fname(recommended_ds_dir)
@@ -127,6 +127,7 @@ class Dataset(abc.ABC):
                 result_dict["prompt"].append(template_fn(row))
                 result_dict["ground_truth"].append(row["ground_truth"])
                 result_dict["token_sets"].append(token_sets)
+                result_dict["dataset"].append(self._snake_case_cls_name)
 
                 # Add all other columns in self._df
                 # for record keeping purposes
