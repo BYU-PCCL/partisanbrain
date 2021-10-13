@@ -161,6 +161,22 @@ def compare_per_template(df):
 
     return corr
 
+def compare_per_response(df):
+    corr = df[['accuracy', 'mutual_inf']].corr().iloc[0,1]
+
+    plt.scatter(
+        x=df.mutual_inf,
+        y=df.accuracy,
+        alpha=0.7,
+        s=20,
+        edgecolors='none',
+    )
+    plt.title(f'Entropy Difference vs. Response Accuracy, Corr Coeff: {corr:.3f}')
+    plt.xlabel(r'Entropy Difference: $H(Y) - H(Y|f_{\theta}(x_i))$')
+    plt.ylabel('Accuracy')
+
+    return corr
+
 
 def compare_per_response_weight(df):
     corr = df[['correct_weight', 'mutual_inf']].corr().iloc[0,1]
@@ -173,8 +189,28 @@ def compare_per_response_weight(df):
         edgecolors='none',
     )
     plt.title(f'Weight of Correct Response, Corr Coeff: {corr:.3f}')
-    plt.xlabel(r'Entropy Decrease: $H(Y) - H(Y|f_{\theta}(x_i))$')
+    plt.xlabel(r'Entropy Difference: $H(Y) - H(Y|f_{\theta}(x_i))$')
     plt.ylabel('Weight on Correct')
+
+    return corr
+
+def compare_per_idx(df):
+    group = df.groupby(by='row_idx')
+
+    output_df = group[['accuracy', 'mutual_inf']].agg(np.mean)
+
+    corr = output_df.corr().iloc[0,1]
+
+    plt.scatter(
+        x=output_df.mutual_inf,
+        y=output_df.accuracy,
+        alpha=0.7,
+        s=50,
+        edgecolors='none',
+    )
+    plt.title(f'Grouped by Instance, Corr Coeff: {corr:.3f}')
+    plt.xlabel(r'Mean Entropy Difference: $\mathbb{E}_{\theta}[H(Y) - H(Y|f_{\theta}(x_i))]$')
+    plt.ylabel('Accuracy')
 
     return corr
 
@@ -184,14 +220,27 @@ def plot_comparisons(df, show=True, save=False, filename=None):
     on user input.
     """
     corrs = {}
-    # make figure big
-    plt.figure(figsize=(14,6))
+    # # make figure big
+    # plt.figure(figsize=(14,6))
 
-    plt.subplot(121)
+    # plt.subplot(121)
+    # corrs['per_template'] = compare_per_template(df)
+
+    # plt.subplot(122)
+    # corrs['per_response_weight'] = compare_per_response_weight(df)
+
+    plt.figure(figsize=(14,8))
+    plt.subplot(221)
     corrs['per_template'] = compare_per_template(df)
 
-    plt.subplot(122)
+    plt.subplot(222)
+    corrs['per_response'] = compare_per_response(df)
+
+    plt.subplot(223)
     corrs['per_response_weight'] = compare_per_response_weight(df)
+
+    plt.subplot(224)
+    corrs['per_id'] = compare_per_idx(df)
 
     plt.tight_layout()
 
