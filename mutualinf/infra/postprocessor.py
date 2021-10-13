@@ -97,14 +97,17 @@ def coverage(d):
 
 class Postprocessor:
 
-    def __init__(self, df):
+    def __init__(self, df, matching_strategy=None):
         '''
         Instantiates a Postprocessor object.
         df (pd.DataFrame): DataFrame containing the experiment results.
             columns:
                 - 'resp' (dict: str->float): dictionary with the top n logprobs
+        matching_strategy (str): Strategy for matching tokens. Can be 'startswith', 'exact', or None.
         '''
         self.df = df.copy()
+        if matching_strategy:
+            self.df['matching_strategy'] = matching_strategy
         self.calculate_probs()
         self.calculate_coverage()
         self.normalize_probs()
