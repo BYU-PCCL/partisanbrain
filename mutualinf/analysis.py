@@ -8,109 +8,113 @@ def read_df(path):
     Path (str): 'csv' or 'pkl'
     Expected columns are:
         - 'template_name' (str): name of templatizing strategy
-        - 'categories' (list): list of potential categories. For example, ['Trump', 'Clinton']
-        - 'ground_truth' (string): ground truth response. One of the categories in df['categories']
-        - category1, category2, ... (float): each category will be a column in the df, corresponds to probability mass for each respones. Should sum to one across all categories.
+        - 'ground_truth' (string): ground truth response
+        - 'probs' (dict: str->float): dictionary of probabilities for each category/token.
     '''
     if path.endswith('csv'):
         df = pd.read_csv(path)
+        # convert probs to dictionary
+        df['probs'] = df.probs.apply(eval)
     elif path.endswith('pkl'):
         df = pd.read_pickle(path)
     else:
         raise ValueError('Unknown file type')
-    # convert categories to list
-    df['categories'] = df.categories.astype(str).apply(eval)
     return df
 
 def calculate_accuracy(df):
     '''
     Calculates the accuracy of the model. Adds a column called 'accuracy' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
 
     Returns modified df.
     '''
     df = df.copy()
 
-    # Get the possible target values
-    y = df.categories.iloc[0]
-
-    # Calculate the accuracy for each row
-    df['accuracy'] = (df[y].idxmax(axis=1) == df.ground_truth).astype(int)
+    # if row['ground_truth'] starts with argmax(row['probs']) stripped and lowercase, then it's correct
+    def accuracy_lambda(row):
+        # guess is argmax of row['probs'] dict
+        guess = max(row['probs'], key=row['probs'].get)
+        # lower and strip
+        guess = guess.lower().strip()
+        if row['ground_truth'].startswith(guess):
+            return 1
+        else:
+            return 0
+    df['accuracy'] = df.apply(accuracy_lambda, axis=1)
 
     return df
+
+def prob_dict_to_arr(d):
+    '''
+    Converts a probability dictionary into an array of probabilities.
+    Args:
+        d (dict: str->float): dictionary of probabilities for each category/token.
+    Returns:
+        arr (np.array): array of probabilities.
+    '''
+    arr = np.array([d[k] for k in d])
+    return arr
+
+def entropy(arr):
+    '''
+    Given an array of probabilities, calculate the entropy.
+    '''
+    return -sum(arr * np.log(arr))
+
+entropy_lambda = lambda row: entropy(prob_dict_to_arr(row['probs']))
 
 def calculate_conditional_entropy(df):
     '''
     Calculates the conditional entropy, up to a constant. Adds a column called 'conditional_entropy' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
 
     Returns modified df.
     '''
     df = df.copy()
 
-    # Get the possible target values
-    y = df.categories.iloc[0]
-
-    # Our function for calculating conditional entropy
-    get_cond_entropy = lambda row: -sum([row[y_i] * np.log(row[y_i]) for y_i in y])
-
-    # Calculate conditional entropy for each row
-    df['conditional_entropy'] = [get_cond_entropy(row) for _, row in df.iterrows()]
+    # Calculate entropy for each row
+    df['conditional_entropy'] = df.apply(entropy_lambda, axis=1)
 
     return df
+
+def agg_prob_dicts(dicts):
+    '''
+    Given a list of probability dictionaries, aggregate them.
+    '''
+    n = len(dicts)
+    agg_dict = {}
+    for d in dicts:
+        for k, v in d.items():
+            if k not in agg_dict:
+                agg_dict[k] = v / n
+            else:
+                agg_dict[k] += v / n
+    return agg_dict
 
 def get_marginal_distribution(df, groupby='template_name'):
     '''
     Calculates the marginal distribution over categories.
     '''
-    columns_to_keep = df['categories'].iloc[0]
-    marginal_df = df.groupby(by=groupby)[columns_to_keep].agg('mean')
+    marginal_df = df.groupby(by=groupby)['probs'].agg(agg_prob_dicts)
+    # series to df
+    marginal_df = pd.DataFrame(marginal_df)
     return marginal_df
-
-def KL_divergence(p, q):
-    '''
-    Calculates the KL divergence between two probability distributions.
-    '''
-    return (p * np.log(p / q)).sum()
 
 def calculate_mutual_information(df, groupby='template_name'):
     '''
     Calculate the mutual information between the template and the output distribution.
     '''
-    #######################
-    # KL-divergence method
-    # # TODO - verify correctness? Estimated with KL divergence?
-    # marginal_df = get_marginal_distribution(df, groupby)
-    # # function to apply per row
-    # def mutual_inf(row):
-    #     categories = row.categories
-    #     marginal_dist_index = row[groupby]
-    #     marginal_dist = marginal_df.loc[marginal_dist_index].values
-    #     dist = row[categories].astype(float).values
-    #     # calculate KL divergence
-    #     divergence = KL_divergence(dist, marginal_dist)
-    #     return divergence
-    
-    # # apply function to each row
-    # df['mutual_inf'] = df.apply(mutual_inf, axis=1)
-    #######################
     # H(Y) - H(Y|X) method
     # first, calculate conditional entropy
     df = calculate_conditional_entropy(df)
     # get marginal distributions
     marginal_df = get_marginal_distribution(df, groupby)
-    # get entropy over all columns
-    p = marginal_df.values
-    plogp = -p * np.log(p)
-    # sum over H(Y)
-    H = plogp.sum(axis=1)
-    # make df of H(Y)
-    breakpoint()
-    H_df = pd.DataFrame(H, columns=['H(Y)'], index=marginal_df.index)
+    # get entropy
+    marginal_df['entropy'] = marginal_df.apply(entropy_lambda, axis=1)
     # function to apply per row
     def mutual_inf(row):
         index = row[groupby]
-        mutual_info = H_df.loc[index] - row['conditional_entropy']
+        mutual_info = marginal_df.loc[index]['entropy'] - row['conditional_entropy']
         return mutual_info
     
     # apply function to each row
@@ -122,17 +126,17 @@ def calculate_mutual_information(df, groupby='template_name'):
 def calculate_correct_weight(df):
     '''
     Calculates the correct_weight. Adds a column called 'correct_weight' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', 'categories', and 'ground_truth'
+    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
 
     Returns modified df.
     '''
     df = df.copy()
 
     # Our function for calculating weight on ground truth
-    get_correct_weight = lambda row: row[row.ground_truth]
+    get_correct_weight = lambda row: row['probs'].get(row['ground_truth'], 0)
 
     # Calculate conditional entropy for each row
-    df['correct_weight'] = [get_correct_weight(row) for _, row in df.iterrows()]
+    df['correct_weight'] = df.apply(get_correct_weight, axis=1)
 
     return df
 
@@ -152,27 +156,11 @@ def compare_per_template(df):
         edgecolors='none',
     )
     plt.title(f'Grouped by Template, Corr Coeff: {corr:.3f}')
-    plt.xlabel('Mutual Information: $H(Y|X)$')
+    plt.xlabel(r'Mutual Information: $I(Y, f_{\theta}(X))$')
     plt.ylabel('Accuracy')
 
     return corr
 
-
-def compare_per_response(df):
-    corr = df[['accuracy', 'mutual_inf']].corr().iloc[0,1]
-
-    plt.scatter(
-        x=df.mutual_inf,
-        y=df.accuracy,
-        alpha=0.7,
-        s=20,
-        edgecolors='none',
-    )
-    plt.title(f'Mutual Information vs. Response Accuracy, Corr Coeff: {corr:.3f}')
-    plt.xlabel('Mutual Information: $H(Y|X)$')
-    plt.ylabel('Accuracy')
-
-    return corr
 
 def compare_per_response_weight(df):
     corr = df[['correct_weight', 'mutual_inf']].corr().iloc[0,1]
@@ -184,29 +172,9 @@ def compare_per_response_weight(df):
         s=20,
         edgecolors='none',
     )
-    plt.title(f'Mutual Information vs. Weight of Correct Response, Corr Coeff: {corr:.3f}')
-    plt.xlabel('Mutual Information: $H(Y|X)$')
+    plt.title(f'Weight of Correct Response, Corr Coeff: {corr:.3f}')
+    plt.xlabel(r'Entropy Decrease: $H(Y) - H(Y|f_{\theta}(x_i))$')
     plt.ylabel('Weight on Correct')
-
-    return corr
-
-def compare_per_prompt(df):
-    group = df.groupby(by='respondant')
-
-    output_df = group[['accuracy', 'mutual_inf']].agg(np.mean)
-
-    corr = output_df.corr().iloc[0,1]
-
-    plt.scatter(
-        x=output_df.mutual_inf,
-        y=output_df.accuracy,
-        alpha=0.7,
-        s=50,
-        edgecolors='none',
-    )
-    plt.title(f'Grouped by Respondant, Corr Coeff: {corr:.3f}')
-    plt.xlabel('Mutual Information: $H(Y|X)$')
-    plt.ylabel('Accuracy')
 
     return corr
 
@@ -217,18 +185,13 @@ def plot_comparisons(df, show=True, save=False, filename=None):
     """
     corrs = {}
     # make figure big
-    plt.figure(figsize=(14,8))
-    plt.subplot(221)
+    plt.figure(figsize=(14,6))
+
+    plt.subplot(121)
     corrs['per_template'] = compare_per_template(df)
 
-    plt.subplot(222)
-    corrs['per_response'] = compare_per_response(df)
-
-    plt.subplot(223)
+    plt.subplot(122)
     corrs['per_response_weight'] = compare_per_response_weight(df)
-
-    plt.subplot(224)
-    corrs['per_prompt'] = compare_per_prompt(df)
 
     plt.tight_layout()
 
@@ -257,21 +220,25 @@ def get_sorted_templates(df):
 
 
 if __name__ == '__main__':
-    # read in 'example.csv'
-    # df = read_df('example.csv')
-    # read in 'data/exp_results.csv'
-    df = read_df('data/exp_results.csv')
+    # read in infra/lms/example.pkl
+    # df = pd.read_pickle('infra/lms/example.pkl')
+    # read in test.pkl
+    df = pd.read_pickle('test.pkl')
+    df['prompt'] = df['prompts']
+    # normalize 'probs' to sum to one
+    # normalize = lambda d: {k: v/sum(d.values()) for k, v in d.items()}
+    # df['probs'] = df.probs.apply(normalize)
     df = calculate_mutual_information(df)
     
     # TODO - fix, this is very patchy
     # get number of unique templates
     n_templates = len(df.template_name.unique())
-    n_respondants = len(df) // n_templates
-    # make a new column called "respondant" that is the same number repeated n_templates times
-    respondant = np.arange(n_respondants).reshape(-1,1)
+    n_row_idxs = len(df) // n_templates
+    # make a new column called "row_idx" that is the same number repeated n_templates times
+    row_idx = np.arange(n_row_idxs).reshape(-1,1)
     # repeat n_templates times
-    respondant = np.repeat(respondant, n_templates, axis=0).reshape(-1)
-    df['respondant'] = respondant
+    row_idx = np.repeat(row_idx, n_templates, axis=0).reshape(-1)
+    df['row_idx'] = row_idx
     # calculate accuracy
     df = calculate_accuracy(df)
     # calculate conditional entropy
@@ -281,7 +248,6 @@ if __name__ == '__main__':
 
     templates = get_sorted_templates(df)
     print(templates)
-    breakpoint()
     # calculate mutual information
 
-    plot_comparisons(df, save=True, filename='plots/experiment1.pdf')
+    plot_comparisons(df, save=True, filename='plots/test.pdf')
