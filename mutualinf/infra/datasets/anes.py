@@ -23,6 +23,8 @@ class AnesDataset(Dataset):
             mod_df_dict["marital"].append(row["marital"])
             mod_df_dict["ground_truth"].append(row["2016_presidential_vote"])
         new_df = pd.DataFrame(mod_df_dict, index=df.index)
+        new_df['age'] = new_df['age'].fillna(-1)
+        new_df['age'] = new_df['age'].astype('int', errors='ignore').astype('str', errors='ignore')
         new_df['party'] = new_df['party'].astype(str)
         return new_df
 
@@ -59,8 +61,8 @@ class AnesDataset(Dataset):
         '''
         dictionary = {
             'age': {
-                np.nan: '',
-                'default': f'''I am {int(row['age'])} years old. ''',
+                '-1': '',
+                'default': f'''I am {row['age']} years old. ''',
             },
             'gender': {
                 np.nan: '',
@@ -73,7 +75,7 @@ class AnesDataset(Dataset):
             },
             'religion': {
                 np.nan: '',
-                'Undiferentiated Protstant': 'Religiously, I am protestant. ',
+                'Undifferentiated Protestant': 'Religiously, I am protestant. ',
                 'Other Christian': 'Religiously, I am Christian. ',
                 'default': f'Religiously, I identify as {row["religion"]}. ',
             },
@@ -109,8 +111,6 @@ class AnesDataset(Dataset):
             if val in dictionary[key]:
                 backstory += dictionary[key][val]
             else:
-                if key == 'age' and val == np.nan:
-                    print("here")
                 backstory += dictionary[key]['default']
         return backstory
 
@@ -120,8 +120,8 @@ class AnesDataset(Dataset):
         '''
         dictionary = {
             'age': {
-                np.nan: 'I prefer not to say my age. ',
-                'default': f'''I am {int(row['age'])} years old. ''',
+                '-1': 'I prefer not to say my age. ',
+                'default': f'''I am {row['age']} years old. ''',
             },
             'gender': {
                 np.nan: 'I prefer not to say my gender. ',
@@ -179,8 +179,8 @@ class AnesDataset(Dataset):
         '''
         dictionary = {
             'age': {
-                np.nan: '',
-                'default': f'''Q: What is your age?\nA: {int(row['age'])} years old\n\n''',
+                '-1': '',
+                'default': f'''Q: What is your age?\nA: {row['age']} years old\n\n''',
             },
             'gender': {
                 np.nan: '',
@@ -226,8 +226,8 @@ class AnesDataset(Dataset):
         '''
         dictionary = {
             'age': {
-                np.nan: f'''Q: What is your age?\nA: I prefer not to say my age\n\n''',
-                'default': f'''Q: What is your age?\nA: {int(row['age'])} years old\n\n''',
+                '-1': f'''Q: What is your age?\nA: I prefer not to say my age\n\n''',
+                'default': f'''Q: What is your age?\nA: {row['age']} years old\n\n''',
             },
             'gender': {
                 np.nan: f'''Q: What is your gender?\nA: I prefer not to say my gender\n\n''',
