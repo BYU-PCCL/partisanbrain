@@ -62,7 +62,7 @@ class FormatANES:
 							'ideo':
 								{-9 : np.nan,
 								 -8 : np.nan,
-								 1  : "Extremely iberal",
+								 1  : "Extremely Liberal",
 								 2  : "Liberal",
 								 3  : "Slightly Liberal",
 								 4  : "Moderate",
