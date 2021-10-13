@@ -7,6 +7,15 @@ import pandas as pd
 class ExampleDataset(Dataset):
 
     def __init__(self):
+
+        # Each template should have a token set
+        # of the form {ground_truth_term: synonyms_list}.
+        # It is a best guess at what close synonyms for
+        # each ground truth term would be. If there's
+        # no practical best guess (as in this example)
+        # just make the token set None.
+        self._token_set = None
+
         super().__init__()
 
     def _modify_raw_data(self, df):
@@ -18,10 +27,10 @@ class ExampleDataset(Dataset):
 
     def _get_templates(self):
         templates = {
-            "sells": lambda row: ("The company that sells "
-                                  f"{row['product']} is"),
-            "sold_by": lambda row: (f"{row['product'].capitalize()} "
-                                    "are sold by"),
+            "sells": (lambda row: ("The company that sells "
+                                   f"{row['product']} is"), self._token_set),
+            "sold_by": (lambda row: (f"{row['product'].capitalize()} "
+                                     "are sold by"), self._token_set),
         }
         return templates
 

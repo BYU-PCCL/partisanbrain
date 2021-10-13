@@ -120,11 +120,13 @@ class Dataset(abc.ABC):
     def _make_result_df(self):
         result_dict = defaultdict(list)
         for i, row in self._df.iterrows():
-            for template_name, template_fn in self._templates.items():
+            for template_name, template_info in self._templates.items():
+                template_fn, token_sets = template_info
                 result_dict["raw_idx"].append(i)
                 result_dict["template_name"].append(template_name)
                 result_dict["prompt"].append(template_fn(row))
                 result_dict["ground_truth"].append(row["ground_truth"])
+                result_dict["token_sets"].append(token_sets)
 
                 # Add all other columns in self._df
                 # for record keeping purposes
