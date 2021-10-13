@@ -6,10 +6,13 @@ import pandas as pd
 class Experiment:
 
     def __init__(self,
-                 in_fname,
                  model_name,
-                 out_fname,
+                 ds_name=None,
+                 in_fname=None,
+                 out_fname=None,
                  n_probs=100):
+
+        # Get in_fname and out_fname
 
         self._model_name = model_name
         self._out_fname = out_fname
@@ -36,7 +39,7 @@ class Experiment:
                 resps.append(resp)
             except Exception as e:
                 print(e)
-                resps.append(None)  # TODO: Does this go in as NaN
+                resps.append(None)
 
         # Make new df and save it
         self._df["resp"] = resps
