@@ -1,5 +1,5 @@
 from collections import defaultdict
-from ..dataset import Dataset
+from infra_modules import Dataset
 
 import pandas as pd
 
