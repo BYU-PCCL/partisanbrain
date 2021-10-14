@@ -61,7 +61,9 @@ class Dataset(abc.ABC):
     def __init__(self,
                  in_fname=None,
                  opening_func=None,
-                 out_fname=None):
+                 out_fname=None,
+                 sample_seed=0,
+                 n=None):
 
         self._snake_case_cls_name = self._get_snake_case_cls_name()
         recommended_ds_dir = f"data/{self._snake_case_cls_name}"
@@ -84,6 +86,10 @@ class Dataset(abc.ABC):
                    f"{self.__class__.__name__}._modify_raw_data is "
                    "missing column name \"ground_truth.\"")
             raise RuntimeError(msg)
+
+        # Sample down to n rows if requested
+        if n is not None:
+            self._df = self._df.sample(n, random_state=sample_seed)
 
         # Make results dataframe based on self._raw_df
         # and templates
