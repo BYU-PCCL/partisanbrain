@@ -1,5 +1,6 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 import openai
+openai.api_key = "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"
 
 class LM_GPT3(LMSamplerBaseClass):
     def __init__(self, model_name):

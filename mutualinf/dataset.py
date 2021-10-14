@@ -5,6 +5,7 @@ import glob
 import os.path
 import pandas as pd
 import re
+import tqdm
 
 
 class Opener:
@@ -125,7 +126,7 @@ class Dataset(abc.ABC):
 
     def _make_result_df(self):
         result_dict = defaultdict(list)
-        for i, row in self._df.iterrows():
+        for i, row in tqdm.tqdm(self._df.iterrows(), total=self._df.shape[0]):
             for template_name, template_info in self._templates.items():
                 template_fn, token_sets = template_info
                 result_dict["raw_idx"].append(i)
