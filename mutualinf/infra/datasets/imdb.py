@@ -4,9 +4,9 @@ from infra_modules import Dataset
 import pandas as pd
 
 class ImdbDataset(Dataset):
-    def __init__(self):
+    def __init__(self, sample_seed=0, n=None):
         self.token_set_dict = {'postive' : ['positive', 'good', 'happy', 'great', 'excellent'], 'negative' : ['negative', 'bad', 'poor', 'sad', 'depressing']}
-        super().__init__()
+        super().__init__(sample_seed=0, n=None)
 
     def _modify_raw_data(self, df):
         mod_df = df.rename(columns={'sentiment':'ground_truth'})

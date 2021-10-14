@@ -6,7 +6,7 @@ import pandas as pd
 
 class ExampleDataset(Dataset):
 
-    def __init__(self):
+    def __init__(self, sample_seed=0, n=None):
 
         # Each template should have a token set
         # of the form {ground_truth_term: synonyms_list}.
@@ -16,7 +16,8 @@ class ExampleDataset(Dataset):
         # just make the token set None.
         self._token_set = None
 
-        super().__init__()
+        super().__init__(sample_seed=sample_seed,
+                         n=n)
 
     def _modify_raw_data(self, df):
         mod_df_dict = defaultdict(list)
