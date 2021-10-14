@@ -1,6 +1,7 @@
 from lmsampler import LMSampler
 
 import pandas as pd
+import tqdm
 
 
 class Experiment:
@@ -13,6 +14,21 @@ class Experiment:
                  n_probs=100):
 
         # Get in_fname and out_fname
+        if ds_name is not None:
+            # Use ds_name if it is available,
+            # regardless of in_fname/out_fname
+            # availability
+            in_fname = f"data/{ds_name}/ds.pkl"
+            out_fname = f"data/{ds_name}/exp_results.pkl"
+        else:
+            if (in_fname is None) or (out_fname is None):
+                msg = ("Please either specify ds_name "
+                       "or in_fname AND out_fname)")
+                raise RuntimeError(msg)
+            else:
+                # Use the in_fname and out_fname
+                # provided
+                pass
 
         self._model_name = model_name
         self._out_fname = out_fname
@@ -32,7 +48,8 @@ class Experiment:
 
     def _run(self):
         resps = []
-        for _, row in self._ds_df.iterrow():
+        for _, row in tqdm.tqdm(self._ds_df.iterrows(),
+                                total=self._ds_df.shape[0]):
             try:
                 resp = self._model.send_prompt(row["prompt"],
                                                n_probs=self._n_probs)
@@ -42,9 +59,9 @@ class Experiment:
                 resps.append(None)
 
         # Make new df and save it
-        self._df["resp"] = resps
-        self._df["model"] = [self._model_name] * len(resps)
-        self._df.to_pickle(self._out_fname)
+        self._ds_df["resp"] = resps
+        self._ds_df["model"] = [self._model_name] * len(resps)
+        self._ds_df.to_pickle(self._out_fname)
 
 
 if __name__ == "__main__":

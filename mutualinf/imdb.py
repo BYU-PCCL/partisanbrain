@@ -1,17 +1,14 @@
-from collections import defaultdict
-from infra_modules import Dataset
+from dataset import Dataset
 
-import pandas as pd
 
 class ImdbDataset(Dataset):
-    def __init__(self):
+    def __init__(self, sample_seed=0, n=None):
         self.token_set_dict = {'postive' : ['positive', 'good', 'happy', 'great', 'excellent'], 'negative' : ['negative', 'bad', 'poor', 'sad', 'depressing']}
-        super().__init__()
+        super().__init__(sample_seed=sample_seed, n=n)
 
     def _modify_raw_data(self, df):
         mod_df = df.rename(columns={'sentiment':'ground_truth'})
         return mod_df
-        
 
     def _get_templates(self):
         templates = {

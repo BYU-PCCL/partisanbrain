@@ -1,6 +1,7 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 import openai
 
+
 class LM_GPT3(LMSamplerBaseClass):
     def __init__(self, model_name):
         '''
