@@ -128,11 +128,10 @@ class Postprocessor:
         '''
         self.df['probs'] = self.df['probs'].apply(normalize)
 
-# if __name__ == '__main__':
-#     df = pd.read_pickle('infra/lms/example.pkl')
-#     df['resp'] = df['responses']
-#     postprocessor = Postprocessor(df)
-#     df = postprocessor.df
-#     breakpoint()
-#     pass
-# 
+if __name__ == '__main__':
+    df = pd.read_pickle('experiments/exp_processed.pkl')
+    df['resp'] = df['responses']
+    postprocessor = Postprocessor(df)
+    df = postprocessor.df
+    breakpoint()
+    pass

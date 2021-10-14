@@ -5,8 +5,8 @@ if __name__ == "__main__":
 
     # Run IMDB experiment
     print("Building dataset...")
-    ImdbDataset(n=5)
+    ImdbDataset(n=200)
 
     print("Passing dataset through model...")
-    Experiment(model_name="gpt3-ada",
+    Experiment(model_name="gpt3-davinci",
                ds_name="imdb")
