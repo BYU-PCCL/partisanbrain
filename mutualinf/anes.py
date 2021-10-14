@@ -30,30 +30,35 @@ class AnesDataset(Dataset):
 
     def _get_templates(self):
         templates = {
-            "template_1a": lambda row: f"{self.make_backstory1(row)}In 2016, between Clinton and Trump, I voted for",
-            "template_1b": lambda row: f"{self.make_backstory1(row)}In 2016, between Trump and Clinton, I voted for",
-            "template_1c": lambda row: f"{self.make_backstory1(row)}In 2016 the candidate I voted for was",
-            "template_1d": lambda row: f"{self.make_backstory1(row)}The candidate I voted for in the 2016 presidential election was",
-            "template_1e": lambda row: f"{self.make_backstory1(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was",
-            "template_1f": lambda row: f"{self.make_backstory1(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was",
-            "template_2a": lambda row: f"{self.make_backstory2(row)}In 2016, between Clinton and Trump, I voted for",
-            "template_2b": lambda row: f"{self.make_backstory2(row)}In 2016, between Trump and Clinton, I voted for",
-            "template_2c": lambda row: f"{self.make_backstory2(row)}In 2016 the candidate I voted for was",
-            "template_2d": lambda row: f"{self.make_backstory2(row)}The candidate I voted for in the 2016 presidential election was",
-            "template_2e": lambda row: f"{self.make_backstory2(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was",
-            "template_2f": lambda row: f"{self.make_backstory2(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was",
-            "template_3a": lambda row: f"{self.make_backstory3(row)}Q: In 2016, between Clinton and Trump, who did you vote for?\n\nA:",
-            "template_3b": lambda row: f"{self.make_backstory3(row)}Q: In 2016, between Trump and Clinton, who did you vote for?\n\nA:",
-            "template_3c": lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election? Clinton or Trump?\n\nA:",
-            "template_3d": lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election? Trump or Clinton?\n\nA:",
-            "template_3e": lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election?\n\nA:",
-            "template_4a": lambda row: f"{self.make_backstory4(row)}Q: In 2016, between Clinton and Trump, who did you vote for?\n\nA:",
-            "template_4b": lambda row: f"{self.make_backstory4(row)}Q: In 2016, between Trump and Clinton, who did you vote for?\n\nA:",
-            "template_4c": lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election? Clinton or Trump?\n\nA:",
-            "template_4d": lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election? Trump or Clinton?\n\nA:",
-            "template_4e": lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election?\n\nA:",
+            "template_1a": (lambda row: f"{self.make_backstory1(row)}In 2016, between Clinton and Trump, I voted for", self._get_tokens()),
+            "template_1b": (lambda row: f"{self.make_backstory1(row)}In 2016, between Trump and Clinton, I voted for", self._get_tokens()),
+            "template_1c": (lambda row: f"{self.make_backstory1(row)}In 2016 the candidate I voted for was", self._get_tokens()),
+            "template_1d": (lambda row: f"{self.make_backstory1(row)}The candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_1e": (lambda row: f"{self.make_backstory1(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_1f": (lambda row: f"{self.make_backstory1(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_2a": (lambda row: f"{self.make_backstory2(row)}In 2016, between Clinton and Trump, I voted for", self._get_tokens()),
+            "template_2b": (lambda row: f"{self.make_backstory2(row)}In 2016, between Trump and Clinton, I voted for", self._get_tokens()),
+            "template_2c": (lambda row: f"{self.make_backstory2(row)}In 2016 the candidate I voted for was", self._get_tokens()),
+            "template_2d": (lambda row: f"{self.make_backstory2(row)}The candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_2e": (lambda row: f"{self.make_backstory2(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_2f": (lambda row: f"{self.make_backstory2(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
+            "template_3a": (lambda row: f"{self.make_backstory3(row)}Q: In 2016, between Clinton and Trump, who did you vote for?\n\nA:", self._get_tokens()),
+            "template_3b": (lambda row: f"{self.make_backstory3(row)}Q: In 2016, between Trump and Clinton, who did you vote for?\n\nA:", self._get_tokens()),
+            "template_3c": (lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election? Clinton or Trump?\n\nA:", self._get_tokens()),
+            "template_3d": (lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election? Trump or Clinton?\n\nA:", self._get_tokens()),
+            "template_3e": (lambda row: f"{self.make_backstory3(row)}Q: Who did you vote for in the 2016 election?\n\nA:", self._get_tokens()),
+            "template_4a": (lambda row: f"{self.make_backstory4(row)}Q: In 2016, between Clinton and Trump, who did you vote for?\n\nA:", self._get_tokens()),
+            "template_4b": (lambda row: f"{self.make_backstory4(row)}Q: In 2016, between Trump and Clinton, who did you vote for?\n\nA:", self._get_tokens()),
+            "template_4c": (lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election? Clinton or Trump?\n\nA:", self._get_tokens()),
+            "template_4d": (lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election? Trump or Clinton?\n\nA:", self._get_tokens()),
+            "template_4e": (lambda row: f"{self.make_backstory4(row)}Q: Who did you vote for in the 2016 election?\n\nA:", self._get_tokens()),
         }
         return templates
+
+    def _get_tokens(self):
+        return {
+            'Hillary Clinton': ['Clinton', 'Hillary'], 
+            'Donald Trump': ['Trump', 'Donald']}
 
     def make_backstory1(self, row):
         '''
