@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.linear_model import LinearRegression, LogisticRegression
+
+# sigmoid function
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
 
 def read_df(path):
     '''
@@ -148,29 +154,49 @@ def compare_per_template(df):
 
     corr = output_df.corr().iloc[0,1]
 
+    x, y = output_df.mutual_inf.values, output_df.accuracy.values
+
     plt.scatter(
-        x=output_df.mutual_inf,
-        y=output_df.accuracy,
+        x=x,
+        y=y,
         alpha=0.7,
         s=50,
         edgecolors='none',
     )
+
+    # fit linear regression
+    lr = LinearRegression()
+    a, b = lr.fit(x.reshape(-1,1), y).coef_[0], lr.intercept_
+    # plot line
+    x_linspace = np.linspace(x.min(), x.max(), 100)
+    plt.plot(x_linspace, a*x_linspace + b, 'C1', alpha=0.7)
+
     plt.title(f'Grouped by Template, Corr Coeff: {corr:.3f}')
     plt.xlabel(r'Mutual Information: $I(Y, f_{\theta}(X))$')
     plt.ylabel('Accuracy')
 
     return corr
 
-def compare_per_response(df):
+def compare_per_response(df, y_jitter=.05):
     corr = df[['accuracy', 'mutual_inf']].corr().iloc[0,1]
 
+    x, y = df.mutual_inf.values, df.accuracy.values
+
     plt.scatter(
-        x=df.mutual_inf,
-        y=df.accuracy,
-        alpha=0.7,
+        x=x,
+        y=y + np.random.normal(0, y_jitter, len(y)),
+        alpha=0.2,
         s=20,
         edgecolors='none',
     )
+
+    # fit logistic regression
+    lr = LogisticRegression()
+    a, b = lr.fit(x.reshape(-1,1), y).coef_[0], lr.intercept_
+    # plot sigmoid regression
+    x_linspace = np.linspace(x.min(), x.max(), 100)
+    plt.plot(x_linspace, sigmoid(a*x_linspace + b), 'C1', alpha=0.7)
+
     plt.title(f'Entropy Difference vs. Response Accuracy, Corr Coeff: {corr:.3f}')
     plt.xlabel(r'Entropy Difference: $H(Y) - H(Y|f_{\theta}(x_i))$')
     plt.ylabel('Accuracy')
@@ -181,16 +207,27 @@ def compare_per_response(df):
 def compare_per_response_weight(df):
     corr = df[['correct_weight', 'mutual_inf']].corr().iloc[0,1]
 
+    x, y = df.mutual_inf.values, df.correct_weight.values
+
     plt.scatter(
-        x=df.mutual_inf,
-        y=df.correct_weight,
-        alpha=0.3,
+        x=x,
+        y=y,
+        alpha=0.2,
         s=20,
         edgecolors='none',
     )
+
+    # fit linear regression
+    lr = LinearRegression()
+    a, b = lr.fit(x.reshape(-1,1), y).coef_[0], lr.intercept_
+    # plot line
+    x_linspace = np.linspace(x.min(), x.max(), 100)
+    plt.plot(x_linspace, a*x_linspace + b, 'C1', alpha=0.7)
+
     plt.title(f'Weight of Correct Response, Corr Coeff: {corr:.3f}')
     plt.xlabel(r'Entropy Difference: $H(Y) - H(Y|f_{\theta}(x_i))$')
     plt.ylabel('Weight on Correct')
+
 
     return corr
 
@@ -201,13 +238,24 @@ def compare_per_idx(df):
 
     corr = output_df.corr().iloc[0,1]
 
+    x, y = output_df.mutual_inf.values, output_df.accuracy.values
+
     plt.scatter(
-        x=output_df.mutual_inf,
-        y=output_df.accuracy,
+        x=x,
+        y=y,
         alpha=0.7,
         s=50,
         edgecolors='none',
     )
+
+    # fit linear regression
+    lr = LinearRegression()
+    a, b = lr.fit(x.reshape(-1,1), y).coef_[0], lr.intercept_
+    # plot line
+    x_linspace = np.linspace(x.min(), x.max(), 100)
+    plt.plot(x_linspace, a*x_linspace + b, 'C1', alpha=0.7)
+
+
     plt.title(f'Grouped by Instance, Corr Coeff: {corr:.3f}')
     plt.xlabel(r'Mean Entropy Difference: $\mathbb{E}_{\theta}[H(Y) - H(Y|f_{\theta}(x_i))]$')
     plt.ylabel('Accuracy')
@@ -242,7 +290,11 @@ def plot_comparisons(df, show=True, save=False, filename=None):
     plt.subplot(224)
     corrs['per_id'] = compare_per_idx(df)
 
+    # make suptitle with dataset
+    plt.suptitle(f'{df.dataset.unique()[0].upper()} - {df.model.unique()[0].upper()}')
+
     plt.tight_layout()
+
 
     if save:
         if filename is None:
@@ -258,8 +310,9 @@ def get_sorted_templates(df):
 
     # agg accuracy and conditional entropy by mean, and prompt by first
     output_df = group.agg({
-        'accuracy': np.mean,
-        'mutual_inf': np.mean,
+        'accuracy': 'mean',
+        'mutual_inf': 'mean',
+        'coverage': 'mean',
         'prompt': 'first',
     })
     
@@ -269,7 +322,15 @@ def get_sorted_templates(df):
 
 
 if __name__ == '__main__':
-    df = pd.read_pickle('experiments/exp_processed.pkl')
+    # first process
+    from postprocessor import Postprocessor
+    # df = pd.read_pickle('data/imdb/exp_results_gpt2.pkl')
+    df = pd.read_pickle('data/imdb/exp_results.pkl')
+    # df = pd.read_pickle('experiments/exp_results.pkl')
+    df['token_sets'] = [{'positive': ['positive', 'good', 'happy', 'great', 'excellent'], 'negative': ['negative', 'bad', 'poor', 'sad', 'depressing']}] * len(df)
+    df = df.dropna()
+    postprocessor = Postprocessor(df)
+    df = postprocessor.df
 
     # calculate mutual information
     df = calculate_mutual_information(df)
@@ -282,6 +343,9 @@ if __name__ == '__main__':
     print(templates)
     # calculate mutual information
 
-    plot_comparisons(df, save=True, filename='plots/test.pdf')
-    breakpoint()
+    # get model and dataset
+    model = df.model.unique()[0]
+    dataset = df.dataset.unique()[0]
+    # save to plots/dataset_model
+    plot_comparisons(df, save=True, filename=f'plots/{dataset}_{model}.png')
     pass
