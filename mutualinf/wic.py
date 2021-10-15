@@ -5,6 +5,34 @@ import sys
 import pandas as pd
 
 
+SHOTS = [
+    """Word: bright
+Usage 1: He is a bright child
+Usage 2: The sun is very bright today
+Meaning: different
+
+""",
+    """Word: air
+Usage 1: Utah has too much air pollution.
+Usage 2: Open a window and let in some air.
+Meaning: same
+
+""",
+    """Word: cool
+Usage 1: Her pants are cool.
+Usage 2: Let your food cool.
+Meaning: different
+
+""",
+    """Word: fight
+Usage 1: My wife and I had a fight.
+Usage 2: I fight for my freedom.
+Meaning: same
+
+""",
+]
+
+
 class WicDataset(Dataset):
 
     def __init__(self):
@@ -21,6 +49,10 @@ class WicDataset(Dataset):
                 'True': ['similar'],
                 'False': ['different'],
             },
+            'few_shot': {
+                'True': ['same'],
+                'False': ['different'],
+            },
         }
         super().__init__()
 
@@ -32,15 +64,49 @@ class WicDataset(Dataset):
             'question0': (
                 lambda row: (
                     f'{row.sentence1} {row.sentence2} '
-                    f'Does the word "{row.word}" have the same context?'
+                    f'Choose "yes" or "no". Does the word {row.word} have the same context in the previous sentences? "'
                 ), self._token_set['question']
             ),
-            'question1': (
+            'few_shot0': (
                 lambda row: (
-                    f'{row.sentence1} {row.sentence2} '
-                    f'Does the word "{row.word}" have the same context in the previous sentences?'
-                ), self._token_set['question']
+                    SHOTS[0] +
+                    f'Word: {row.word}\n'
+                    f'Usage 1: {row.sentence1}\n'
+                    f'Usage 2: {row.sentence2}\n'
+                    f'Meaning:'
+                ), self._token_set['few_shot']
             ),
+            'few_shot1': (
+                lambda row: (
+                    ''.join(SHOTS[:2]) +
+                    f'Word: {row.word}\n'
+                    f'Usage 1: {row.sentence1}\n'
+                    f'Usage 2: {row.sentence2}\n'
+                    f'Meaning:'
+                ), self._token_set['few_shot']
+            ),
+            'few_shot2': (
+                lambda row: (
+                    ''.join(SHOTS[:3]) +
+                    f'Word: {row.word}\n'
+                    f'Usage 1: {row.sentence1}\n'
+                    f'Usage 2: {row.sentence2}\n'
+                    f'Meaning:'
+                ), self._token_set['few_shot']
+            ),
+            'few_shot3': (
+                lambda row: (
+                    ''.join(SHOTS[:4]) +
+                    f'Word: {row.word}\n'
+                    f'Usage 1: {row.sentence1}\n'
+                    f'Usage 2: {row.sentence2}\n'
+                    f'Meaning:'
+                ), self._token_set['few_shot']
+            ),
+            # Add QA prompt
+
+
+
             'true_false_classify0': (
                 lambda row: (
                     f'In the sentences "{row.sentence1}" and "{row.sentence2}" '
