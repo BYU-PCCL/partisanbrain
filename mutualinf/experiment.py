@@ -1,7 +1,9 @@
+from datetime import date
 from lmsampler import LMSampler
 
 import pandas as pd
 import tqdm
+import warnings
 
 
 class Experiment:
@@ -19,15 +21,21 @@ class Experiment:
             # regardless of in_fname/out_fname
             # availability
             in_fname = f"data/{ds_name}/ds.pkl"
-            out_fname = f"data/{ds_name}/exp_results.pkl"
+            date_str = date.today().strftime("%d-%m-%Y")
+            out_fname = (f"data/{ds_name}/exp_results_"
+                         f"{model_name}_{date_str}.pkl")
         else:
             if (in_fname is None) or (out_fname is None):
                 msg = ("Please either specify ds_name "
-                       "or in_fname AND out_fname)")
+                       "OR (in_fname AND out_fname)")
                 raise RuntimeError(msg)
             else:
                 # Use the in_fname and out_fname
                 # provided
+                msg = ("Specifying in_fname and out_fname "
+                       "instead of ds_name is not generally "
+                       "recommended.")
+                warnings.warn(msg)
                 pass
 
         self._model_name = model_name
@@ -62,7 +70,3 @@ class Experiment:
         self._ds_df["resp"] = resps
         self._ds_df["model"] = [self._model_name] * len(resps)
         self._ds_df.to_pickle(self._out_fname)
-
-
-if __name__ == "__main__":
-    e = Experiment()
