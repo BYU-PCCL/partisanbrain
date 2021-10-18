@@ -360,5 +360,6 @@ if __name__ == '__main__':
     if not os.path.exists(f'plots'):
         os.mkdir('plots')
     # save to plots/dataset_model
+    model = model.replace('/', '-')
     plot_comparisons(df, save=True, filename=f'plots/{dataset}_{model}.png')
     pass
