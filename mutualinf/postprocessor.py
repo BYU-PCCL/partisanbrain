@@ -106,6 +106,11 @@ class Postprocessor:
         # Read in dataframe specified by results_fname
         self.df = pd.read_pickle(results_fname)
 
+        # TODO - remove? to fix earlier bug
+        if 'imdb' in results_fname:
+            # make 'token_sets' ['positive', 'negative']
+            self.df['token_sets'] = [['positive', 'negative']] * len(self.df)
+
         # get number of instances where 'resp' is missing
         num_missing = self.df.loc[self.df.resp.isnull()].shape[0]
         # print Dropping {} instances with missing responses
@@ -268,3 +273,18 @@ class Postprocessor:
         df['accuracy'] = df.apply(accuracy_lambda, axis=1)
 
         return df
+
+if __name__ == '__main__':
+    import argparse
+    import os
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', type=str, help='file with results to use')
+    # get dataset arg
+    args = parser.parse_args()
+    input_fname = args.input
+
+    # save_fname is same name, but replace exp_results with processed
+    save_fname = input_fname.replace('exp_results', 'processed_exp_results')
+
+    # process
+    Postprocessor(input_fname, save_fname)
