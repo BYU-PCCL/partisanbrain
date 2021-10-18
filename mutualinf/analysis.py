@@ -333,6 +333,9 @@ if __name__ == '__main__':
 
     # first process
     df = pd.read_pickle(results_file)
+    # if 'imbd' in results_file:
+    if 'imdb' in results_file:
+        df['token_sets'] = [['positive', 'negative']] * len(df)
     # get number of instances where 'resp' is missing
     num_missing = df.loc[df.resp.isnull()].shape[0]
     # print Dropping {} instances with missing responses
