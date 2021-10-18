@@ -7,145 +7,6 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-
-def read_df(path):
-    '''
-    Loads the dataframe at path.
-    Path (str): 'csv' or 'pkl'
-    Expected columns are:
-        - 'template_name' (str): name of templatizing strategy
-        - 'ground_truth' (string): ground truth response
-        - 'probs' (dict: str->float): dictionary of probabilities for each category/token.
-    '''
-    if path.endswith('csv'):
-        df = pd.read_csv(path)
-        # convert probs to dictionary
-        df['probs'] = df.probs.apply(eval)
-    elif path.endswith('pkl'):
-        df = pd.read_pickle(path)
-    else:
-        raise ValueError('Unknown file type')
-    return df
-
-def calculate_accuracy(df):
-    '''
-    Calculates the accuracy of the model. Adds a column called 'accuracy' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
-
-    Returns modified df.
-    '''
-    df = df.copy()
-
-    # if row['ground_truth'] starts with argmax(row['probs']) stripped and lowercase, then it's correct
-    def accuracy_lambda(row):
-        # guess is argmax of row['probs'] dict
-        guess = max(row['probs'], key=row['probs'].get)
-        # lower and strip
-        guess = guess.lower().strip()
-        if row['ground_truth'].startswith(guess):
-            return 1
-        else:
-            return 0
-    df['accuracy'] = df.apply(accuracy_lambda, axis=1)
-
-    return df
-
-def prob_dict_to_arr(d):
-    '''
-    Converts a probability dictionary into an array of probabilities.
-    Args:
-        d (dict: str->float): dictionary of probabilities for each category/token.
-    Returns:
-        arr (np.array): array of probabilities.
-    '''
-    arr = np.array([d[k] for k in d])
-    return arr
-
-def entropy(arr):
-    '''
-    Given an array of probabilities, calculate the entropy.
-    '''
-    return -sum(arr * np.log(arr))
-
-entropy_lambda = lambda row: entropy(prob_dict_to_arr(row['probs']))
-
-def calculate_conditional_entropy(df):
-    '''
-    Calculates the conditional entropy, up to a constant. Adds a column called 'conditional_entropy' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
-
-    Returns modified df.
-    '''
-    df = df.copy()
-
-    # Calculate entropy for each row
-    df['conditional_entropy'] = df.apply(entropy_lambda, axis=1)
-
-    return df
-
-def agg_prob_dicts(dicts):
-    '''
-    Given a list of probability dictionaries, aggregate them.
-    '''
-    n = len(dicts)
-    agg_dict = {}
-    for d in dicts:
-        for k, v in d.items():
-            if k not in agg_dict:
-                agg_dict[k] = v / n
-            else:
-                agg_dict[k] += v / n
-    return agg_dict
-
-def get_marginal_distribution(df, groupby='template_name'):
-    '''
-    Calculates the marginal distribution over categories.
-    '''
-    marginal_df = df.groupby(by=groupby)['probs'].agg(agg_prob_dicts)
-    # series to df
-    marginal_df = pd.DataFrame(marginal_df)
-    return marginal_df
-
-def calculate_mutual_information(df, groupby='template_name'):
-    '''
-    Calculate the mutual information between the template and the output distribution.
-    '''
-    # H(Y) - H(Y|X) method
-    # first, calculate conditional entropy
-    df = calculate_conditional_entropy(df)
-    # get marginal distributions
-    marginal_df = get_marginal_distribution(df, groupby)
-    # get entropy
-    marginal_df['entropy'] = marginal_df.apply(entropy_lambda, axis=1)
-    # function to apply per row
-    def mutual_inf(row):
-        index = row[groupby]
-        mutual_info = marginal_df.loc[index]['entropy'] - row['conditional_entropy']
-        return mutual_info
-    
-    # apply function to each row
-    df['mutual_inf'] = df.apply(mutual_inf, axis=1)
-
-    return df
-
-
-def calculate_correct_weight(df):
-    '''
-    Calculates the correct_weight. Adds a column called 'correct_weight' to df.
-    df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
-
-    Returns modified df.
-    '''
-    df = df.copy()
-
-    # Our function for calculating weight on ground truth
-    get_correct_weight = lambda row: row['probs'].get(row['ground_truth'], 0)
-
-    # Calculate conditional entropy for each row
-    df['correct_weight'] = df.apply(get_correct_weight, axis=1)
-
-    return df
-
 # TODO - do correlation analysis between templates and ground truth. Add in functions for this?
 def compare_per_template(df):
     group = df.groupby(by='template_name')
@@ -209,12 +70,17 @@ def compare_per_response_weight(df):
 
     x, y = df.mutual_inf.values, df.correct_weight.values
 
+    # unique_template_names = list(set(df.template_name.values))
+    # template_name_map = dict(zip(unique_template_names,
+    #                          range(len(unique_template_names))))
+
     plt.scatter(
         x=x,
         y=y,
         alpha=0.2,
         s=20,
         edgecolors='none',
+        # c=[template_name_map[v] for v in df.template_name.values]
     )
 
     # fit linear regression
@@ -323,7 +189,6 @@ def get_sorted_templates(df):
 
 if __name__ == '__main__':
     import argparse
-    from postprocessor import Postprocessor
     import os
     parser = argparse.ArgumentParser()
     parser.add_argument('--results', type=str, help='file with results to use')
@@ -331,23 +196,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     results_file = args.results
 
-    # first process
-    df = pd.read_pickle(results_file)
-    # get number of instances where 'resp' is missing
-    num_missing = df.loc[df.resp.isnull()].shape[0]
-    # print Dropping {} instances with missing responses
-    print(f'Dropping {num_missing} instances with missing responses')
-    # drop na where 'resp' is missing
-    df = df.dropna(subset=['resp'])
-    postprocessor = Postprocessor(df)
-    df = postprocessor.df
-
-    # calculate mutual information
-    df = calculate_mutual_information(df)
-    # calculate accuracy
-    df = calculate_accuracy(df)
-    # calculate correct weight
-    df = calculate_correct_weight(df)
+    df = pd.read_pickle(args.results)
 
     templates = get_sorted_templates(df)
     print(templates)
@@ -357,7 +206,7 @@ if __name__ == '__main__':
     model = df.model.unique()[0]
     dataset = df.dataset.unique()[0]
     # make 'plots' if missing
-    if not os.path.exists(f'plots'):
+    if not os.path.exists('plots'):
         os.mkdir('plots')
     # save to plots/dataset_model
     plot_comparisons(df, save=True, filename=f'plots/{dataset}_{model}.png')

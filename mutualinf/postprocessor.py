@@ -97,21 +97,139 @@ def coverage(d):
 
 class Postprocessor:
 
-    def __init__(self, df, matching_strategy=None):
+    def __init__(self, results_fname, save_fname, matching_strategy=None):
         '''
         Instantiates a Postprocessor object.
-        df (pd.DataFrame): DataFrame containing the experiment results.
-            columns:
-                - 'resp' (dict: str->float): dictionary with the top n logprobs
         matching_strategy (str): Strategy for matching tokens. Can be 'startswith', 'exact', or None.
         '''
-        self.df = df.copy()
+
+        # Read in dataframe specified by results_fname
+        self.df = pd.read_pickle(results_fname)
+
+        # get number of instances where 'resp' is missing
+        num_missing = self.df.loc[self.df.resp.isnull()].shape[0]
+        # print Dropping {} instances with missing responses
+        print(f'Dropping {num_missing} instances with missing responses')
+        # drop na where 'resp' is missing
+        self.df = self.df.dropna(subset=['resp'])
+
         if matching_strategy:
+            if matching_strategy not in ['startswith', 'exact']:
+                msg = f"{matching_strategy} is not a valid matching strategy"
+                raise RuntimeError(msg)
             self.df['matching_strategy'] = matching_strategy
         self.calculate_probs()
         self.calculate_coverage()
         self.normalize_probs()
-    
+
+        # calculate mutual information
+        self.df = self.calculate_mutual_information(self.df)
+
+        # calculate accuracy
+        self.df = self.calculate_accuracy(self.df)
+
+        # calculate correct weight
+        self.df = self.calculate_correct_weight(self.df)
+
+        # save df
+        self.df.to_pickle(save_fname)
+
+    def prob_dict_to_arr(self, d):
+        '''
+        Converts a probability dictionary into an array of probabilities.
+        Args:
+            d (dict: str->float): dictionary of probabilities for each category/token.
+        Returns:
+            arr (np.array): array of probabilities.
+        '''
+        arr = np.array([d[k] for k in d])
+        return arr
+
+    def agg_prob_dicts(self, dicts):
+        '''
+        Given a list of probability dictionaries, aggregate them.
+        '''
+        n = len(dicts)
+        agg_dict = {}
+        for d in dicts:
+            for k, v in d.items():
+                if k not in agg_dict:
+                    agg_dict[k] = v / n
+                else:
+                    agg_dict[k] += v / n
+        return agg_dict
+
+    def get_marginal_distribution(self, df, groupby='template_name'):
+        '''
+        Calculates the marginal distribution over categories.
+        '''
+        marginal_df = df.groupby(by=groupby)['probs'].agg(self.agg_prob_dicts)
+        # series to df
+        marginal_df = pd.DataFrame(marginal_df)
+        return marginal_df
+
+    def calculate_correct_weight(self, df):
+        '''
+        Calculates the correct_weight. Adds a column called 'correct_weight' to df.
+        df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
+
+        Returns modified df.
+        '''
+        df = df.copy()
+
+        # Our function for calculating weight on ground truth
+        get_correct_weight = lambda row: row['probs'].get(row['ground_truth'], 0)
+
+        # Calculate conditional entropy for each row
+        df['correct_weight'] = df.apply(get_correct_weight, axis=1)
+
+        return df
+
+    def entropy(self, arr):
+        '''
+        Given an array of probabilities, calculate the entropy.
+        '''
+        return -sum(arr * np.log(arr))
+
+    def calculate_conditional_entropy(self, df):
+        '''
+        Calculates the conditional entropy, up to a constant. Adds a column called 'conditional_entropy' to df.
+        df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
+
+        Returns modified df.
+        '''
+        df = df.copy()
+
+        entropy_lambda = lambda row: self.entropy(self.prob_dict_to_arr(row['probs']))
+
+        # Calculate entropy for each row
+        df['conditional_entropy'] = df.apply(entropy_lambda, axis=1)
+
+        return df
+
+    def calculate_mutual_information(self, df, groupby='template_name'):
+        '''
+        Calculate the mutual information between the template and the output distribution.
+        '''
+        # H(Y) - H(Y|X) method
+        # first, calculate conditional entropy
+        df = self.calculate_conditional_entropy(df)
+        # get marginal distributions
+        marginal_df = self.get_marginal_distribution(df, groupby)
+        # get entropy
+        entropy_lambda = lambda row: self.entropy(self.prob_dict_to_arr(row['probs']))
+        marginal_df['entropy'] = marginal_df.apply(entropy_lambda, axis=1)
+        # function to apply per row
+        def mutual_inf(row):
+            index = row[groupby]
+            mutual_info = marginal_df.loc[index]['entropy'] - row['conditional_entropy']
+            return mutual_info
+        
+        # apply function to each row
+        df['mutual_inf'] = df.apply(mutual_inf, axis=1)
+
+        return df
+
     def calculate_probs(self):
         '''
         Population the 'probs' column in the dataframe.
@@ -128,10 +246,25 @@ class Postprocessor:
         '''
         self.df['probs'] = self.df['probs'].apply(normalize)
 
-if __name__ == '__main__':
-    df = pd.read_pickle('experiments/exp_processed.pkl')
-    df['resp'] = df['responses']
-    postprocessor = Postprocessor(df)
-    df = postprocessor.df
-    breakpoint()
-    pass
+    def calculate_accuracy(self, df):
+        '''
+        Calculates the accuracy of the model. Adds a column called 'accuracy' to df.
+        df (pandas.DataFrame): dataframe with columns 'template_name', and 'ground_truth'
+
+        Returns modified df.
+        '''
+        df = df.copy()
+
+        # if row['ground_truth'] starts with argmax(row['probs']) stripped and lowercase, then it's correct
+        def accuracy_lambda(row):
+            # guess is argmax of row['probs'] dict
+            guess = max(row['probs'], key=row['probs'].get)
+            # lower and strip
+            guess = guess.lower().strip()
+            if row['ground_truth'].lower().strip().startswith(guess):
+                return 1
+            else:
+                return 0
+        df['accuracy'] = df.apply(accuracy_lambda, axis=1)
+
+        return df
