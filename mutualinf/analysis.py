@@ -322,13 +322,23 @@ def get_sorted_templates(df):
 
 
 if __name__ == '__main__':
-    # first process
+    import argparse
     from postprocessor import Postprocessor
-    # df = pd.read_pickle('data/imdb/exp_results_gpt2.pkl')
-    df = pd.read_pickle('data/imdb/exp_results.pkl')
-    # df = pd.read_pickle('experiments/exp_results.pkl')
-    df['token_sets'] = [{'positive': ['positive', 'good', 'happy', 'great', 'excellent'], 'negative': ['negative', 'bad', 'poor', 'sad', 'depressing']}] * len(df)
-    df = df.dropna()
+    import os
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--results', type=str, help='file with results to use')
+    # get dataset arg
+    args = parser.parse_args()
+    results_file = args.results
+
+    # first process
+    df = pd.read_pickle(results_file)
+    # get number of instances where 'resp' is missing
+    num_missing = df.loc[df.resp.isnull()].shape[0]
+    # print Dropping {} instances with missing responses
+    print(f'Dropping {num_missing} instances with missing responses')
+    # drop na where 'resp' is missing
+    df = df.dropna(subset=['resp'])
     postprocessor = Postprocessor(df)
     df = postprocessor.df
 
@@ -346,6 +356,9 @@ if __name__ == '__main__':
     # get model and dataset
     model = df.model.unique()[0]
     dataset = df.dataset.unique()[0]
+    # make 'plots' if missing
+    if not os.path.exists(f'plots'):
+        os.mkdir('plots')
     # save to plots/dataset_model
     plot_comparisons(df, save=True, filename=f'plots/{dataset}_{model}.png')
     pass
