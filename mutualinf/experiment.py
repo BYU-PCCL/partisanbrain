@@ -22,8 +22,9 @@ class Experiment:
             # availability
             in_fname = f"data/{ds_name}/ds.pkl"
             date_str = date.today().strftime("%d-%m-%Y")
+            # replace '/' with '-'
             out_fname = (f"data/{ds_name}/exp_results_"
-                         f"{model_name}_{date_str}.pkl")
+                         f"{model_name.replace('/', '-')}_{date_str}.pkl")
         else:
             if (in_fname is None) or (out_fname is None):
                 msg = ("Please either specify ds_name "
