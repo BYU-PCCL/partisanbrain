@@ -42,6 +42,6 @@ if __name__ == '__main__':
     elif dataset == 'boolq':
         ds = BoolqDataset(n=500)
     else:
-        raise ValueError(f'Dataset {dataset} not supported')
+        raise ValueError(f'Dataset {dataset} not supported. Modify generate_examples.py to add support (should be easy).')
 
     generate_examples(dataset, shuffle=shuffle)
