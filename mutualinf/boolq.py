@@ -6,35 +6,35 @@ import pandas as pd
 SHOTS = [
 
 """Passage: "Turn on red -- In Canada, left turn on red light from a one-way road into a one-way road is permitted except in some areas of Quebec, New Brunswick, and Prince Edward Island. Left turn on red light from a two-way road into a one-way road is permitted in British Columbia but only if the driver turns onto the closest lane and yields to pedestrians and cross traffic."
-Question: "can you turn left on red in canada?"
-Answer: "yes"
+Question: "Can you turn left on red in canada?"
+Answer: "Yes"
 
 """,
 
 """Passage: "Lord Voldemort -- Lord Voldemort ( known as Tom Marvolo Riddle) is a fictional character and the main antagonist in J.K. Rowling's series of Harry Potter novels. Voldemort first appeared in Harry Potter and the Philosopher's Stone, which was released in 1997. Voldemort appears either in person or in flashbacks in each book and its film adaptation in the series, except the third, Harry Potter and the Prisoner of Azkaban, where he is only mentioned."
-Question: "are tom riddle and lord voldemort the same person?"
-Answer: "yes"
+Question: "Are tom riddle and lord voldemort the same person?"
+Answer: "Yes"
 
 """,
 
 """Passage: "Clerks -- Clerks is a 1994 American independent black-and-white comedy film written, directed and co-produced by Kevin Smith. Starring Brian O'Halloran as Dante Hicks and Jeff Anderson as Randal Graves, it presents a day in the lives of two store clerks and their acquaintances."
-Question: "is the movie clerks in colors?"
-Answer: "no"
+Question: "Is the movie clerks in colors?"
+Answer: "No"
 
 """,
 ]
 
 SHOTS2 = [
 
-"""'''Turn on red -- In Canada, left turn on red light from a one-way road into a one-way road is permitted except in some areas of Quebec, New Brunswick, and Prince Edward Island. Left turn on red light from a two-way road into a one-way road is permitted in British Columbia but only if the driver turns onto the closest lane and yields to pedestrians and cross traffic.''', '''can you turn left on red in canada?''' -> '''yes'''
+"""'''Turn on red -- In Canada, left turn on red light from a one-way road into a one-way road is permitted except in some areas of Quebec, New Brunswick, and Prince Edward Island. Left turn on red light from a two-way road into a one-way road is permitted in British Columbia but only if the driver turns onto the closest lane and yields to pedestrians and cross traffic.''', '''Can you turn left on red in canada?''' -> '''Yes'''
 
 """,
 
-"""'''Lord Voldemort -- Lord Voldemort ( known as Tom Marvolo Riddle) is a fictional character and the main antagonist in J.K. Rowling's series of Harry Potter novels. Voldemort first appeared in Harry Potter and the Philosopher's Stone, which was released in 1997. Voldemort appears either in person or in flashbacks in each book and its film adaptation in the series, except the third, Harry Potter and the Prisoner of Azkaban, where he is only mentioned.''', '''are tom riddle and lord voldemort the same person?''' -> '''yes'''
+"""'''Lord Voldemort -- Lord Voldemort ( known as Tom Marvolo Riddle) is a fictional character and the main antagonist in J.K. Rowling's series of Harry Potter novels. Voldemort first appeared in Harry Potter and the Philosopher's Stone, which was released in 1997. Voldemort appears either in person or in flashbacks in each book and its film adaptation in the series, except the third, Harry Potter and the Prisoner of Azkaban, where he is only mentioned.''', '''Are tom riddle and lord voldemort the same person?''' -> '''Yes'''
 
 """,
 
-"""'''Clerks -- Clerks is a 1994 American independent black-and-white comedy film written, directed and co-produced by Kevin Smith. Starring Brian O'Halloran as Dante Hicks and Jeff Anderson as Randal Graves, it presents a day in the lives of two store clerks and their acquaintances.''', '''is the movie clerks in colors?''' -> '''no'''
+"""'''Clerks -- Clerks is a 1994 American independent black-and-white comedy film written, directed and co-produced by Kevin Smith. Starring Brian O'Halloran as Dante Hicks and Jeff Anderson as Randal Graves, it presents a day in the lives of two store clerks and their acquaintances.''', '''Is the movie clerks in colors?''' -> '''No'''
 
 """,
 ]
@@ -50,22 +50,26 @@ class BoolqDataset(Dataset):
         super().__init__(sample_seed=sample_seed, n=n)
 
     def _modify_raw_data(self, df):
+        # make first letter in 'question' upper case
+        df['question'] = df['question'].apply(lambda x: x.capitalize())
+        # add '?' to end of question
+        df['question'] = df['question'].apply(lambda x: x + '?')
         return df
 
     def _get_templates(self):
         templates = {
             'No_choices_1': (
                 lambda row: (
-                            f'Read the following passage: "{row.passage}"\n'
-                            f'Given this question: "{row.question}"\n\n'
+                            f'Read the following passage: "{row.passage}"\n\n'
+                            f'Given this question: "{row.question}"\n'
                             f'I would answer: "'
                         ), self._token_set['True/False_classify']
             ),
 
             'No_choices_2': (
                 lambda row: (
-                            f'Read the following passage: "{row.passage}"\n'
-                            f'Given this question: "{row.question}"\n\n'
+                            f'Read the following passage: "{row.passage}"\n\n'
+                            f'Given this question: "{row.question}"\n'
                             f'I would respond: "'
                         ),self._token_set['True/False_classify']
             ),
@@ -74,7 +78,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                     SHOTS[0] +
                     f'Passage: "{row.passage}"\n'
-                    f'Question: "{row.question}?"\n'
+                    f'Question: "{row.question}"\n'
                     f'Answer: "'
                 ), self._token_set['True/False_classify']
             ),
@@ -83,7 +87,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                     ''.join(SHOTS[:2]) +
                     f'Passage: "{row.passage}"\n'
-                    f'Question: "{row.question}?"\n'
+                    f'Question: "{row.question}"\n'
                     f'Answer: "'
                 ), self._token_set['True/False_classify']
             ),
@@ -92,7 +96,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                     ''.join(SHOTS[:3]) +
                     f'Passage: "{row.passage}"\n'
-                    f'Question: "{row.question}?"\n'
+                    f'Question: "{row.question}"\n'
                     f'Answer: "'
                 ), self._token_set['True/False_classify']
             ),
@@ -100,8 +104,8 @@ class BoolqDataset(Dataset):
             'QuestionPhrasing-1': (
                 lambda row: (
                 
-                            f'Read the following passage: "{row.passage}"\n'
-                            f'Given this question: "{row.question}"\n\n'
+                            f'Read the following passage: "{row.passage}"\n\n'
+                            f'Given this question: "{row.question}"\n'
                             f'If asked to choose "true" or "false", '
                             f'I would answer: "'
                         ),self._token_set['True/False_classify']
@@ -110,7 +114,7 @@ class BoolqDataset(Dataset):
             'QuestionPhrasing-2': (
                 lambda row: (
                             f'Read the following passage: "{row.passage}"\n\n'
-                            f'Given this question: "{row.question}?"\n'
+                            f'Given this question: "{row.question}"\n'
                             f'If asked to choose yes or no, '
                             f'My answer would be: "'
                         ),self._token_set['True/False_classify']
@@ -119,8 +123,8 @@ class BoolqDataset(Dataset):
             'PromptAnswerPhrasing-1': (
                 lambda row: (
                 
-                            f'Read the following passage: "{row.passage}"\n'
-                            f'Given this question: "{row.question}"\n\n'
+                            f'Read the following passage: "{row.passage}"\n\n'
+                            f'Given this question: "{row.question}"\n'
                             f'If asked to choose yes or no, '
                             f'I would answer: "'
                         ),self._token_set['True/False_classify']
@@ -146,7 +150,7 @@ class BoolqDataset(Dataset):
             'Passage_Question_Directly_2': (
                 lambda row: (
                             f'"{row.passage}"\n\n'
-                            f'for the question: "{row.question}"\n'
+                            f'For the question: "{row.question}"\n'
                             f'I would answer: "'
                         ),self._token_set['True/False_classify']
             ),
@@ -155,7 +159,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                             f'"{row.passage}"\n\n'
                             f'When picking between "true" or "false", '
-                            f'for the question: "{row.question}?"\n'
+                            f'For the question: "{row.question}"\n'
                             f'My answer would be: "'
                         ),self._token_set['True/False_classify']
             ),
@@ -164,7 +168,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                             f'"{row.passage}"\n\n'
                             f'When picking between yes or no '
-                            f'for the question: "{row.question}?"\n'
+                            f'For the question: "{row.question}"\n'
                             f'I would answer: "'
                         ),self._token_set['True/False_classify']
             ),
@@ -172,7 +176,7 @@ class BoolqDataset(Dataset):
             'Specific_1_yes/no': (
                 lambda row: (
                             f'Based on the passage: "{row.passage}"\n\n'
-                            f'And answering the question: "{row.question}?"\n'
+                            f'And answering the question: "{row.question}"\n'
                             f'By choosing yes or no\n'
                             f'My answer would be: "'
                         ),self._token_set['True/False_classify']
@@ -200,7 +204,7 @@ class BoolqDataset(Dataset):
                 lambda row: (
                             f'ANSWER KEY\n\nPlease read the following passage with the following question in mind: "{row.question}"\n\n'
                             f'{row.passage}\n\n'
-                            f'{row.question}?\n'
+                            f'{row.question}\n'
                             f'Answer key: "'
                         ),self._token_set['True/False_classify']
             ),
