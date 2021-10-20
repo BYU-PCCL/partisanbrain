@@ -9,7 +9,7 @@ class LM_GPT2(LMSamplerBaseClass):
     def __init__(self, model_name):
         super().__init__(model_name)
         '''
-        Supported models: 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'
+        Supported models: 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'distilgpt2'
         '''
         # initialize model with model_name
         print(f'Loading {model_name}...')

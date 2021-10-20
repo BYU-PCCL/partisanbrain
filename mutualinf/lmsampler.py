@@ -14,14 +14,14 @@ class LMSampler(LMSamplerBaseClass):
         '''
         Supported models:
             - GPT-3: 'gpt3-ada', 'gpt3-babbage', 'gpt3-curie', 'gpt3-davinci', 'ada', 'babbage', 'curie', 'davinci'
-            - GPT-2: 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'
+            - GPT-2: 'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'distilgpt2'
             - GPT-J: 'EleutherAI/gpt-j-6B'
             - GPT-Neo: 'EleutherAI/gpt-neo-2.7B', 'EleutherAI/gpt-neo-1.3B', 'EleutherAI/gpt-neo-125M'
             - BERT: 'bert-base-uncased', 'bert-base-cased'
         '''
         if model_name in ['gpt3-ada', 'gpt3-babbage', 'gpt3-curie', 'gpt3-davinci', 'ada', 'babbage', 'curie', 'davinci']:
             self.model = LM_GPT3(model_name)
-        elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+        elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'distilgpt2']:
             self.model = LM_GPT2(model_name)
         elif model_name in ['EleutherAI/gpt-j-6B']:
             self.model = LM_GPTJ(model_name)
