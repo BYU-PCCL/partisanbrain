@@ -6,8 +6,9 @@ import numpy as np
 
 class AnesDataset(Dataset):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, sample_seed=0, n=None):
+        self.token_set_dict = None
+        super().__init__(sample_seed=sample_seed, n=n)
 
     def _modify_raw_data(self, df):
         mod_df_dict = defaultdict(list)
