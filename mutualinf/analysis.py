@@ -168,6 +168,8 @@ def plot_comparisons(df, show=True, save=False, filename=None):
         plt.savefig(filename)
     if show:
         plt.show()
+    else:
+        plt.cla()
 
     return corrs
 
