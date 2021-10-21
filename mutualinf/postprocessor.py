@@ -55,7 +55,7 @@ def collapse_token_sets(d, token_sets, matching_strategy='startswith'):
             match = False
             for t in tokens:
                 if matching_strategy == 'startswith':
-                    if t.startswith(token):
+                    if t.lower().strip().startswith(token):
                         match = True
                 elif matching_strategy == 'exact':
                     if token == t:
@@ -110,6 +110,9 @@ class Postprocessor:
         if 'imdb' in results_fname:
             # make 'token_sets' ['positive', 'negative']
             self.df['token_sets'] = [['positive', 'negative']] * len(self.df)
+        if 'boolq' in results_fname:
+            # 'ground_truth' to string
+            self.df['ground_truth'] = self.df['ground_truth'].astype(str)
 
         # get number of instances where 'resp' is missing
         num_missing = self.df.loc[self.df.resp.isnull()].shape[0]
@@ -283,8 +286,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     input_fname = args.input
 
-    # save_fname is same name, but replace exp_results with processed
-    save_fname = input_fname.replace('exp_results', 'processed_exp_results')
+    # save_fname is same name, but replace .pkl with _processed.pkl
+    save_fname = input_fname.replace('.pkl', '_processed.pkl')
 
     # process
     Postprocessor(input_fname, save_fname)
