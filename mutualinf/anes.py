@@ -49,7 +49,6 @@ class AnesDataset(Dataset):
             f"The person probably voted for", self._get_tokens()),
             "template_1d": (lambda row: f"{self.make_backstory1(row)}The candidate I voted for in the 2016 presidential election was", self._get_tokens()),
             "template_1e": (lambda row: f"{self.make_backstory1(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
-            "template_1f": (lambda row: f"{self.make_backstory1(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
             "template_2a": (lambda row: f"After reading the following quote, infer which candidate the person voted for in the 2016 US election.\n"
             f"{self.make_backstory2(row)}\nWho did this person vote for?\nHe/she voted for", self._get_tokens()),
             "template_2b": (lambda row: f"{self.make_backstory2(row)}In 2016, between Trump and Clinton, I voted for", self._get_tokens()),
@@ -57,7 +56,6 @@ class AnesDataset(Dataset):
             "template_2d": (lambda row: f"After reading the quote, GPT3 will predict which candidate the person voted for in the 2016 election.\n"
             f"{self.make_backstory2(row)}\n\nAnswer: The person selected", self._get_tokens()),
             "template_2e": (lambda row: f"{self.make_backstory2(row)}Between Clinton and Trump, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
-            "template_2f": (lambda row: f"{self.make_backstory2(row)}Between Trump and Clinton, the candidate I voted for in the 2016 presidential election was", self._get_tokens()),
             "template_3a": (lambda row: SHOTS[0] + f"\n\nAnalyze the following biographic information and determine which candidate the person voted for in the 2016 election.\n"
             f"{self.make_backstory1(row)}\nAnswer: The person voted for", self._get_tokens()),
             "template_3b": (lambda row: f"{self.make_backstory3(row)}Q: In 2016, between Trump and Clinton, who did you vote for?\n\nA:", self._get_tokens()),
