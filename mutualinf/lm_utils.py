@@ -9,7 +9,7 @@ def get_device_map(gpus, n_layers):
     '''
     layers_per_gpu = n_layers // len(gpus)
     device_map = {
-        gpu: [i for i in range(layers_per_gpu * gpu, layers_per_gpu * (gpu + 1))] for gpu in gpus
+        gpu: [i for i in range(layers_per_gpu * gpu_num, layers_per_gpu * (gpu_num + 1))] for gpu_num, gpu in enumerate(gpus)
     }
     return device_map
 
