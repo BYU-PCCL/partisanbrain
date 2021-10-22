@@ -17,6 +17,8 @@ def run_experiment(ds_name, model_name, n=500):
     print("Passing data through model...")
     Experiment(model_name=model_name, ds_name=ds_name)
 
+    model_name = model_name.replace('/', '-')
+
     # Postprocessing
     print("Postprocessing...")
     date_str = date.today().strftime("%d-%m-%Y")
@@ -24,8 +26,7 @@ def run_experiment(ds_name, model_name, n=500):
                 f"{model_name}_{date_str}.pkl")
     out_fname = (f"data/{ds_name}/exp_results_"
                  f"{model_name}_{date_str}_processed.pkl")
-    # replace '/' with '-'
-    out_fname = out_fname.replace('/', '-')
+
     Postprocessor(results_fname=in_fname,
                   save_fname=out_fname,
                   matching_strategy="startswith")
