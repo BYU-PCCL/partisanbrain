@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 def exponentiate(d):
     '''
@@ -277,6 +278,36 @@ class Postprocessor:
 
         return df
 
+def get_files_to_process():
+    '''
+    Step down into the data subdirectory, and get all files in all subdirectories that have
+    'exp_results' in them, end with 'pkl', and don't include 'processed'.
+    '''
+    files_to_process = []
+    for root, dirs, files in os.walk('data'):
+        for file in files:
+            if 'exp_results' in file and file.endswith('pkl') and 'processed' not in file:
+                # if processed file already exists, don't process it again
+                if file.replace('.pkl', '_processed.pkl') not in files:
+                    files_to_process.append(os.path.join(root, file))
+    return files_to_process
+
+def process(files):
+    for input_fname in tqdm(files):
+        try:
+            # save_fname is same name, but replace .pkl with _processed.pkl
+            save_fname = input_fname.replace('.pkl', '_processed.pkl')
+            # process
+            Postprocessor(input_fname, save_fname)
+        except:
+            print('Error processing {}'.format(input_fname))
+
+def process_all():
+    files_to_process = get_files_to_process()
+    file_string = '\n'.join(files_to_process)
+    print(f'Processing: {file_string}')
+    process(files_to_process)
+
 if __name__ == '__main__':
     import argparse
     import os
@@ -285,6 +316,10 @@ if __name__ == '__main__':
     # get dataset arg
     args = parser.parse_args()
     input_fname = args.input
+
+    if input_fname == 'all':
+        process_all()
+
 
     # save_fname is same name, but replace .pkl with _processed.pkl
     save_fname = input_fname.replace('.pkl', '_processed.pkl')
