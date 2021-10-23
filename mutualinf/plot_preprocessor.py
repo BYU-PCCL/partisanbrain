@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 from analysis import get_sorted_templates, compare_per_template
 from tqdm import tqdm
 import os
 
 datasets = ['anes', 'boolq', 'copa', 'imdb', 'rocstories', 'wic']
-models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt3-ada', 'gpt-j', 'gpt-neo-2.7B', 'gpt2']
+models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt3-ada', 'gpt-j', 'gpt-neo-2.7B', 'gpt2-xl', 'gpt2']
 
 def check_files_present():
     '''
