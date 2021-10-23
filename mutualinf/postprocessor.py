@@ -320,10 +320,9 @@ if __name__ == '__main__':
 
     if input_fname == 'all':
         process_all()
+    else:
+        # save_fname is same name, but replace .pkl with _processed.pkl
+        save_fname = input_fname.replace('.pkl', '_processed.pkl')
 
-
-    # save_fname is same name, but replace .pkl with _processed.pkl
-    save_fname = input_fname.replace('.pkl', '_processed.pkl')
-
-    # process
-    Postprocessor(input_fname, save_fname)
+        # process
+        Postprocessor(input_fname, save_fname)
