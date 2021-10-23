@@ -62,6 +62,10 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
     # on left column, set the dataset as the ylabel
     for j, dataset in enumerate(datasets):
         ax[j, 0].set_ylabel(dataset)
+    # for all but left column, remove y scale
+    for i in range(n_datasets):
+        for j in range(1, n_models):
+            ax[i, j].set_yticks([])
     plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
     plt.savefig(save_path)
     plt.close()
