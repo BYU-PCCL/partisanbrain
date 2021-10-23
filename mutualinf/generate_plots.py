@@ -55,6 +55,12 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
         # update the ylims for all models
         for j in range(n_models):
             ax[i, j].set_ylim(min_y, max_y)
+            # add horizontal lines in at every tenth in the lims
+            tenths = np.linspace(0, 1, 11)
+            for t in tenths:
+                if t > min_y and t < max_y:
+                    ax[i, j].axhline(t, color='black', alpha=0.2)
+
 
     # on top row, set the model as the title
     for i, model in enumerate(models):
