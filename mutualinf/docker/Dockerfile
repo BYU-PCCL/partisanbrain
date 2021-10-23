@@ -4,6 +4,8 @@ RUN pip3 install --upgrade pip
 RUN pip3 install ipython
 RUN pip3 install openai
 RUN pip3 install pandas
+RUN pip3 install matplotlib
+RUN pip3 install lifelines
 RUN pip3 install --upgrade transformers
 RUN mkdir -p /partisanbrain/transformers_cache
 ENV TRANSFORMERS_CACHE=/partisanbrain/transformers_cache
