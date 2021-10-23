@@ -299,8 +299,9 @@ def process(files):
             save_fname = input_fname.replace('.pkl', '_processed.pkl')
             # process
             Postprocessor(input_fname, save_fname)
-        except:
+        except Exception as e:
             print('Error processing {}'.format(input_fname))
+            print(e)
 
 def process_all():
     files_to_process = get_files_to_process()
