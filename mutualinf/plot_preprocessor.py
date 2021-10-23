@@ -41,7 +41,7 @@ def prep_scatter():
     '''
     For each dataset and model, get the file and read in the df. Then, aggregate by 'template_name' and take the mean of 'accuracy' and 'mutual_inf' columns.
     '''
-    print('Prepping file for scatter plots')
+    print('Prepping data file for plots')
     loop = tqdm(total=len(datasets) * len(models))
     # make empty df with points. Columns are models, rows are datasets
     dataset_dicts = []
@@ -52,8 +52,8 @@ def prep_scatter():
             exp_df = pd.read_pickle(file_name)
             # aggregate by 'template_name' and take the mean of 'accuracy' and 'mutual_inf' columns
             exp_df = exp_df.groupby('template_name').agg({'accuracy': np.mean, 'mutual_inf': np.mean})
-            # turn to a dictionary of lists, with values 'accuracy' and 'mutual_inf'
-            exp_df = exp_df.to_dict('list')
+            # make 'template_name' (index) a column
+            # exp_df.reset_index(inplace=True)
             # add to df
             model_dicts.append(exp_df)
             # increment loop
@@ -62,8 +62,9 @@ def prep_scatter():
         dataset_dicts.append(model_dicts)
     # make df with datasets as rows and models as columns
     df = pd.DataFrame(dataset_dicts, index=datasets, columns=models)
-    print('Saved to data/scatter.pkl')
-    df.save('data/scatter.pkl')
+    # save to data/plot_data.pkl
+    df.to_pickle('data/plot_data.pkl')
+    print('Saved to data/plot_data.pkl')
 
 # TODO - add ensemble prep here
 
