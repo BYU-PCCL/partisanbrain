@@ -9,7 +9,7 @@ SHOTS = [
 BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
 QUESTIONS:
 1) What high school GPA for BYU freshmen have on average?
-Answer: 3.71
+Answer: "3.71"
 """,
 
 """CHAPTER QUIZ
@@ -24,7 +24,12 @@ ANSWER KEY:
 """P1: BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
 P2: What high school GPA for BYU freshmen have on average?
 P1: 3.71
-"""
+""",
+
+"""\"BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.", "What high school GPA for BYU freshmen have on average?" -> "3.71\""""
+
+"""\"BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.", "What high school GPA for BYU freshmen have on average?" -> "3.71\"
+\"In meteorology, precipitation is any product of the condensation of atmospheric water vapor that falls under gravity. The main forms of precipitation include drizzle, rain, sleed, snow, graupel, and hail... Precipitation forms as smaller droplets coalesce via collision with other rain drops or ice crystals within a cloud. Short, intense periods of rain in scattered locations are called\"showers\".\", \"What causes precipitation to fall?" -> "gravity\""""
 ]
 
 class SquadDataset(Dataset):
@@ -109,87 +114,71 @@ class SquadDataset(Dataset):
 
 
         templates = {
+
             'instruction_qa0' : (lambda row: (f"TASK: Using words from the CONTEXT, answer the below QUESTIONS.\n\n"
             f"CONTEXT:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['question']}\n"
-            f"Answer:"), self._token_set),
+            f"Answer: \""), self._token_set),
 
-            
             'instruction_qa1' : (lambda row: (f"TASK: Answer the questions below using the phrasing from the context.\n\n"
             f"CONTEXT:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['question']}\n"
-            f"Answer:"), self._token_set),
+            f"Answer: \""), self._token_set),
 
             'instruction_qa2' : (lambda row: (f"TASK: Answer the questions below using the phrasing from the context.\n\n"
             f"CONTEXT:\n{row['context']}\n\n"
-            f"QUESTIONS:\n1) {row['few_shot_question']}\nAnswer: {row['few_shot_answer']}\n\n"
-            f"2) {row['question']}\nAnswer:"), self._token_set),
+            f"QUESTIONS:\n1) {row['few_shot_question']}\nAnswer: \"{row['few_shot_answer']}\"\n\n"
+            f"2) {row['question']}\nAnswer: \""), self._token_set),
 
             'instruction_qa3' : (lambda row: (f"TASK: Answer the questions below using the phrasing from the context.\n\n"
             f"{SHOTS[0]}\n\n"
             f"CONTEXT:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['question']}\n"
-            f"Answer:"), self._token_set),
-
-            'instruction_qa4' : (lambda row: (f"TASK: Using words from the CONTEXT, answer the below QUESTIONS.\n\n"
-            f"{SHOTS[0]}\n\n"
-            f"CONTEXT:\n{row['context']}\n\n"
-            f"QUESTIONS:\n1) {row['question']}\n"
-            f"Answer:"), self._token_set),
+            f"Answer: \""), self._token_set),
 
             'answer_key0' : (lambda row: (f"CHAPTER QUIZ\n\n"
             f"PASSAGE:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['question']}\n\n"
             f"ANSWER KEY:\n1)"), self._token_set),
 
-            'answer_key1' : (lambda row: (f"########CHAPTER QUIZ########\n\n"
-            f"\"{row['context']}\"\n\n"
-            f"Comprehension Questions:\n1) {row['question']}\n\n"
-            f"########ANSWER KEY########\n1)"), self._token_set),
-
-            'answer_key2' : (lambda row: (f"ANSWER KEY:\n\n"
-            f"QUESTION1:\n\"{row['context']}\"{row['question']}\n"
+            'answer_key1' : (lambda row: (f"ANSWER KEY:\n\n"
+            f"QUESTION1:\n\"{row['context']}\" {row['question']}\n"
             f"ANSWER1:"), self._token_set),
 
-            'answer_key3' : (lambda row: (f"CHAPTER QUIZ\n\n"
+            'answer_key2' : (lambda row: (f"CHAPTER QUIZ\n\n"
             f"PASSAGE:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['few_shot_question']}\n"
             f"2) {row['question']}\n\n"
             f"ANSWER KEY:\n1) {row['few_shot_answer']}\n2)"), self._token_set),
 
-            'answer_key4' : (lambda row: (SHOTS[1] + f"\nCHAPTER QUIZ\n\n"
+            'answer_key3' : (lambda row: (SHOTS[1] + f"\nCHAPTER QUIZ\n\n"
             f"PASSAGE:\n{row['context']}\n\n"
             f"QUESTIONS:\n1) {row['question']}\n\n"
             f"ANSWER KEY:\n1)"), self._token_set),
 
             'dialogue0' : (lambda row: (f"P1: {row['context']}\n"
             f"P2: {row['question']}\n"
-            f"P1:"), self._token_set), 
+            f"P1: The answer is \""), self._token_set), 
 
             'dialogue1' : (lambda row: (f"P1 tells P2 some information, P2 asks comprehension questions, and P1 answers.\n\n"
             f"P1: {row['context']}\n"
             f"P2: {row['question']}\n"
-            f"P1:"), self._token_set), 
+            f"P1: The answer is \""), self._token_set), 
 
-            'dialogue2' : (lambda row: (f"P2: Tell me a story.\n"
-            f"P1: {row['context']}\n"
-            f"P2: {row['question']}\n"
-            f"P1:"), self._token_set),
-
-            'dialogue3' : (lambda row: (f"P1: {row['context']}\n"
+            'dialogue2' : (lambda row: (f"P1: {row['context']}\n"
             f"P2: {row['few_shot_question']}\n"
             f"P1: {row['few_shot_answer']}\n"
             f"P2: {row['question']}\n"
             f"P1:"), self._token_set),
 
-            'dialogue4' : (lambda row: (SHOTS[2] + f"\n\nP1: {row['context']}\n"
+            'dialogue3' : (lambda row: (SHOTS[2] + f"\n\nP1: {row['context']}\n"
             f"P2: {row['question']}\n"
             f"P1:"), self._token_set),
 
             "old0": (lambda row: ("Context: "f"{row['context']}" "\n\nQ: "f"{row['question']}""\n\nA:"), self._token_set),
 
             "old1": (lambda row: (f"{row['context']}" "\n\n"f"{row['question']}\n"
-            f"The correct answer is"), self._token_set),
+            f"The correct answer is:"), self._token_set),
         
             "old2": (lambda row: ("I read this in a book today:\n"f"{row['context']}" "\n"f"{row['question']}\nAnswer:"), self._token_set),
             
@@ -199,6 +188,17 @@ class SquadDataset(Dataset):
             "old4": (lambda row: ("A friend of mine told me this:\n"f"{row['context']}\n"
             f"My friend then asked: {row['question']}\n"
             f"I answered:"), self._token_set),
+
+            "openai0_shot": (lambda row: ("Given the following passages and questions, provide a brief, correct answer from the text.\n"
+            f"\"{row['context']}\", \"{row['question']}\" -> \""), self._token_set),
+
+            "openai1_shot": (lambda row: ("Given the following passages and questions, provide a brief, correct answer from the text.\n\n" +
+            SHOTS[-1] + "\n" +
+            f"\"{row['context']}\", \"{row['question']}\" -> \""), self._token_set),
+
+            "openai2_shot": (lambda row: ("Given the following passages and questions, provide a brief, correct answer from the text.\n\n" +
+            SHOTS[-1] + "\n" +
+            f"\"{row['context']}\", \"{row['question']}\" -> \""), self._token_set),
 
         }
         return templates
