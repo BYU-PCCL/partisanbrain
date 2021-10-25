@@ -31,13 +31,13 @@ class CommonSenseQaDataset(Dataset):
 
     def __init__(self, sample_seed=0, n=None):
 
-        # Token sets for Common Sense QA vary question by
+        # Token sets for Common Sense QA can vary question by
         # question
         self._token_set = lambda row: {
             k: row[k].split(" ")[0] for k in ["A", "B", "C", "D", "E"]
         }
 
-        self.alphabet_token_set = ["A", "B", "C", "D", "E"]
+        self._alphabet_token_set = ["A", "B", "C", "D", "E"]
 
         super().__init__(sample_seed=sample_seed,
                          n=n,
@@ -101,14 +101,6 @@ class CommonSenseQaDataset(Dataset):
                                 f"\"{row['E']}.\"\n\n"
                                 "Student: I know the right answer - it's \""),
                    self._token_set),
-            "ab": (lambda row: ("Answer Bank: "
-                                f"{row['A']}, {row['B']}, {row['C']}, "
-                                f"{row['D']}, {row['E']}\n\n"
-                                "Instructions: Choose the answer from "
-                                "the answer bank above that best answers "
-                                "the following question.\n\n"
-                                f"Question: {row['question']}\n\n"
-                                "Answer:"), self._token_set),
             "abfs": (lambda row: ("Instructions: For each question below, "
                                   "choose the answer from the answer "
                                   "bank corresponding to the question "
@@ -129,8 +121,8 @@ class CommonSenseQaDataset(Dataset):
                                   "sense question.\n\n"
                                   "Student: Alright.\n\n"
                                   "Teacher: What would you not expect to read "
-                                  "about in a book on the founding of the United "
-                                  "States?\n\n"
+                                  "about in a book on the founding of the "
+                                  "United States?\n\n"
                                   "Student: What are the possible answers?\n\n"
                                   "Teacher: The answer is either \"george "
                                   "washington,\" \"declaration of "
@@ -147,9 +139,67 @@ class CommonSenseQaDataset(Dataset):
                                   f"\"{row['A']},\" \"{row['B']},\" "
                                   f"\"{row['C']},\" \"{row['D']},\" or "
                                   f"\"{row['E']}.\"\n\n"
-                                  "Student: I know the right answer - it's \""),
+                                  "Student: I know the right answer - "
+                                  "it's \""),
+                     self._token_set),
+            "vb": (lambda row: (f"{row['question']}\n\n"
+                                f"A: {row['A']}\n"
+                                f"B: {row['B']}\n"
+                                f"C: {row['C']}\n"
+                                f"D: {row['D']}\n"
+                                f"E: {row['E']}\n\n"
+                                "Answer:"),
+                   self._alphabet_token_set),
+
+            "vbfs1": (lambda row: ("What would you use to put out a fire?\n"
+                                  "A: gasoline\n"
+                                  "B: poison\n"
+                                  "C: laundry detergent\n"
+                                  "D: water\n"
+                                  "E: pencil\n"
+                                  "Answer: water\n\n"
+                                  f"{row['question']}\n"
+                                  f"A: {row['A']}\n"
+                                  f"B: {row['B']}\n"
+                                  f"C: {row['C']}\n"
+                                  f"D: {row['D']}\n"
+                                  f"E: {row['E']}\n"
+                                  "Answer:"),
+                     self._alphabet_token_set),
+
+            "vbfs2": (lambda row: ("What would you use to put out a fire?\n"
+                                  "A: gasoline\n"
+                                  "B: poison\n"
+                                  "C: laundry detergent\n"
+                                  "D: water\n"
+                                  "E: pencil\n"
+                                  "Answer: D. water\n\n"
+                                  f"{row['question']}\n"
+                                  f"A: {row['A']}\n"
+                                  f"B: {row['B']}\n"
+                                  f"C: {row['C']}\n"
+                                  f"D: {row['D']}\n"
+                                  f"E: {row['E']}\n"
+                                  "Answer:"),
+                     self._alphabet_token_set),
+
+            "pyfs": (lambda row: ("# multiple choice quiz questions and "
+                                  "answers\n\n"
+                                  "qa = ['q': 'What is France?', "
+                                  "'choices': ['state', 'city', 'country', "
+                                  "'continent', 'mountain range'], "
+                                  "'answer': 'country', ], "
+                                  f"'[q': '{row['question']}', "
+                                  f"'choices': [{row['A']}, {row['B']}, "
+                                  f"{row['C']}, {row['D']}, {row['E']}], "
+                                  "'answer': '"),
                      self._token_set),
 
+            "csv": (lambda row: ("questions,choices,answers\n"
+                                  "\"What is France?\",\"[state,city,country,"
+                                  "continent,mountain range]\",country\n"
+                                  f"\"{row['question']}\",\"[{row['A']},{row['B']},{row['C']},{row['D']},{row['E']}]\","),
+                     self._token_set),
             
             'explanation_1shot': (lambda row: (
                 f"Choose the best single answer to the question, and explain your answer.\n\n" +
@@ -188,16 +238,58 @@ class CommonSenseQaDataset(Dataset):
                 f"Answers (in order of best to worst):"), self._token_set),
             
             'open_ai_1shot': (lambda row: (
-                f"Given the following questions and choices, pick the choice that corresponds to the best question.\n\n" + 
+                f"Given the following questions and choices, pick the choice that corresponds best to the question.\n\n" + 
                 SHOTS[4] + '\n' +
                 f"\"{row['question']}\", \"{row['A']}, {row['B']}, {row['C']}, {row['D']}, {row['E']}\" -> \""), self._token_set),
 
             'open_ai_2shot': (lambda row: (
-                f"Given the following questions and choices, pick the choice that corresponds to the best question.\n\n" + 
+                f"Given the following questions and choices, pick the choice that corresponds best to the question.\n\n" + 
                 SHOTS[4] + '\n' +
                 SHOTS[5] + '\n' +
                 f"\"{row['question']}\", \"{row['A']}, {row['B']}, {row['C']}, {row['D']}, {row['E']}\" -> \""), self._token_set),
-
+            "ps": (lambda row: ("Common Sense Quiz Answer Key\n\n"
+                                f"Question 1: {row['question']}\n\n"
+                                f"A: {row['A']}\n"
+                                f"B: {row['B']}\n"
+                                f"C: {row['C']}\n"
+                                f"D: {row['D']}\n"
+                                f"E: {row['E']}\n\n"
+                                "Correct Answer:"),
+                   self._alphabet_token_set),
+            "psfs": (lambda row: ("Common Sense Quiz Answer Key\n\n"
+                                  "Question 1: Where would people not "
+                                  "typically go for fun?\n"
+                                  "A: theme park\n"
+                                  "B: movie theatre\n"
+                                  "C: carnival\n"
+                                  "D: waste management facility\n"
+                                  "E: beach\n"
+                                  "Correct Answer: D\n\n"
+                                  f"Question 2: {row['question']}\n"
+                                  f"A: {row['A']}\n"
+                                  f"B: {row['B']}\n"
+                                  f"C: {row['C']}\n"
+                                  f"D: {row['D']}\n"
+                                  f"E: {row['E']}\n"
+                                  "Correct Answer:"),
+                     self._alphabet_token_set),
+            "gs": (lambda row: ("Me: I watched the most recent episode "
+                                "of the \"Is It Really Common Sense\" "
+                                "game show yesterday night.\n"
+                                "Friend: Oh, how was it?\n"
+                                "Me: It was good. I remember one of the "
+                                "questions.\n"
+                                "Friend: What was the question?\n"
+                                f"Me: {row['question']}\n"
+                                "Friend: What were the options?\n"
+                                f"Me: {row['A']}, {row['B']}, "
+                                f"{row['C']}, {row['D']}, or {row['E']}\n"
+                                "Friend: Did the contestant get the "
+                                "answer right?\n"
+                                "Me: Yep!\n"
+                                "Friend: Which of the options was correct?\n"
+                                "Me: The correct answer was"),
+                   self._token_set)
         }
 
         return templates
