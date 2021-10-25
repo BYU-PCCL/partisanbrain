@@ -129,6 +129,11 @@ class Dataset(abc.ABC):
         for i, row in tqdm.tqdm(self._df.iterrows(), total=self._df.shape[0]):
             for template_name, template_info in self._templates.items():
                 template_fn, token_sets = template_info
+
+                # Allow for lambda token set
+                if callable(token_sets):
+                    token_sets = token_sets(row)
+
                 result_dict["raw_idx"].append(i)
                 result_dict["template_name"].append(template_name)
                 result_dict["prompt"].append(template_fn(row))
