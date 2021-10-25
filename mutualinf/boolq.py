@@ -43,8 +43,12 @@ class BoolqDataset(Dataset):
     def __init__(self, sample_seed=0, n=None):
         self._token_set = self._token_set = {
             'True/False_classify': {
-                'True': ['true', 'yes'],
-                'False': ['false', 'no'],
+                'True': ['true'],
+                'False': ['false'],
+            },
+            'Yes/No_classify': {
+                'True': ['yes'],
+                'False': ['no'],
             },
         }
         super().__init__(sample_seed=sample_seed, n=n)
@@ -63,7 +67,7 @@ class BoolqDataset(Dataset):
                             f'Read the following passage: "{row.passage}"\n\n'
                             f'Given this question: "{row.question}"\n'
                             f'I would answer: "'
-                        ), self._token_set['True/False_classify']
+                        ), self._token_set['Yes/No_classify']
             ),
 
             'No_choices_2': (
@@ -71,7 +75,7 @@ class BoolqDataset(Dataset):
                             f'Read the following passage: "{row.passage}"\n\n'
                             f'Given this question: "{row.question}"\n'
                             f'I would respond: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'few_shot1': (
@@ -80,7 +84,7 @@ class BoolqDataset(Dataset):
                     f'Passage: "{row.passage}"\n'
                     f'Question: "{row.question}"\n'
                     f'Answer: "'
-                ), self._token_set['True/False_classify']
+                ), self._token_set['Yes/No_classify']
             ),
 
             'few_shot2': (
@@ -89,7 +93,7 @@ class BoolqDataset(Dataset):
                     f'Passage: "{row.passage}"\n'
                     f'Question: "{row.question}"\n'
                     f'Answer: "'
-                ), self._token_set['True/False_classify']
+                ), self._token_set['Yes/No_classify']
             ),
 
             'few_shot3': (
@@ -117,7 +121,7 @@ class BoolqDataset(Dataset):
                             f'Given this question: "{row.question}"\n'
                             f'If asked to choose yes or no, '
                             f'My answer would be: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'PromptAnswerPhrasing-1': (
@@ -127,7 +131,7 @@ class BoolqDataset(Dataset):
                             f'Given this question: "{row.question}"\n'
                             f'If asked to choose yes or no, '
                             f'I would answer: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'PromptAnswerPhrasing-2': (
@@ -144,7 +148,7 @@ class BoolqDataset(Dataset):
                             f'"{row.passage}"\n\n'
                             f'For the question: "{row.question}"\n'
                             f'My answer would be: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'Passage_Question_Directly_2': (
@@ -152,7 +156,7 @@ class BoolqDataset(Dataset):
                             f'"{row.passage}"\n\n'
                             f'For the question: "{row.question}"\n'
                             f'I would answer: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
             
             'Passage_definingProblem_PromptingAnswer-1': (
@@ -170,7 +174,7 @@ class BoolqDataset(Dataset):
                             f'When picking between yes or no '
                             f'For the question: "{row.question}"\n'
                             f'I would answer: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'Specific_1_yes/no': (
@@ -179,16 +183,7 @@ class BoolqDataset(Dataset):
                             f'And answering the question: "{row.question}"\n'
                             f'By choosing yes or no\n'
                             f'My answer would be: "'
-                        ),self._token_set['True/False_classify']
-            ),
-
-            'Specific_2_true/False': (
-                lambda row: (
-                            f'Based on the passage: "{row.passage}"\n\n'
-                            f'And answering the question: "{row.question}"\n'
-                            f'By choosing true or no\n'
-                            f'My answer would be: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'repeated_question1': (
@@ -197,7 +192,7 @@ class BoolqDataset(Dataset):
                             f'{row.passage}\n\n'
                             f'{row.question}\n'
                             f'Answer: "'
-                        ),self._token_set['True/False_classify']
+                        ),self._token_set['Yes/No_classify']
             ),
 
             'repeated_question2': (
@@ -206,7 +201,16 @@ class BoolqDataset(Dataset):
                             f'{row.passage}\n\n'
                             f'{row.question}\n'
                             f'Answer key: "'
-                        ),self._token_set['True/False_classify']
+                        ), self._token_set['Yes/No_classify']
+            ),
+
+            'v2-few_shot0': (
+                lambda row: (
+                        'Given the passage and question, please answer the question with yes or no.\n\n'
+                        f"'''{row.passage}''', "
+                        f"'''{row.question}''' -> "
+                        f"'''"
+                    ), self._token_set['Yes/No_classify']
             ),
 
             'v2-few_shot1': (
@@ -216,7 +220,7 @@ class BoolqDataset(Dataset):
                         f"'''{row.passage}''', "
                         f"'''{row.question}''' -> "
                         f"'''"
-                    ), self._token_set['True/False_classify']
+                    ), self._token_set['Yes/No_classify']
             ),
 
             'v2-few_shot2': (
@@ -226,7 +230,7 @@ class BoolqDataset(Dataset):
                         f"'''{row.passage}''', "
                         f"'''{row.question}''' -> "
                         f"'''"
-                    ), self._token_set['True/False_classify']
+                    ), self._token_set['Yes/No_classify']
             ),
 
             'v2-few_shot3': (
@@ -236,7 +240,7 @@ class BoolqDataset(Dataset):
                         f"'''{row.passage}''', "
                         f"'''{row.question}''' -> "
                         f"'''"
-                    ), self._token_set['True/False_classify']
+                    ), self._token_set['Yes/No_classify']
             ),
 
         }
