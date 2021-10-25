@@ -182,6 +182,23 @@ class CommonSenseQaDataset(Dataset):
                                   f"E: {row['E']}\n\n"
                                   "Correct Answer:"),
                      self._alphabet_token_set),
+            "gs": (lambda row: ("Me: I watched the most recent episode "
+                                "of the \"Is It Really Common Sense\" "
+                                "game show yesterday night.\n"
+                                "Friend: Oh, how was it?\n"
+                                "Me: It was good. I remember one of the "
+                                "questions.\n"
+                                "Friend: What was the question?\n"
+                                f"Me: {row['question']}\n"
+                                "Friend: What were the options?\n"
+                                f"Me: {row['A']}, {row['B']}, "
+                                f"{row['C']}, {row['D']}, or {row['E']}\n"
+                                "Friend: Did the contestant get the "
+                                "answer right?\n"
+                                "Me: Yep!\n"
+                                "Friend: Which of the options was correct?\n"
+                                "Me: The correct answer was"),
+                   self._token_set)
         }
 
         return templates
