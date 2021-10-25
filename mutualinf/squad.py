@@ -5,26 +5,26 @@ import pandas as pd
 
 
 SHOTS = [
-    """CONTEXT:
-    BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
-    QUESTIONS:
-    1) What high school GPA for BYU freshmen have on average?
-    Answer: 3.71
-    """,
+"""CONTEXT:
+BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
+QUESTIONS:
+1) What high school GPA for BYU freshmen have on average?
+Answer: 3.71
+""",
 
-    """CHAPTER QUIZ
-    PASSAGE: BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
-    QUESTIONS:
-    1) What high school GPA for BYU freshmen have on average?
-    
-    ANSWER KEY: 
-    1) 3.71
-    """, 
+"""CHAPTER QUIZ
+PASSAGE: BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
+QUESTIONS:
+1) What high school GPA for BYU freshmen have on average?
 
-    """P1: BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
-    P2: What high school GPA for BYU freshmen have on average?
-    P1: 3.71
-    """
+ANSWER KEY: 
+1) 3.71
+""", 
+
+"""P1: BYU students arrive with superb preparation. The entering class has an average high school GPA of 3.71 (on a 4.0 scale) and an average ACT score that ranks in the 89th percentile nationally. The University consistently places in the top 20 for enrollment of National Merit Scholars.
+P2: What high school GPA for BYU freshmen have on average?
+P1: 3.71
+"""
 ]
 
 class SquadDataset(Dataset):
