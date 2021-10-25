@@ -3,8 +3,8 @@
 - [ ] Ensure exactly 20 prompts for each dataset (unless we decide against this)
 - [ ] Replace the BoolQ prompts that currently require a violation of that with new prompts and rerun BoolQ
 - [ ] Write a script to update the post-experiment pickle files to have correct token sets
-- [ ] Make Dataset compatible with special requirements of CommonSenseQA (I'm handling this)
-- [ ] Make good templates for CommonSenseQA with associated good token sets
+- [x] Make Dataset compatible with special requirements of CommonSenseQA (I'm handling this)
+- [x] Make good templates for CommonSenseQA with associated good token sets
 - [ ] Run CommonSenseQA experiment
 - [ ] Make a way to manually override the token sets from pickled experiment dataframe
 
