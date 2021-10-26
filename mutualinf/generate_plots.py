@@ -95,6 +95,76 @@ def davinci_box_whisker(df):
     sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
     plt.show()
 
+def box_whisker(df, dataset, orientation='v', absolute_scaling=False):
+    '''
+    Make a box and whisker plot of 'mutual_inf' vs 'accuracy' for a given dataset.
+    '''
+    models = get_models(df)
+    df_ds = df.loc[dataset]
+    acc_models = []
+    accs = []
+    # acc_lists = [df_ds[model]['accuracy'].astype(float).tolist() for model in models]
+    mutual_inf_accs = []
+    for model in models:
+        df_exp = df_ds[model]
+        # get max mutualinf
+        index = df_exp['mutual_inf'].idxmax()
+        mutual_inf_accs.append(df_exp.loc[index]['accuracy'].astype(float))
+        # add accs
+        accs.extend(df_exp['accuracy'].astype(float).tolist())
+        acc_models.extend([model] * len(df_exp['accuracy'].astype(float).tolist()))
+    if orientation == 'v':
+        sns.boxplot(
+            x = acc_models,
+            y = accs,
+            color = MAIN_COLOR,
+            orient = "v",
+            showfliers = True
+        )
+        sns.swarmplot(
+            x = models,
+            y = mutual_inf_accs,
+            color = HIGHLIGHT_COLOR,
+            size = 10,
+            alpha = 0.5
+        )
+        if absolute_scaling:
+            ylim = plt.ylim()
+            plt.ylim(0, ylim[1])
+        plt.xlabel("Model")
+        plt.ylabel("Accuracy")
+    elif orientation == 'h':
+        sns.boxplot(
+            x = accs,
+            y = acc_models,
+            color = MAIN_COLOR,
+            orient = "h",
+            showfliers = True
+        )
+        sns.swarmplot(
+            x = mutual_inf_accs,
+            y = models,
+            color = HIGHLIGHT_COLOR,
+            size = 10,
+            alpha = 0.5
+        )
+        if absolute_scaling:
+            xlim = plt.xlim()
+            plt.xlim(0, xlim[1])
+        plt.xlabel("Accuracy")
+        plt.ylabel("Model")
+    else:
+        raise ValueError('orientation must be "v" or "h"')
+    plt.title(dataset)
+    path = f'plots/box_whisker_{dataset}.pdf'
+    plt.savefig(path)
+    plt.close()
+
+def make_all_box_whisker(df, orientation='v', absolute_scaling=False):
+    datasets = get_datasets(df)
+    for dataset in datasets:
+        box_whisker(df, dataset, orientation, absolute_scaling)
+
 
 def get_data(file_name='data/plot_data.pkl'):
     '''
@@ -415,11 +485,11 @@ def generate_all():
     concordance_heatmap(df)
     make_transfer_plots(df)
     cover_plot(df)
+    make_all_box_whisker(df)
 
 if __name__ == '__main__':
-    # generate_all()
-    df = get_data()
-    # davinci_box_whisker(df)
-    cover_plot(df)
+    generate_all()
+    # df = get_data()
+    # cover_plot(df)
     # print(get_corrs(df))
     # print(get_concordance_index(df))
