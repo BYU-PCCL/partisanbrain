@@ -1,8 +1,92 @@
+from collections import defaultdict
+from lifelines.utils import concordance_index
+from matplotlib import pyplot as plt
+
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
-# import concordance index
-from lifelines.utils import concordance_index
+import seaborn as sns
+import warnings
+
+
+# Color constants
+MAIN_COLOR = "#4091c9"
+HIGHLIGHT_COLOR = "#ef3c2d"
+
+
+def get_summary(df, model_name):
+    ds_dict = defaultdict(list)
+
+    for idx, row in df.iterrows():
+        ds_df = row[model_name]
+
+        n_templates = len(ds_df.index)
+
+        if n_templates != 20:
+            warnings.warn(f"{idx} has {n_templates} templates (!= 20)")
+
+        ds_dict["dataset"].extend([idx] * len(ds_df.index))
+        ds_dict["template_name"].extend(ds_df.index.tolist())
+        ds_dict["accuracy"].extend(ds_df["accuracy"])
+        ds_dict["mutual_inf"].extend(ds_df["mutual_inf"])
+
+    return pd.DataFrame(ds_dict)
+
+
+def cover_plot(df):
+
+    # For GPT-3 and each individual dataset, make a cluster of bars
+
+    df = get_summary(df, "gpt3-davinci")
+
+    ds_agg = df.groupby("dataset")["accuracy"].agg(["min",
+                                                    "mean",
+                                                    "median",
+                                                    "max"])
+    ds_agg.reset_index(level=0, inplace=True)
+    print(ds_agg)
+
+    ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
+    ds_agg["mi_max"] = ds_mi["accuracy"].values
+
+    plot_data = defaultdict(list)
+
+    for _, row in ds_agg.iterrows():
+        plot_data["dataset"] += [row["dataset"]] * 5
+        plot_data["values"] += [row["min"], row["mean"], row["median"],
+                                row["mi_max"], row["max"]]
+        plot_data["hues"] += ["min", "mean", "median", "mi_max", "max"]
+
+    plot_data = pd.DataFrame(plot_data)
+    print(plot_data)
+
+    # Make the plot
+    colors = ["#9dcee2", "#4091c9", "#1368aa", "#ef3c2d", "#033270"]
+    sns.set_palette(sns.color_palette(colors))
+    sns.catplot(x="dataset", y="values", hue="hues",
+                data=plot_data, kind="bar", saturation=1)
+    plt.show()
+
+
+def davinci_box_whisker(df):
+
+    prepped_df = get_summary(df, "gpt3-davinci")
+
+    sns.boxplot(x="accuracy", y="dataset", data=prepped_df, color=MAIN_COLOR, orient="h")
+
+    mi_ds_dict = defaultdict(list)
+    for ds_name in prepped_df["dataset"].unique().tolist():
+
+        ds_part = prepped_df[prepped_df["dataset"] == ds_name]
+
+        mi_ds_dict["dataset"].extend([ds_name for _ in range(1)])
+        mi_cutoff = ds_part["mutual_inf"].nlargest(1).iloc[-1]
+        mi_ds_dict["accuracy"].extend(ds_part[ds_part["mutual_inf"] >= mi_cutoff]["accuracy"])
+    mi_ds = pd.DataFrame(mi_ds_dict)
+    mi_ds = mi_ds.groupby("dataset").mean()
+    mi_ds.reset_index(level=0, inplace=True)
+    sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
+    plt.show()
+
 
 def get_data(file_name='data/plot_data.pkl'):
     '''
@@ -134,7 +218,9 @@ def generate_all():
     make_davinci_scatter(df)
 
 if __name__ == '__main__':
-    generate_all()
+    # generate_all()
     df = get_data()
-    print(get_corrs(df))
-    print(get_concordance_index(df))
+    davinci_box_whisker(df)
+    # cover_plot(df)
+    # print(get_corrs(df))
+    # print(get_concordance_index(df))
