@@ -136,7 +136,6 @@ def generate_all():
 
 if __name__ == '__main__':
     df = get_data()
-    breakpoint()
     print(get_corrs(df))
     print(get_concordance_index(df))
     generate_all()
