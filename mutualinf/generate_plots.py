@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 # import concordance index
 from lifelines.utils import concordance_index
+from pdb import set_trace as breakpoint
 
 def get_data(file_name='data/plot_data.pkl'):
     '''
@@ -59,7 +60,7 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
             tenths = np.linspace(0, 1, 11)
             for t in tenths:
                 if t > min_y and t < max_y:
-                    ax[i, j].axhline(t, color='black', alpha=0.2)
+                    ax[i, j].axhline(t, color='black', alpha=0.1)
 
 
     # on top row, set the model as the title
@@ -134,7 +135,8 @@ def generate_all():
     make_davinci_scatter(df)
 
 if __name__ == '__main__':
-    generate_all()
     df = get_data()
+    breakpoint()
     print(get_corrs(df))
     print(get_concordance_index(df))
+    generate_all()
