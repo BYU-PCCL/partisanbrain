@@ -46,6 +46,10 @@ def collapse_token_sets(d, token_sets, matching_strategy='startswith'):
     # if token_sets is a list, convert to dictionary
     if isinstance(token_sets, list):
         token_sets = {t: [t] for t in token_sets}
+    # make sure all items in dictionary are lists
+    for k, v in token_sets.items():
+        if not isinstance(v, list):
+            token_sets[k] = [v]
     # create new dictionary
     new_d = {cat: 1e-10 for cat in token_sets.keys()}
     # iterate over tokens and probs in d
