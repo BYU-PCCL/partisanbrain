@@ -12,6 +12,9 @@ import warnings
 MAIN_COLOR = "#4091c9"
 HIGHLIGHT_COLOR = "#ef3c2d"
 
+# times new roman
+plt.rcParams["font.family"] = "Times New Roman"
+
 
 def get_summary(df, model_name):
     ds_dict = defaultdict(list)
@@ -32,7 +35,7 @@ def get_summary(df, model_name):
     return pd.DataFrame(ds_dict)
 
 
-def cover_plot(df):
+def cover_plot(df, save_path='plots/cover_plot.pdf'):
 
     # For GPT-3 and each individual dataset, make a cluster of bars
 
@@ -43,7 +46,6 @@ def cover_plot(df):
                                                     "median",
                                                     "max"])
     ds_agg.reset_index(level=0, inplace=True)
-    print(ds_agg)
 
     ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
     ds_agg["mi_max"] = ds_mi["accuracy"].values
@@ -57,14 +59,20 @@ def cover_plot(df):
         plot_data["hues"] += ["min", "mean", "median", "mi_max", "max"]
 
     plot_data = pd.DataFrame(plot_data)
-    print(plot_data)
 
     # Make the plot
     colors = ["#9dcee2", "#4091c9", "#1368aa", "#ef3c2d", "#033270"]
+    # get axis for big plot
     sns.set_palette(sns.color_palette(colors))
     sns.catplot(x="dataset", y="values", hue="hues",
-                data=plot_data, kind="bar", saturation=1)
-    plt.show()
+                data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5 ,legend=False)
+    plt.legend()
+    # rotate xticks, right justification
+    plt.xticks(rotation=90, ha="right")
+    plt.tight_layout()
+    plt.ylim(0, 1)
+    plt.savefig(save_path, bbox_inches="tight")
+    plt.close()
 
 
 def davinci_box_whisker(df):
@@ -406,6 +414,7 @@ def generate_all():
     correlation_heatmap(df)
     concordance_heatmap(df)
     make_transfer_plots(df)
+    cover_plot(df)
 
 if __name__ == '__main__':
     # generate_all()
