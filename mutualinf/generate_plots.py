@@ -95,7 +95,7 @@ def davinci_box_whisker(df):
     sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
     plt.show()
 
-def box_whisker(df, dataset, orientation='v', absolute_scaling=False):
+def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, save=True):
     '''
     Make a box and whisker plot of 'mutual_inf' vs 'accuracy' for a given dataset.
     '''
@@ -113,57 +113,103 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False):
         # add accs
         accs.extend(df_exp['accuracy'].astype(float).tolist())
         acc_models.extend([model] * len(df_exp['accuracy'].astype(float).tolist()))
+    if not ax:
+        ax = plt.gca()
     if orientation == 'v':
         sns.boxplot(
             x = acc_models,
             y = accs,
             color = MAIN_COLOR,
             orient = "v",
-            showfliers = True
+            showfliers = True,
+            ax = ax,
         )
         sns.swarmplot(
             x = models,
             y = mutual_inf_accs,
             color = HIGHLIGHT_COLOR,
             size = 10,
-            alpha = 0.5
+            alpha = 0.5,
+            ax = ax,
         )
         if absolute_scaling:
-            ylim = plt.ylim()
-            plt.ylim(0, ylim[1])
-        plt.xlabel("Model")
-        plt.ylabel("Accuracy")
+            ylim = ax.get_ylim()
+            ax.set_ylim(0, ylim[1])
+        ax.set_xlabel("Model")
+        ax.set_ylabel("Accuracy")
+        # rotate xticks, right justification
+        ax.set_xticklabels(models, rotation=90, ha="right")
     elif orientation == 'h':
         sns.boxplot(
             x = accs,
             y = acc_models,
             color = MAIN_COLOR,
             orient = "h",
-            showfliers = True
+            showfliers = True,
+            ax = ax,
         )
         sns.swarmplot(
             x = mutual_inf_accs,
             y = models,
             color = HIGHLIGHT_COLOR,
             size = 10,
-            alpha = 0.5
+            alpha = 0.5,
+            ax = ax,
         )
         if absolute_scaling:
-            xlim = plt.xlim()
-            plt.xlim(0, xlim[1])
-        plt.xlabel("Accuracy")
-        plt.ylabel("Model")
+            xlim = ax.get_xlim()
+            ax.set_xlim(0, xlim[1])
+        ax.set_xlabel("Accuracy")
+        ax.set_ylabel("Model")
+        ax.set_yticklabels(models, rotation=0, ha="right")
     else:
         raise ValueError('orientation must be "v" or "h"')
-    plt.title(dataset)
-    path = f'plots/box_whisker_{dataset}.pdf'
-    plt.savefig(path)
-    plt.close()
+    ax.set_title(dataset)
+    if save:
+        path = f'plots/box_whisker_{dataset}.pdf'
+        plt.savefig(path)
+        plt.close()
 
 def make_all_box_whisker(df, orientation='v', absolute_scaling=False):
     datasets = get_datasets(df)
     for dataset in datasets:
         box_whisker(df, dataset, orientation, absolute_scaling)
+
+def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
+    datasets = get_datasets(df)
+    # shape of subplot grid
+    grid_shape = (2, 4)
+    # make figure
+    fig, axs = plt.subplots(
+        nrows=grid_shape[0],
+        ncols=grid_shape[1],
+        figsize=(grid_shape[1] * 3, grid_shape[0] * 3),
+    )
+
+    for ax, dataset in zip(axs.flatten(), datasets):
+        box_whisker(df, dataset, orientation, absolute_scaling, ax=ax, save=False)
+    if orientation == 'v':
+        # turn off xticks and xlabel on first row
+        for ax in axs[0]:
+            ax.set_xticklabels([])
+            ax.set_xlabel('')
+        # turn off ylabel on all but first column
+        for col in range(1, grid_shape[1]):
+            for ax in axs[:, col]:
+                ax.set_ylabel('')
+    elif orientation == 'h':
+        # turn off yticks and ylabel on all but first column
+        for col in range(1, grid_shape[1]):
+            for ax in axs[:, col]:
+                ax.set_yticklabels([])
+                ax.set_ylabel('')
+        # turn off xlabel on top row
+        for ax in axs[0]:
+            ax.set_xlabel('')
+                
+    plt.tight_layout()
+    plt.savefig('plots/grouped_box_whisker.pdf')
+    plt.show()
 
 
 def get_data(file_name='data/plot_data.pkl'):
@@ -286,8 +332,9 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None):
     # columns
     plt.xticks(np.arange(len(df.columns))+0.5, df.columns, rotation=90)
     # index
-    plt.yticks(np.arange(len(df.index)), df.index)
+    plt.yticks(np.arange(len(df.index))+0.5, df.index)
     plt.savefig(save_path)
+    plt.close()
 
 def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min=0, scale_max=1, title=None):
     '''
@@ -350,11 +397,17 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_m
     ax[1].set_xlabel('Inference Model')
     # set just xticks
     ax[1].set_xticks(np.arange(len(df_oracle.columns))+0.5)
+    ax[1].set_xticklabels(df_oracle.columns, rotation=90)
+    # turn off yticks
+    ax[1].set_yticks([])
 
     # set sup title
     if title is None:
         title = 'Transferability'
     plt.suptitle(title)
+
+    # tight layout
+    plt.tight_layout()
 
     # save
     if save_path is None:
@@ -389,14 +442,15 @@ def plot_normalized_accs(df, save_path='plots/normalized_accs.pdf'):
     '''
     plot with model being x-axis, normalized accuracy is y-axis, and dataset is color
     '''
+    df = df.copy()
     datasets, models = get_datasets(df), get_models(df)
-    df = normalize_accs(df)
+    norm = normalize_accs(df)
     plt.figure(figsize=(10, 10))
     for i, dataset in enumerate(datasets):
         accs = []
         # get just the top mutual information accuracy for each model
         for model in models:
-            df_exp = df.loc[dataset, model]
+            df_exp = norm.loc[dataset, model]
             arg_max = df_exp['mutual_inf'].idxmax()
             accs.append(df_exp.loc[arg_max, 'accuracy'])
         plt.plot(models, accs, label=dataset, color=f'C{i}')
@@ -583,23 +637,9 @@ def generate_all():
     correlation_heatmap(df)
     concordance_heatmap(df)
     make_transfer_plots(df)
-    # plot_normalized_accs(df)
-    plot_acc_diffs(df)
-    plot_models_vs_mi_gain(df)
     cover_plot(df)
     make_all_box_whisker(df)
-
-if __name__ == '__main__':
-    df = get_data()
-    print(get_corrs(df))
-    print(get_concordance_index(df))
-    # print(get_transfer_oracle(df))
-    # print(get_transfer_mutual_information(df))
-    generate_all()
+    make_grouped_box_whisker(df, orientation='v')
 
 if __name__ == '__main__':
     generate_all()
-    # df = get_data()
-    # cover_plot(df)
-    # print(get_corrs(df))
-    # print(get_concordance_index(df))

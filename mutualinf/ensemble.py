@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
+from pdb import set_trace as breakpoint
 
 def agg_prob_dicts(dicts):
     '''
@@ -66,6 +67,20 @@ def get_sorted_templates(df):
     output_df = output_df.sort_values(by='mutual_inf', ascending=True)
     return output_df
 
+def get_avg_acc(df):
+    return df['accuracy'].mean()
+
+def get_ensemble_acc(df, k):
+    '''
+    Looks at a top k ensemble and returns the accuracy.
+    '''
+    templates = get_sorted_templates(df)
+    top_k_templates = templates.iloc[-k:].index.to_list()
+    # filter df to only include top k templates
+    df_top_k = df[df['template_name'].isin(top_k_templates)]
+    top_k_acc = ensemble(df_top_k)['accuracy'].mean()
+    return top_k_acc
+
 def get_accuracies(df):
     '''
     Returns a list of accuracies.
@@ -91,6 +106,7 @@ if __name__ == '__main__':
     # first argument is the path to the data
     data_path = sys.argv[1]
     df = pd.read_pickle(data_path)
+    breakpoint()
     accs = get_accuracies(df)
     print(f'Average accuracy: {accs[0]}')
     print(f'Ensemble accuracy: {accs[1]}')
