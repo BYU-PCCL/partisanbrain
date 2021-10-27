@@ -213,6 +213,105 @@ def make_transfer_plots(df, save_dir='plots'):
     transfer_mi = get_transfer_mutual_information(df)
     for dataset in datasets:
         make_transfer_heatmap(transfer_mi[dataset], transfer_oracle[dataset], save_path=f'{save_dir}/transfer_heatmap_{dataset}.pdf', title=f'Transferability for {dataset}')
+    
+def normalize_accs(df):
+    '''
+    For each model and dataset pair, normalize the accuracies to [0, 1], where 0 is the average prompt and 1 is the max accuracy.
+    '''
+    normed_accs = df.copy()
+    models, datasets = get_models(df), get_datasets(df)
+    for model in models:
+        for dataset in datasets:
+            # df.loc[dataset, model] = (df.loc[dataset, model] - df.loc[dataset, model].mean()) / (df.loc[dataset, model].max() - df.loc[dataset, model].min())
+            normed_accs.loc[dataset, model]['accuracy'] = (normed_accs.loc[dataset, model]['accuracy'] - normed_accs.loc[dataset, model]['accuracy'].mean()) / (normed_accs.loc[dataset, model]['accuracy'].max() - df.loc[dataset, model]['accuracy'].min())
+    return normed_accs
+
+def plot_normalized_accs(df, save_path='plots/normalized_accs.pdf'):
+    '''
+    plot with model being x-axis, normalized accuracy is y-axis, and dataset is color
+    '''
+    datasets, models = get_datasets(df), get_models(df)
+    df = normalize_accs(df)
+    plt.figure(figsize=(10, 10))
+    for i, dataset in enumerate(datasets):
+        accs = []
+        # get just the top mutual information accuracy for each model
+        for model in models:
+            df_exp = df.loc[dataset, model]
+            arg_max = df_exp['mutual_inf'].idxmax()
+            accs.append(df_exp.loc[arg_max, 'accuracy'])
+        plt.plot(models, accs, label=dataset, color=f'C{i}')
+    plt.legend()
+    plt.savefig(save_path)
+    plt.close()
+
+def plot_acc_diffs(df, save_path='plots/acc_diffs.pdf'):
+    '''
+    plot with model being x-axis, accuracy boost is y-axis, and dataset is color
+    '''
+    datasets, models = get_datasets(df), get_models(df)
+    plt.figure(figsize=(10, 10))
+    for i, dataset in enumerate(datasets):
+        accs = []
+        # get just the top mutual information accuracy for each model
+        for model in models:
+            df_exp = df.loc[dataset, model]
+            arg_max = df_exp['mutual_inf'].idxmax()
+            accs.append(df_exp.loc[arg_max, 'accuracy'] - df_exp['accuracy'].mean())
+        plt.plot(models, accs, label=dataset, color=f'C{i}')
+    plt.legend()
+    plt.savefig(save_path)
+    plt.close()
+
+def plot_models_vs_mi_gain(df, save_path='plots/models_v_mi_gain.pdf'):
+    '''
+    plot with model being x-axis, and 3 lines on the y-axis:
+        1. Average concordance index (with error bars)
+        2. Average accuracy boost (with error bars)
+        3. Average normalized accuracy boost (with error bars)
+    '''
+    datasets, models = get_datasets(df), get_models(df)
+    plt.figure(figsize=(12, 10))
+    # ylim 0 to 1
+    plt.ylim(0, 1)
+
+    # plot average concordance index
+    ci = get_concordance_index(df)
+    ci_mean, ci_std = ci.mean(), ci.std()
+    # plot with error bars
+    plt.errorbar(models, ci_mean, yerr=ci_std, label='Average Concordance Index', color='C0')
+
+    # plot average accuracy boost
+    acc_boost_means, acc_boost_stds = [], []
+    for model in models:
+        acc_boosts = []
+        for dataset in datasets:
+            df_exp = df.loc[dataset, model]
+            arg_max = df_exp['mutual_inf'].idxmax()
+            acc_boosts.append(df_exp.loc[arg_max, 'accuracy'] - df_exp['accuracy'].mean())
+        acc_boost_means.append(np.mean(acc_boosts))
+        acc_boost_stds.append(np.std(acc_boosts))
+    # plot with error bars
+    plt.errorbar(models, acc_boost_means, yerr=acc_boost_stds, label='Average Accuracy Boost', color='C1')
+
+    # plot average normalized accuracy boost
+    normed_acc_boost_means, normed_acc_boost_stds = [], []
+    df_norm = normalize_accs(df)
+    for model in models:
+        normed_acc_boosts = []
+        for dataset in datasets:
+            df_exp = df_norm.loc[dataset, model]
+            arg_max = df_exp['mutual_inf'].idxmax()
+            normed_acc_boosts.append(df_exp.loc[arg_max, 'accuracy'])
+        normed_acc_boost_means.append(np.mean(normed_acc_boosts))
+        normed_acc_boost_stds.append(np.std(normed_acc_boosts))
+    # plot with error bars
+    plt.errorbar(models, normed_acc_boost_means, yerr=normed_acc_boost_stds, label='Average Normalized Accuracy Boost', color='C2')
+
+    plt.legend()
+    plt.savefig(save_path)
+    plt.close()
+
 
 
 def get_corrs(df):
@@ -325,11 +424,14 @@ def generate_all():
     correlation_heatmap(df)
     concordance_heatmap(df)
     make_transfer_plots(df)
+    # plot_normalized_accs(df)
+    plot_acc_diffs(df)
+    plot_models_vs_mi_gain(df)
 
 if __name__ == '__main__':
-    # df = get_data()
-    # print(get_corrs(df))
-    # print(get_concordance_index(df))
+    df = get_data()
+    print(get_corrs(df))
+    print(get_concordance_index(df))
     # print(get_transfer_oracle(df))
     # print(get_transfer_mutual_information(df))
     generate_all()

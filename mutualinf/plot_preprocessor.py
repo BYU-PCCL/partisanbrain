@@ -6,7 +6,8 @@ import os
 
 datasets = ['anes', 'boolq', 'common_sense_qa', 'copa', 'imdb', 'rocstories', 'squad', 'wic']
 # datasets = ['anes',  'copa', 'imdb', 'rocstories', 'wic', 'squad']
-models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt3-ada', 'gpt-j', 'gpt-neo-2.7B', 'gpt2-xl', 'gpt2']
+# models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt3-ada', 'gpt-j', 'gpt-neo-2.7B', 'gpt2-xl', 'gpt2']
+models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt-j', 'gpt-neo-2.7B', 'gpt3-ada', 'gpt2-xl', 'gpt2']
 
 def check_files_present():
     '''
