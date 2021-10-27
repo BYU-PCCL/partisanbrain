@@ -1,11 +1,170 @@
+from collections import defaultdict
+from lifelines.utils import concordance_index
+from matplotlib import pyplot as plt
+
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
-# import concordance index
-from lifelines.utils import concordance_index
-from pdb import set_trace as breakpoint
-# seaborn
 import seaborn as sns
+import warnings
+
+
+# Color constants
+MAIN_COLOR = "#4091c9"
+HIGHLIGHT_COLOR = "#ef3c2d"
+
+# times new roman
+plt.rcParams["font.family"] = "Times New Roman"
+
+
+def get_summary(df, model_name):
+    ds_dict = defaultdict(list)
+
+    for idx, row in df.iterrows():
+        ds_df = row[model_name]
+
+        n_templates = len(ds_df.index)
+
+        if n_templates != 20:
+            warnings.warn(f"{idx} has {n_templates} templates (!= 20)")
+
+        ds_dict["dataset"].extend([idx] * len(ds_df.index))
+        ds_dict["template_name"].extend(ds_df.index.tolist())
+        ds_dict["accuracy"].extend(ds_df["accuracy"])
+        ds_dict["mutual_inf"].extend(ds_df["mutual_inf"])
+
+    return pd.DataFrame(ds_dict)
+
+
+def cover_plot(df, save_path='plots/cover_plot.pdf'):
+
+    # For GPT-3 and each individual dataset, make a cluster of bars
+
+    df = get_summary(df, "gpt3-davinci")
+
+    ds_agg = df.groupby("dataset")["accuracy"].agg(["min",
+                                                    "mean",
+                                                    "median",
+                                                    "max"])
+    ds_agg.reset_index(level=0, inplace=True)
+
+    ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
+    ds_agg["mi_max"] = ds_mi["accuracy"].values
+
+    plot_data = defaultdict(list)
+
+    for _, row in ds_agg.iterrows():
+        plot_data["dataset"] += [row["dataset"]] * 5
+        plot_data["values"] += [row["min"], row["mean"], row["median"],
+                                row["mi_max"], row["max"]]
+        plot_data["hues"] += ["min", "mean", "median", "mi_max", "max"]
+
+    plot_data = pd.DataFrame(plot_data)
+
+    # Make the plot
+    colors = ["#9dcee2", "#4091c9", "#1368aa", "#ef3c2d", "#033270"]
+    # get axis for big plot
+    sns.set_palette(sns.color_palette(colors))
+    sns.catplot(x="dataset", y="values", hue="hues",
+                data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5 ,legend=False)
+    plt.legend()
+    # rotate xticks, right justification
+    plt.xticks(rotation=90, ha="right")
+    plt.tight_layout()
+    plt.ylim(0, 1)
+    plt.savefig(save_path, bbox_inches="tight")
+    plt.close()
+
+
+def davinci_box_whisker(df):
+
+    prepped_df = get_summary(df, "gpt3-davinci")
+
+    sns.boxplot(x="accuracy", y="dataset", data=prepped_df, color=MAIN_COLOR, orient="h")
+
+    mi_ds_dict = defaultdict(list)
+    for ds_name in prepped_df["dataset"].unique().tolist():
+
+        ds_part = prepped_df[prepped_df["dataset"] == ds_name]
+
+        mi_ds_dict["dataset"].extend([ds_name for _ in range(1)])
+        mi_cutoff = ds_part["mutual_inf"].nlargest(1).iloc[-1]
+        mi_ds_dict["accuracy"].extend(ds_part[ds_part["mutual_inf"] >= mi_cutoff]["accuracy"])
+    mi_ds = pd.DataFrame(mi_ds_dict)
+    mi_ds = mi_ds.groupby("dataset").mean()
+    mi_ds.reset_index(level=0, inplace=True)
+    sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
+    plt.show()
+
+def box_whisker(df, dataset, orientation='v', absolute_scaling=False):
+    '''
+    Make a box and whisker plot of 'mutual_inf' vs 'accuracy' for a given dataset.
+    '''
+    models = get_models(df)
+    df_ds = df.loc[dataset]
+    acc_models = []
+    accs = []
+    # acc_lists = [df_ds[model]['accuracy'].astype(float).tolist() for model in models]
+    mutual_inf_accs = []
+    for model in models:
+        df_exp = df_ds[model]
+        # get max mutualinf
+        index = df_exp['mutual_inf'].idxmax()
+        mutual_inf_accs.append(df_exp.loc[index]['accuracy'].astype(float))
+        # add accs
+        accs.extend(df_exp['accuracy'].astype(float).tolist())
+        acc_models.extend([model] * len(df_exp['accuracy'].astype(float).tolist()))
+    if orientation == 'v':
+        sns.boxplot(
+            x = acc_models,
+            y = accs,
+            color = MAIN_COLOR,
+            orient = "v",
+            showfliers = True
+        )
+        sns.swarmplot(
+            x = models,
+            y = mutual_inf_accs,
+            color = HIGHLIGHT_COLOR,
+            size = 10,
+            alpha = 0.5
+        )
+        if absolute_scaling:
+            ylim = plt.ylim()
+            plt.ylim(0, ylim[1])
+        plt.xlabel("Model")
+        plt.ylabel("Accuracy")
+    elif orientation == 'h':
+        sns.boxplot(
+            x = accs,
+            y = acc_models,
+            color = MAIN_COLOR,
+            orient = "h",
+            showfliers = True
+        )
+        sns.swarmplot(
+            x = mutual_inf_accs,
+            y = models,
+            color = HIGHLIGHT_COLOR,
+            size = 10,
+            alpha = 0.5
+        )
+        if absolute_scaling:
+            xlim = plt.xlim()
+            plt.xlim(0, xlim[1])
+        plt.xlabel("Accuracy")
+        plt.ylabel("Model")
+    else:
+        raise ValueError('orientation must be "v" or "h"')
+    plt.title(dataset)
+    path = f'plots/box_whisker_{dataset}.pdf'
+    plt.savefig(path)
+    plt.close()
+
+def make_all_box_whisker(df, orientation='v', absolute_scaling=False):
+    datasets = get_datasets(df)
+    for dataset in datasets:
+        box_whisker(df, dataset, orientation, absolute_scaling)
+
 
 def get_data(file_name='data/plot_data.pkl'):
     '''
@@ -427,6 +586,8 @@ def generate_all():
     # plot_normalized_accs(df)
     plot_acc_diffs(df)
     plot_models_vs_mi_gain(df)
+    cover_plot(df)
+    make_all_box_whisker(df)
 
 if __name__ == '__main__':
     df = get_data()
@@ -435,3 +596,10 @@ if __name__ == '__main__':
     # print(get_transfer_oracle(df))
     # print(get_transfer_mutual_information(df))
     generate_all()
+
+if __name__ == '__main__':
+    generate_all()
+    # df = get_data()
+    # cover_plot(df)
+    # print(get_corrs(df))
+    # print(get_concordance_index(df))
