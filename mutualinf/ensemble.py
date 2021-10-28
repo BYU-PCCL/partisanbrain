@@ -62,7 +62,7 @@ def get_sorted_templates(df):
         'coverage': 'mean',
         'prompt': 'first',
     })
-    
+
     # sort by conditional entropy
     output_df = output_df.sort_values(by='mutual_inf', ascending=True)
     return output_df

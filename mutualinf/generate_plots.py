@@ -12,6 +12,12 @@ import warnings
 MAIN_COLOR = "#4091c9"
 HIGHLIGHT_COLOR = "#ef3c2d"
 
+BLUE_1 = "#9dcee2"  # Min
+BLUE_2 = "#4091c9"  # Mean
+BLUE_3 = "#1368aa"  # Median
+RED_1 = "#ef3c2d"  # Ours
+BLUE_4 = "#033270"  # Max
+
 # times new roman
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -61,11 +67,11 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
     plot_data = pd.DataFrame(plot_data)
 
     # Make the plot
-    colors = ["#9dcee2", "#4091c9", "#1368aa", "#ef3c2d", "#033270"]
+    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
     # get axis for big plot
     sns.set_palette(sns.color_palette(colors))
     sns.catplot(x="dataset", y="values", hue="hues",
-                data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5 ,legend=False)
+                data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5, legend=False)
     plt.legend()
     # rotate xticks, right justification
     plt.xticks(rotation=90, ha="right")
@@ -642,4 +648,5 @@ def generate_all():
     make_grouped_box_whisker(df, orientation='v')
 
 if __name__ == '__main__':
-    generate_all()
+    cover_plot(get_data())
+    # generate_all()
