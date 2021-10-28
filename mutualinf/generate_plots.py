@@ -349,7 +349,7 @@ def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min
     '''
     corrs = get_corrs(df)
     if title is None:
-        title = 'Correlation between Accuracy and Mutual Information'
+        title = 'Correlation between MI and Accuracy'
     heatmap(corrs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
 def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min=.5, scale_max=1, title=None):
@@ -358,7 +358,7 @@ def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min
     '''
     concs = get_concordance_index(df)
     if title is None:
-        title = 'Correlation between Concordance and Mutual Information'
+        title = 'Concordance between MI and Accuracy'
     heatmap(concs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
 def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_max=1, title=None):
