@@ -201,6 +201,7 @@ class SquadDataset(Dataset):
             f"\"{row['context']}\", \"{row['question']}\" -> \""), self._token_set),
 
         }
+        #print(f'[DEBUG]] template_size: {len(templates)}')
         return templates
 
 

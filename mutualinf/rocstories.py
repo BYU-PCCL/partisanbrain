@@ -49,9 +49,6 @@ class RocstoriesDataset(Dataset):
             'story_d4' : (lambda row: (f"{row['story_with_mask']} \n"
                 "Choose a word to replace the blank. \nWord: \""), self.token_set_dict),
 
-            'story_q0' : (lambda row: (f"{row['story_with_mask']} \n"
-                "What word goes in the blank?\nThe word is \""), self.token_set_dict),
-
             'story_q1' : (lambda row: (f"{row['story_with_mask']} \n"
                 "Which word fills in the blank best?\nThe word that fills in the blank best is \""), self.token_set_dict),
 
@@ -91,7 +88,7 @@ class RocstoriesDataset(Dataset):
                 f"{row['story_with_mask']} \nP2:"
                 ), self.token_set_dict),
         }
-
+        #print(f'[DEBUG]] template_size: {len(templates)}')
         return templates
 
 if __name__ == '__main__':
