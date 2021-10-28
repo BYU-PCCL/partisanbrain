@@ -102,7 +102,7 @@ class BoolqDataset(Dataset):
                     f'Passage: "{row.passage}"\n'
                     f'Question: "{row.question}"\n'
                     f'Answer: "'
-                ), self._token_set['True/False_classify']
+                ), self._token_set['Yes/No_classify']
             ),
 
             'QuestionPhrasing-1': (
