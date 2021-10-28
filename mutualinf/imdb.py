@@ -89,6 +89,7 @@ class ImdbDataset(Dataset):
                                         "\nP2: I would say my review review of the movie is"), self.token_set_dict),
             
         }
+        #print(f'[DEBUG]] template_size: {len(templates)}')
         return templates
 
 if __name__ == '__main__':

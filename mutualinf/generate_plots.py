@@ -1,11 +1,13 @@
 from collections import defaultdict
 from lifelines.utils import concordance_index
 from matplotlib import pyplot as plt
+import cmocean
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import warnings
+from pdb import set_trace as breakpoint
 
 
 # Color constants
@@ -20,6 +22,10 @@ BLUE_4 = "#033270"  # Max
 
 # times new roman
 plt.rcParams["font.family"] = "Times New Roman"
+
+x_text_rotate = 25
+y_text_rotate = 0
+cmap = 'Blues'
 
 
 def get_summary(df, model_name):
@@ -62,7 +68,7 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
         plot_data["dataset"] += [row["dataset"]] * 5
         plot_data["values"] += [row["min"], row["mean"], row["median"],
                                 row["mi_max"], row["max"]]
-        plot_data["hues"] += ["min", "mean", "median", "mi_max", "max"]
+        plot_data["hues"] += ["min", "mean", "mediar", "mi_max", "max"]
 
     plot_data = pd.DataFrame(plot_data)
 
@@ -74,7 +80,7 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
                 data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5, legend=False)
     plt.legend()
     # rotate xticks, right justification
-    plt.xticks(rotation=90, ha="right")
+    plt.xticks(rotation=x_text_rotate, ha="right")
     plt.tight_layout()
     plt.ylim(0, 1)
     plt.savefig(save_path, bbox_inches="tight")
@@ -144,7 +150,7 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
         ax.set_xlabel("Model")
         ax.set_ylabel("Accuracy")
         # rotate xticks, right justification
-        ax.set_xticklabels(models, rotation=90, ha="right")
+        ax.set_xticklabels(models, rotation=x_text_rotate, ha="right")
     elif orientation == 'h':
         sns.boxplot(
             x = accs,
@@ -167,7 +173,7 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
             ax.set_xlim(0, xlim[1])
         ax.set_xlabel("Accuracy")
         ax.set_ylabel("Model")
-        ax.set_yticklabels(models, rotation=0, ha="right")
+        ax.set_yticklabels(models, rotation=y_text_rotate, ha="right")
     else:
         raise ValueError('orientation must be "v" or "h"')
     ax.set_title(dataset)
@@ -313,22 +319,22 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     plt.savefig(save_path)
     plt.close()
 
-def heatmap(df, save_path, scale_min=None, scale_max=None, title=None):
+def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_cmap=None):
     '''
     Generate a heatmap.
     '''
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(7, 7))
     if scale_min is None:
         scale_min = df.min().min()
     if scale_max is None:
         scale_max = df.max().max()
     if title is not None:
         plt.title(title)
-    # plt.imshow(df.values.astype(float), cmap='viridis', interpolation='nearest', vmin=scale_min, vmax=scale_max)
+    # plt.imshow(df.values.astype(float), cmap=cmap, interpolation='nearest', vmin=scale_min, vmax=scale_max)
     # seaborn heatmap
     sns.heatmap(
         df.values.astype(float),
-        cmap='viridis',
+        cmap=cmap if override_cmap is None else override_cmap,
         vmin=scale_min,
         vmax=scale_max,
         annot=True,
@@ -336,9 +342,10 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None):
         cbar=True
     )
     # columns
-    plt.xticks(np.arange(len(df.columns))+0.5, df.columns, rotation=90)
+    plt.xticks(np.arange(len(df.columns))+0.5, df.columns, rotation=x_text_rotate, ha='right')
     # index
-    plt.yticks(np.arange(len(df.index))+0.5, df.index)
+    plt.yticks(np.arange(len(df.index))+0.5, df.index, rotation=y_text_rotate, ha='right')
+    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
 
@@ -348,7 +355,7 @@ def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min
     '''
     corrs = get_corrs(df)
     if title is None:
-        title = 'Correlation between Accuracy and Mutual Information'
+        title = 'Correlation between MI and Accuracy'
     heatmap(corrs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
 def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min=.5, scale_max=1, title=None):
@@ -357,7 +364,7 @@ def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min
     '''
     concs = get_concordance_index(df)
     if title is None:
-        title = 'Correlation between Concordance and Mutual Information'
+        title = 'Concordance between MI and Accuracy'
     heatmap(concs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
 def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_max=1, title=None):
@@ -371,7 +378,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_m
     # seaborn heatmap on ax[0]
     sns.heatmap(
         df_mi.values.astype(float),
-        cmap='viridis',
+        cmap=cmap,
         vmin=scale_min,
         vmax=scale_max,
         annot=True,
@@ -383,16 +390,16 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_m
     ax[0].set_ylabel('Selection Model')
     # set xticks and yticks
     ax[0].set_xticks(np.arange(len(df_mi.columns))+0.5)
-    ax[0].set_xticklabels(df_mi.columns, rotation=90)
+    ax[0].set_xticklabels(df_mi.columns, rotation=x_text_rotate, ha='right')
     ax[0].set_yticks(np.arange(len(df_mi.index)))
-    ax[0].set_yticklabels(df_mi.index, rotation=0)
+    ax[0].set_yticklabels(df_mi.index, rotation=y_text_rotate, ha='right')
 
     # oracle
     ax[1].set_title('Test Accuracy')
     # seaborn heatmap on ax[1]
     sns.heatmap(
         df_oracle.values.astype(float),
-        cmap='viridis',
+        cmap=cmap,
         vmin=scale_min,
         vmax=scale_max,
         annot=True,
@@ -403,7 +410,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_m
     ax[1].set_xlabel('Inference Model')
     # set just xticks
     ax[1].set_xticks(np.arange(len(df_oracle.columns))+0.5)
-    ax[1].set_xticklabels(df_oracle.columns, rotation=90)
+    ax[1].set_xticklabels(df_oracle.columns, rotation=x_text_rotate, ha='right')
     # turn off yticks
     ax[1].set_yticks([])
 
@@ -431,6 +438,41 @@ def make_transfer_plots(df, save_dir='plots'):
     transfer_mi = get_transfer_mutual_information(df)
     for dataset in datasets:
         make_transfer_heatmap(transfer_mi[dataset], transfer_oracle[dataset], save_path=f'{save_dir}/transfer_heatmap_{dataset}.pdf', title=f'Transferability for {dataset}')
+
+def make_average_transfer_heatmap(df, save_dir='plots'):
+    '''
+    Make average transfer heatmap, averaged across datasets.
+    '''
+    datasets = get_datasets(df)
+    transfer_oracle = get_transfer_oracle(df)
+    transfer_mi = get_transfer_mutual_information(df)
+    # average together
+    transfer_oracle_avg = sum([transfer_oracle[dataset] for dataset in datasets])/len(datasets)
+    transfer_mi_avg = sum([transfer_mi[dataset] for dataset in datasets])/len(datasets)
+    make_transfer_heatmap(
+        transfer_mi_avg,
+        transfer_oracle_avg,
+        save_path=f'{save_dir}/transfer_heatmap_average.pdf',
+        title='Transferability (Averaged over Datasets)'
+    )
+
+def make_average_transfer_difference_heatmap(df, save_dir='plots'):
+    datasets = get_datasets(df)
+    transfer_oracle = get_transfer_oracle(df)
+    transfer_mi = get_transfer_mutual_information(df)
+    # average together
+    transfer_oracle_avg = sum([transfer_oracle[dataset] for dataset in datasets])/len(datasets)
+    transfer_mi_avg = sum([transfer_mi[dataset] for dataset in datasets])/len(datasets)
+    diff = transfer_mi_avg - transfer_oracle_avg
+    # make diagonal 0
+    diff.values[np.diag_indices_from(diff)] = 0
+    heatmap(diff,
+        save_path=f'{save_dir}/transfer_heatmap_difference.pdf',
+        title='Transferability Difference (Averaged over Datasets)',
+        scale_min=-.5,
+        scale_max=.5,
+        override_cmap='RdBu',
+    )
     
 def normalize_accs(df):
     '''
@@ -643,6 +685,8 @@ def generate_all():
     correlation_heatmap(df)
     concordance_heatmap(df)
     make_transfer_plots(df)
+    make_average_transfer_heatmap(df)
+    make_average_transfer_difference_heatmap(df)
     cover_plot(df)
     make_all_box_whisker(df)
     make_grouped_box_whisker(df, orientation='v')
