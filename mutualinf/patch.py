@@ -3,8 +3,8 @@ from copa import CopaDataset
 from imdb import ImdbDataset
 from anes import AnesDataset
 from squad import SquadDataset
-from rocstories import RocStoriesDataset
-from boolq import BoolQDataset
+from rocstories import RocstoriesDataset
+from boolq import BoolqDataset
 from common_sense_qa import CommonSenseQaDataset
 
 import glob
@@ -18,8 +18,8 @@ CLS_DIR = {
     ImdbDataset: "data/imdb",
     AnesDataset: "data/anes",
     SquadDataset: "data/squad",
-    RocStoriesDataset: "data/rocstories",
-    BoolQDataset: "data/boolq",
+    RocstoriesDataset: "data/rocstories",
+    BoolqDataset: "data/boolq",
     CommonSenseQaDataset: "data/common_sense_qa"
 }
 
@@ -27,7 +27,7 @@ CLS_DIR = {
 for cls, dir in CLS_DIR.items():
 
     # Save dataset pickle again with updated templates
-    obj = cls()
+    obj = cls(n=500)
 
     # Remove processed files
     for f in glob.glob(f"{dir}/*_processed.pkl"):
@@ -44,5 +44,5 @@ for cls, dir in CLS_DIR.items():
             template_name = row["template_name"]
             row["token_sets"] = obj._get_templates()[template_name][1]
 
-        # Save pickle file
-        df.save_pickle(fname)
+        # Pickle df
+        df.to_pickle(fname)
