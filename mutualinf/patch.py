@@ -26,6 +26,7 @@ CLS_DIR = {
 
 for cls, dir in CLS_DIR.items():
 
+    # Save dataset pickle again with updated templates
     obj = cls()
 
     # Remove processed files
@@ -39,9 +40,9 @@ for cls, dir in CLS_DIR.items():
         df = pd.read_pickle(fname)
 
         # Iterate over rows and replace token sets
-        for idx, row in df.iterrows():
+        for _, row in df.iterrows():
             template_name = row["template_name"]
-            row["token_set"] = obj._get_templates()[template_name][1]
+            row["token_sets"] = obj._get_templates()[template_name][1]
 
         # Save pickle file
         df.save_pickle(fname)
