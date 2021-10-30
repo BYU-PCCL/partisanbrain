@@ -23,9 +23,10 @@ BLUE_4 = "#033270"  # Max
 # times new roman
 plt.rcParams["font.family"] = "Times New Roman"
 
-x_text_rotate = 25
+x_text_rotate = 30
 y_text_rotate = 0
-cmap = 'Blues'
+# cmap = 'Blues'
+cmap = 'RdBu'
 
 
 def get_summary(df, model_name):
@@ -51,15 +52,21 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
 
     # For GPT-3 and each individual dataset, make a cluster of bars
 
-    df = get_summary(df, "gpt3-davinci")
+    datasets = get_datasets(df)
+    # df = get_summary(df, "gpt3-davinci")
+    # df = get_summary(df, "175B (GPT-3)")
+    df = get_summary(df, "GPT-3: 175B")
 
     ds_agg = df.groupby("dataset")["accuracy"].agg(["min",
                                                     "mean",
                                                     "median",
                                                     "max"])
+    # order
+    ds_agg = ds_agg.loc[datasets]
     ds_agg.reset_index(level=0, inplace=True)
 
     ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
+    ds_mi = ds_mi.loc[datasets]
     ds_agg["mi_max"] = ds_mi["accuracy"].values
 
     plot_data = defaultdict(list)
@@ -73,11 +80,24 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
     plot_data = pd.DataFrame(plot_data)
 
     # Make the plot
-    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
+    # size of plot
+    # height, aspect = 7, 1.5
+    height, aspect = 5, 2.5
     # get axis for big plot
+    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
     sns.set_palette(sns.color_palette(colors))
-    sns.catplot(x="dataset", y="values", hue="hues",
-                data=plot_data, kind="bar", saturation=1, height=7, aspect=2.5, legend=False)
+    sns.catplot(
+        x="dataset",
+        y="values",
+        hue="hues",
+        data=plot_data,
+        kind="bar",
+        saturation=1,
+        height=height,
+        aspect=aspect,
+        legend=False,
+        row_order=get_datasets(df),
+    )
     plt.legend()
     # rotate xticks, right justification
     plt.xticks(rotation=x_text_rotate, ha="right")
@@ -306,7 +326,9 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*3, dims[0]*3))
     for i, dataset in enumerate(datasets):
         ax_row, ax_col = i//dims[1], i%dims[1]
-        data = df.loc[dataset, 'gpt3-davinci']
+        # data = df.loc[dataset, 'gpt3-davinci']
+        # data = df.loc[dataset, '175B (GPT-3)']
+        data = df.loc[dataset, 'GPT-3: 175B']
         scatter_plot(data, ax[ax_row, ax_col])
         ax[ax_row, ax_col].set_title(dataset)
     # for first column, add 'accuracy' as the ylabel
@@ -316,6 +338,7 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     for i in range(dims[1]):
         ax[-1, i].set_xlabel('Mutual Information (nats)')
     plt.suptitle('Mutual Information vs Accuracy for each Dataset with GPT-3')
+    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
 
@@ -349,7 +372,7 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_
     plt.savefig(save_path)
     plt.close()
 
-def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min=0, scale_max=1, title=None):
+def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min=-1, scale_max=1, title=None):
     '''
     Make a correlation heatmap.
     '''
@@ -358,7 +381,7 @@ def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min
         title = 'Correlation between MI and Accuracy'
     heatmap(corrs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
-def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min=.5, scale_max=1, title=None):
+def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min=0, scale_max=1, title=None):
     '''
     Make a concordance heatmap.
     '''
@@ -367,7 +390,7 @@ def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min
         title = 'Concordance between MI and Accuracy'
     heatmap(concs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
-def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_max=1, title=None):
+def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_max=1, title=None):
     '''
     Make a plot showing transfer ability.
     '''
@@ -391,7 +414,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=0, scale_m
     # set xticks and yticks
     ax[0].set_xticks(np.arange(len(df_mi.columns))+0.5)
     ax[0].set_xticklabels(df_mi.columns, rotation=x_text_rotate, ha='right')
-    ax[0].set_yticks(np.arange(len(df_mi.index)))
+    ax[0].set_yticks(np.arange(len(df_mi.index))+0.5)
     ax[0].set_yticklabels(df_mi.index, rotation=y_text_rotate, ha='right')
 
     # oracle
@@ -687,9 +710,9 @@ def generate_all():
     make_transfer_plots(df)
     make_average_transfer_heatmap(df)
     make_average_transfer_difference_heatmap(df)
-    cover_plot(df)
     make_all_box_whisker(df)
     make_grouped_box_whisker(df, orientation='v')
+    cover_plot(df)
 
 if __name__ == '__main__':
     cover_plot(get_data())
