@@ -14,6 +14,12 @@ from pdb import set_trace as breakpoint
 MAIN_COLOR = "#4091c9"
 HIGHLIGHT_COLOR = "#ef3c2d"
 
+BLUE_1 = "#9dcee2"  # Min
+BLUE_2 = "#4091c9"  # Mean
+BLUE_3 = "#1368aa"  # Median
+RED_1 = "#ef3c2d"  # Ours
+BLUE_4 = "#033270"  # Max
+
 # times new roman
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -74,11 +80,11 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
     plot_data = pd.DataFrame(plot_data)
 
     # Make the plot
-    colors = ["#9dcee2", "#4091c9", "#1368aa", "#ef3c2d", "#033270"]
     # size of plot
     # height, aspect = 7, 1.5
     height, aspect = 5, 2.5
     # get axis for big plot
+    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
     sns.set_palette(sns.color_palette(colors))
     sns.catplot(
         x="dataset",
@@ -709,4 +715,5 @@ def generate_all():
     cover_plot(df)
 
 if __name__ == '__main__':
-    generate_all()
+    cover_plot(get_data())
+    # generate_all()

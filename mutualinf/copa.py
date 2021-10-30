@@ -204,31 +204,29 @@ class CopaDataset(Dataset):
                                 f'I would say: "Choice'), self.token_set_dict
                             ),
 
-             'Introducing_questions_then_premise_1' : (
-
+            'Introducing_questions_then_premise_1' : ( 
                 lambda row : (  f'If asked to pick between '
-                                f'choice 1 ("{row.choice1}") or '
-                                f'choice 2 ("{row.choice2}") to see what the {row.question} of this premise ("{row.premise}") was, '
-                                f'I would say: "choice'), self.token_set_dict
-                            ),
+                            f'choice 1 ("{row.choice1}") or '
+                            f'choice 2 ("{row.choice2}") to see what the {row.question} of this premise ("{row.premise}") was, '
+                            f'I would say: "choice'), self.token_set_dict
+                        ),
 
-             'my_fav_approach' : (
+            'my_fav_approach' : (
+                 lambda row : (  f'Read the following premise and answer by choosing "{row.question}1" or "{row.question}2"\n'
+                            f'Premise: "{row.premise}"\n'
+                            f'{row.question}1: "{row.choice1}"\n'
+                            f'{row.question}2: "{row.choice2}"\n'
+                            f'Answer: "{row.question}'), self.token_set_dict
+                        ),
 
-                lambda row : (  f'Read the following premise and answer by choosing "{row.question}1" or "{row.question}2"\n'
-                                f'Premise: "{row.premise}"\n'
-                                f'{row.question}1: "{row.choice1}"\n'
-                                f'{row.question}2: "{row.choice2}"\n'
-                                f'Answer: "{row.question}'), self.token_set_dict
-                            ),
-
-             'my_fav_approach_flipped_order' : (
-
+            'my_fav_approach_flipped_order' : (
                 lambda row : (  f'Read the following premise and pick "{row.question}2" or "{row.question}1"\n'
-                                f'Premise: "{row.premise}"\n'
-                                f'{row.question}1: "{row.choice1}"\n'
-                                f'{row.question}2: "{row.choice2}"\n'
-                                f'Answer: "{row.question}'), self.token_set_dict
-                            ),
+                            f'Premise: "{row.premise}"\n'
+                            f'{row.question}1: "{row.choice1}"\n'
+                            f'{row.question}2: "{row.choice2}"\n'
+                            f'Answer: "{row.question}'), self.token_set_dict
+                        ),
+        
             'complete_story1': (
                 lambda row : (  f'Which one of these stories makes the most sense?\n'
                                 f'Story 1: {row.premise} {row.choice1}\n'
@@ -236,13 +234,13 @@ class CopaDataset(Dataset):
                                 f'Answer: Story'), self.token_set_dict
                 
                 ),
+            
             'complete_story2': (
                 lambda row : (  f'I am going to tell you two stories, one of them will make sense and the other will not.\n'
                                 f'Story 1: {row.premise} {row.choice1}\n'
                                 f'Story 2: {row.premise} {row.choice2}\n'
-                                f'The story that makes sense is Story'), self.token_set_dict
-                
-            ),
+                                f'The story that makes sense is Story'), self.token_set_dict),
+
             'copa_backdrop': (
                 lambda row : ( COPA_BACKDROP +
                     f'\n\nPremise: {row.premise} {question_dict[row.question]}\n'
@@ -250,6 +248,7 @@ class CopaDataset(Dataset):
                     f'Alternative 2: {row.choice2}\n'
                     f'Answer: Alternative'), self.token_set_dict
             ),
+            
             'explanation': (
                 lambda row : (
                     EXPLANATION +
