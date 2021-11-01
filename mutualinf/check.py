@@ -12,13 +12,13 @@ import pandas as pd
 
 
 CLS_DIR = {
-    # WicDataset: "data/wic",
-    # CopaDataset: "data/copa",
-    # ImdbDataset: "data/imdb",
-    # AnesDataset: "data/anes",
-    # SquadDataset: "data/squad",
-    # RocstoriesDataset: "data/rocstories",
-    # BoolqDataset: "data/boolq",
+    WicDataset: "data/wic",
+    CopaDataset: "data/copa",
+    ImdbDataset: "data/imdb",
+    AnesDataset: "data/anes",
+    SquadDataset: "data/squad",
+    RocstoriesDataset: "data/rocstories",
+    BoolqDataset: "data/boolq",
     CommonSenseQaDataset: "data/common_sense_qa"
 }
 
