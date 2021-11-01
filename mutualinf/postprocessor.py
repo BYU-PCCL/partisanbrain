@@ -246,7 +246,7 @@ class Postprocessor:
             index = row[groupby]
             mutual_info = marginal_df.loc[index]['entropy'] - row['conditional_entropy']
             return mutual_info
-        
+
         # apply function to each row
         df['mutual_inf'] = df.apply(mutual_inf, axis=1)
 
@@ -257,11 +257,11 @@ class Postprocessor:
         Population the 'probs' column in the dataframe.
         '''
         self.df['probs'] = self.df.apply(prob_function, axis=1)
-    
+
     def calculate_coverage(self):
         coverage_lambda = lambda row: coverage(row['probs'])
         self.df['coverage'] = self.df.apply(coverage_lambda, axis=1)
-    
+
     def normalize_probs(self):
         '''
         Normalize the 'probs' column to sum to 1.
