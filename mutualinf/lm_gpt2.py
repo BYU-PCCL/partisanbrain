@@ -5,6 +5,8 @@ import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import numpy as np
 
+from pdb import set_trace as breakpoint
+
 class LM_GPT2(LMSamplerBaseClass):
     def __init__(self, model_name):
         super().__init__(model_name)
@@ -36,6 +38,13 @@ class LM_GPT2(LMSamplerBaseClass):
     def send_prompt(self, prompt, n_probs):
         # encode prompt and pass to model
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
+
+        # get max number of tokens for model
+        max_len = self.model.config.n_ctx
+        # if inputs is longer than max_len, take last tokens
+        if inputs.shape[1] > max_len:
+            inputs = inputs[:, -max_len:]
+
         with torch.no_grad():
             output = self.model(inputs)
 

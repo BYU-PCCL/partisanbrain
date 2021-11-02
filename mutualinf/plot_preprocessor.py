@@ -6,10 +6,30 @@ from ensemble import get_ensemble_acc
 import os
 from pdb import set_trace as breakpoint
 
-datasets = ['anes', 'boolq', 'common_sense_qa', 'copa', 'imdb', 'rocstories', 'squad', 'wic']
-# datasets = ['anes',  'copa', 'imdb', 'rocstories', 'wic', 'squad']
-# models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt3-ada', 'gpt-j', 'gpt-neo-2.7B', 'gpt2-xl', 'gpt2']
+datasets = ['squad', 'rocstories', 'common_sense_qa', 'anes', 'boolq', 'imdb', 'copa', 'wic']
 models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt-j', 'gpt-neo-2.7B', 'gpt3-ada', 'gpt2-xl', 'gpt2']
+
+model_map = {
+    'gpt3-davinci': 'GPT-3: 175B',
+    'gpt3-curie': 'GPT-3: 13B',
+    'gpt3-babbage': 'GPT-3: 6.7B',
+    'gpt3-ada': 'GPT-3: 2.7B',
+    'gpt-j': 'GPT-J: 6B',
+    'gpt-neo-2.7B': 'GPT-Neo: 2.7B',
+    'gpt2-xl': 'GPT-2: 1.5B',
+    'gpt2': 'GPT-2: 124M',
+}
+
+dataset_map = {
+    'anes': 'ANES',
+    'boolq': 'BoolQ',
+    'common_sense_qa': 'CommonsenseQA',
+    'copa': 'COPA',
+    'imdb': 'IMDB',
+    'rocstories': 'ROCStories',
+    'squad': 'SQuAD',
+    'wic': 'WiC',
+}
 
 def check_files_present():
     '''
@@ -33,7 +53,16 @@ def get_file(dataset, model):
     files = os.listdir(path)
     try:
         # get the file with the model name in it AND '_processed.pkl' in it
-        file_path = [f for f in files if model in f and '_processed.pkl' in f][0]
+        files = [f for f in files if model in f and '_processed.pkl' in f]
+        # if model is gpt2, filter so 'gpt2_' is only thing included
+        if model == 'gpt2':
+            files = [f for f in files if 'gpt2_' in f]
+        file_path = files[0]
+        # if length of files is more than 1, print the files and raise a warning
+        if len(files) > 1:
+            print(f'Multiple files found for {model} on {dataset}')
+            print(files)
+            print()
     except:
         # if no file found, return None and raise warning
         print(f'No file found for {model} on {dataset}')
@@ -52,6 +81,7 @@ def prep_scatter():
         model_dicts = []
         for model in models:
             file_name = get_file(dataset, model)
+            print(file_name)
             exp_df = pd.read_pickle(file_name)
             # aggregate by 'template_name' and take the mean of 'accuracy' and 'mutual_inf' columns
             exp_df = exp_df.groupby('template_name').agg({'accuracy': np.mean, 'mutual_inf': np.mean})
@@ -63,8 +93,10 @@ def prep_scatter():
             loop.update(1)
         # add
         dataset_dicts.append(model_dicts)
+    dataset_names = [dataset_map[d] for d in datasets]
+    model_names = [model_map[m] for m in models]
     # make df with datasets as rows and models as columns
-    df = pd.DataFrame(dataset_dicts, index=datasets, columns=models)
+    df = pd.DataFrame(dataset_dicts, index=dataset_names, columns=model_names)
     # save to data/plot_data.pkl
     df.to_pickle('data/plot_data.pkl')
     print('Saved to data/plot_data.pkl')
@@ -92,8 +124,10 @@ def prep_ensemble(Ks=[1, 5, 20]):
             loop.update(1)
         # add
         dataset_dicts.append(model_dicts)
+    dataset_names = [dataset_map[d] for d in datasets]
+    model_names = [model_map[m] for m in models]
     # make df with datasets as rows and models as columns
-    df = pd.DataFrame(dataset_dicts, index=datasets, columns=models)
+    df = pd.DataFrame(dataset_dicts, index=dataset_names, columns=model_names)
     # save to data/ensemle_data.pkl
     df.to_pickle('data/ensemble_data.pkl')
     print('Saved to data/ensemble_data.pkl')
@@ -102,4 +136,4 @@ def prep_ensemble(Ks=[1, 5, 20]):
 if __name__ == '__main__':
     check_files_present()
     prep_scatter()
-    prep_ensemble()
+    # prep_ensemble()
