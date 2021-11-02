@@ -20,7 +20,7 @@ def get_str(dataset, model):
     for i, (index, row) in enumerate(templates.iterrows()):
         s += '\\textbf{'
         s += 'Prompt {} (Mutual Information: {:.3f}, Accuracy: {:.3f}):'.format(i+1, row['mutual_inf'], row['accuracy'])
-        s += '}\n'
+        s += '}\n\n'
         s += row['prompt'] + '\n\n'
     # convert to ascii
     s = s.encode('ascii', 'ignore').decode('ascii')
@@ -55,6 +55,8 @@ def combine_all_prompts():
             s += get_str(dataset, model)
     # convert to ascii
     s = s.encode('ascii', 'ignore').decode('ascii')
+    # replace all % with \%
+    s = s.replace('%', '\\%')
     # write s to output file
     with open('prompts/all.txt', 'w') as f:
         f.write(s)
