@@ -125,7 +125,7 @@ def davinci_box_whisker(df):
     mi_ds = mi_ds.groupby("dataset").mean()
     mi_ds.reset_index(level=0, inplace=True)
     sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
-    plt.show()
+    plt.close()
 
 def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, save=True):
     '''
@@ -313,7 +313,6 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
     plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
-    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
 
