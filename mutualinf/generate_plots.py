@@ -23,7 +23,7 @@ BLUE_4 = "#033270"  # Max
 # times new roman
 plt.rcParams["font.family"] = "Times New Roman"
 
-x_text_rotate = 30
+x_text_rotate = 40
 y_text_rotate = 0
 # cmap = 'Blues'
 cmap = 'RdBu'
@@ -81,8 +81,11 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
 
     # Make the plot
     # size of plot
-    # height, aspect = 7, 1.5
-    height, aspect = 5, 2.5
+    # TWO COLUMN PLOT
+    # height, aspect = 5, 2.5
+    # ONE COLUMN PLOT
+    height, aspect = 4.5, 1.35
+
     # get axis for big plot
     colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
     sns.set_palette(sns.color_palette(colors))
@@ -98,12 +101,18 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
         legend=False,
         row_order=get_datasets(df),
     )
-    plt.legend()
+    # top left
+    plt.legend(bbox_to_anchor=(1,1))
     # rotate xticks, right justification
     plt.xticks(rotation=x_text_rotate, ha="right")
+    # ylabel accuracy
+    plt.ylabel('Accuracy')
+    # xlabel none
+    plt.xlabel('')
+    plt.title('Mutual Information performance on GPT-3 Davinci')
     plt.tight_layout()
     plt.ylim(0, 1)
-    plt.savefig(save_path, bbox_inches="tight")
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
     plt.close()
 
 
@@ -199,7 +208,7 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
     ax.set_title(dataset)
     if save:
         path = f'plots/box_whisker_{dataset}.pdf'
-        plt.savefig(path)
+        plt.savefig(path, bbox_inches="tight", pad_inches=0)
         plt.close()
 
 def make_all_box_whisker(df, orientation='v', absolute_scaling=False):
@@ -215,7 +224,7 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
     fig, axs = plt.subplots(
         nrows=grid_shape[0],
         ncols=grid_shape[1],
-        figsize=(grid_shape[1] * 3, grid_shape[0] * 3),
+        figsize=(grid_shape[1] * 2.5, grid_shape[0] * 2.5),
     )
 
     for ax, dataset in zip(axs.flatten(), datasets):
@@ -229,6 +238,9 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
         for col in range(1, grid_shape[1]):
             for ax in axs[:, col]:
                 ax.set_ylabel('')
+        # turn off xlabel on last row
+        for ax in axs[-1]:
+            ax.set_xlabel('')
     elif orientation == 'h':
         # turn off yticks and ylabel on all but first column
         for col in range(1, grid_shape[1]):
@@ -240,8 +252,8 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
             ax.set_xlabel('')
                 
     plt.tight_layout()
-    plt.savefig('plots/grouped_box_whisker.pdf')
-    plt.show()
+    plt.savefig('plots/grouped_box_whisker.pdf', bbox_inches='tight', pad_inches=0)
+    plt.close()
 
 
 def get_data(file_name='data/plot_data.pkl'):
@@ -282,7 +294,7 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
     '''
     models, datasets = get_models(df), get_datasets(df)
     n_models, n_datasets = len(models), len(datasets)
-    fig, ax = plt.subplots(n_datasets, n_models, figsize=(n_models*3, n_datasets*3))
+    fig, ax = plt.subplots(n_datasets, n_models, figsize=(n_models*2, n_datasets*2))
     # iterate through datasets and models
     for i, dataset in enumerate(datasets):
         min_y, max_y, = np.inf, -np.inf
@@ -313,7 +325,7 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
     plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
@@ -323,7 +335,7 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     datasets = get_datasets(df)
     # make a 4x2 scatter plot
     dims = (4, 2)
-    fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*3, dims[0]*3))
+    fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*2.5, dims[0]*2.5))
     for i, dataset in enumerate(datasets):
         ax_row, ax_col = i//dims[1], i%dims[1]
         # data = df.loc[dataset, 'gpt3-davinci']
@@ -339,14 +351,14 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
         ax[-1, i].set_xlabel('Mutual Information (nats)')
     plt.suptitle('Mutual Information vs Accuracy for each Dataset with GPT-3')
     plt.tight_layout()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_cmap=None):
+def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_cmap=None, round=2):
     '''
     Generate a heatmap.
     '''
-    plt.figure(figsize=(7, 7))
+    plt.figure(figsize=(6, 6))
     if scale_min is None:
         scale_min = df.min().min()
     if scale_max is None:
@@ -355,8 +367,11 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_
         plt.title(title)
     # plt.imshow(df.values.astype(float), cmap=cmap, interpolation='nearest', vmin=scale_min, vmax=scale_max)
     # seaborn heatmap
+    data = df.values.astype(float)
+    # round
+    data = np.round(data, round)
     sns.heatmap(
-        df.values.astype(float),
+        data,
         cmap=cmap if override_cmap is None else override_cmap,
         vmin=scale_min,
         vmax=scale_max,
@@ -369,7 +384,7 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_
     # index
     plt.yticks(np.arange(len(df.index))+0.5, df.index, rotation=y_text_rotate, ha='right')
     plt.tight_layout()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min=-1, scale_max=1, title=None):
@@ -390,7 +405,7 @@ def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min
         title = 'Concordance between MI and Accuracy'
     heatmap(concs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
-def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_max=1, title=None):
+def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_max=1, title=None, round=2):
     '''
     Make a plot showing transfer ability.
     '''
@@ -399,8 +414,11 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     # MI
     ax[0].set_title('Mutual Information')
     # seaborn heatmap on ax[0]
+    data = df_mi.values.astype(float)
+    # round
+    data = np.round(data, round)
     sns.heatmap(
-        df_mi.values.astype(float),
+        data,
         cmap=cmap,
         vmin=scale_min,
         vmax=scale_max,
@@ -420,8 +438,11 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     # oracle
     ax[1].set_title('Test Accuracy')
     # seaborn heatmap on ax[1]
+    data = df_oracle.values.astype(float)
+    # round
+    data = np.round(data, round)
     sns.heatmap(
-        df_oracle.values.astype(float),
+        data,
         cmap=cmap,
         vmin=scale_min,
         vmax=scale_max,
@@ -448,7 +469,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     # save
     if save_path is None:
         save_path =  f'plots/transfer_heatmap_{dataset}.pdf'
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 
@@ -526,7 +547,7 @@ def plot_normalized_accs(df, save_path='plots/normalized_accs.pdf'):
             accs.append(df_exp.loc[arg_max, 'accuracy'])
         plt.plot(models, accs, label=dataset, color=f'C{i}')
     plt.legend()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 def plot_acc_diffs(df, save_path='plots/acc_diffs.pdf'):
@@ -544,7 +565,7 @@ def plot_acc_diffs(df, save_path='plots/acc_diffs.pdf'):
             accs.append(df_exp.loc[arg_max, 'accuracy'] - df_exp['accuracy'].mean())
         plt.plot(models, accs, label=dataset, color=f'C{i}')
     plt.legend()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 def plot_models_vs_mi_gain(df, save_path='plots/models_v_mi_gain.pdf'):
@@ -593,7 +614,7 @@ def plot_models_vs_mi_gain(df, save_path='plots/models_v_mi_gain.pdf'):
     plt.errorbar(models, normed_acc_boost_means, yerr=normed_acc_boost_stds, label='Average Normalized Accuracy Boost', color='C2')
 
     plt.legend()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 
@@ -715,5 +736,5 @@ def generate_all():
     cover_plot(df)
 
 if __name__ == '__main__':
-    # cover_plot(get_data())
-    generate_all()
+    make_big_scatter(get_data())
+    # generate_all()
