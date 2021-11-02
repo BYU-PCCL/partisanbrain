@@ -13,6 +13,8 @@ def get_str(templates):
     for i, (index, row) in enumerate(templates.iterrows()):
         s += 'Prompt {} (Mutual Information: {:.3f}, Accuracy: {:.3f}):\n'.format(i+1, row['mutual_inf'], row['accuracy'])
         s += row['prompt'] + '\n\n'
+    # convert to ascii
+    s = s.encode('ascii', 'ignore').decode('ascii')
     return s
 
 def save_prompts(dataset, model, output_file=''):
