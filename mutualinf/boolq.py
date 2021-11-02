@@ -244,11 +244,10 @@ class BoolqDataset(Dataset):
             ),
 
         }
-        print(len(templates))
+
         return templates
 
 
 if __name__ == "__main__":
     # Data should be at data/example/raw.csv
     bd = BoolqDataset()
-

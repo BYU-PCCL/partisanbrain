@@ -8,7 +8,6 @@ from boolq import BoolqDataset
 from common_sense_qa import CommonSenseQaDataset
 
 import glob
-import os
 import pandas as pd
 
 
@@ -26,23 +25,14 @@ CLS_DIR = {
 
 for cls, dir in CLS_DIR.items():
 
-    # Save dataset pickle again with updated templates
-    obj = cls(n=500)
-
-    # Remove processed files
-    for f in glob.glob(f"{dir}/*_processed.pkl"):
-        os.remove(f)
-
     # Fix experiment file key sets
     for fname in glob.glob(f"{dir}/exp_results_*"):
+
+        print("="*50)
+        print(fname)
+        print("="*50)
 
         # Load pickle file associated with fname
         df = pd.read_pickle(fname)
 
-        # Iterate over rows and replace token sets
-        for _, row in df.iterrows():
-            template_name = row["template_name"]
-            row["token_sets"] = obj._get_templates()[template_name][1]
-
-        # Pickle df
-        df.to_pickle(fname)
+        print(set([str(x) for x in df["token_sets"].tolist()]))
