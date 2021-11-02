@@ -1,11 +1,11 @@
 import pandas as pd
-from plot_preprocessor import get_file
+from plot_preprocessor import get_file, dataset_map
 import os
 
 datasets = ['squad', 'rocstories', 'common_sense_qa', 'anes', 'boolq', 'imdb', 'copa', 'wic']
 models = ['gpt3-davinci']
 
-def get_str(templates):
+def get_str(dataset, model):
     '''
     Make a string with the mutual inf, accuracy, and prompt
     '''
@@ -18,7 +18,9 @@ def get_str(templates):
 
     s = ''
     for i, (index, row) in enumerate(templates.iterrows()):
-        s += '\\textbf\{Prompt {} (Mutual Information: {:.3f}, Accuracy: {:.3f}):\}\n'.format(i+1, row['mutual_inf'], row['accuracy'])
+        s += '\\textbf{'
+        s += 'Prompt {} (Mutual Information: {:.3f}, Accuracy: {:.3f}):'.format(i+1, row['mutual_inf'], row['accuracy'])
+        s += '}\n'
         s += row['prompt'] + '\n\n'
     # convert to ascii
     s = s.encode('ascii', 'ignore').decode('ascii')
@@ -49,12 +51,16 @@ def combine_all_prompts():
     s = ''
     for dataset in datasets:
         for model in models:
-            s += f'\\subsubsection\{{dataset}\}'
-            breakpoint()
+            s += '\subsubsection{' + dataset_map[dataset] + '}\n'
             s += get_str(dataset, model)
+    # convert to ascii
+    s = s.encode('ascii', 'ignore').decode('ascii')
+    # write s to output file
+    with open('prompts/all.txt', 'w') as f:
+        f.write(s)
 
 
 
 if __name__ == '__main__':
-    save_all_prompts()
+    # save_all_prompts()
     combine_all_prompts()
