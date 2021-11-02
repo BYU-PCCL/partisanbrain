@@ -57,6 +57,8 @@ def combine_all_prompts():
     s = s.encode('ascii', 'ignore').decode('ascii')
     # replace all % with \%
     s = s.replace('%', '\\%')
+    # replace all _ with \_
+    s = s.replace('_', '\\_')
     # write s to output file
     with open('prompts/all.txt', 'w') as f:
         f.write(s)
