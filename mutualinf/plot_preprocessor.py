@@ -7,7 +7,6 @@ import os
 from pdb import set_trace as breakpoint
 
 datasets = ['squad', 'rocstories', 'common_sense_qa', 'anes', 'boolq', 'imdb', 'copa', 'wic']
-# datasets = ['anes',  'copa', 'imdb', 'rocstories', 'wic', 'squad']
 models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt-j', 'gpt-neo-2.7B', 'gpt3-ada', 'gpt2-xl', 'gpt2']
 
 model_map = {
@@ -82,6 +81,7 @@ def prep_scatter():
         model_dicts = []
         for model in models:
             file_name = get_file(dataset, model)
+            print(file_name)
             exp_df = pd.read_pickle(file_name)
             # aggregate by 'template_name' and take the mean of 'accuracy' and 'mutual_inf' columns
             exp_df = exp_df.groupby('template_name').agg({'accuracy': np.mean, 'mutual_inf': np.mean})

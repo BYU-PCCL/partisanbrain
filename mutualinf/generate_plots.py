@@ -313,6 +313,7 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
     plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
+    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
 
@@ -715,5 +716,5 @@ def generate_all():
     cover_plot(df)
 
 if __name__ == '__main__':
-    cover_plot(get_data())
-    # generate_all()
+    # cover_plot(get_data())
+    generate_all()
