@@ -1,5 +1,4 @@
 from ensemble import ensemble, get_accuracies
-from generate_plots import BLUE_1, BLUE_2, BLUE_4, RED_1
 from itertools import combinations
 from math import comb
 
@@ -12,42 +11,40 @@ import seaborn as sns
 import tqdm
 
 
-def make_davinci_ensemble_plot():
+# def make_davinci_ensemble_plot():
 
-    ds_names = ["rocstories", "common_sense_qa",
-                "boolq", "squad", "imdb", "anes",
-                "wic", "copa"]
+#     ds_names = ["rocstories", "common_sense_qa",
+#                 "boolq", "squad", "imdb", "anes",
+#                 "wic", "copa"]
 
-    # Make a grid of plots
-    fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(14, 8))
+#     # Make a grid of plots
+#     fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(14, 8))
 
-    # For each dataset in ds_names add a plot to the grid
-    for i, ds_name in enumerate(ds_names):
+#     # For each dataset in ds_names add a plot to the grid
+#     for i, ds_name in enumerate(ds_names):
 
-        data_fname = f"ensembling_data/{ds_name}.pkl"
+#         data_fname = f"ensembling_data/{ds_name}.pkl"
 
-        with open(data_fname, "rb") as f:
-            ensembling_data = pickle.load(f)
+#         with open(data_fname, "rb") as f:
+#             ensembling_data = pickle.load(f)
 
-        plt_ax = axes[i // 4, i % 4]
+#         plt_ax = axes[i // 4, i % 4]
 
-        p = sns.kdeplot(x=ensembling_data["kde_vals"], fill=True, color=BLUE_1, ax=plt_ax)
-        p.set_xlabel("Accuracy")
+#         p = sns.kdeplot(x=ensembling_data["kde_vals"], fill=True, color=BLUE_1, ax=plt_ax)
+#         p.set_xlabel("Accuracy")
 
-        plt_ax.axvline(x=ensembling_data["avg_acc"], color=BLUE_2)
-        plt_ax.axvline(x=ensembling_data["ensemble_acc"], color=BLUE_4)
-        plt_ax.axvline(x=ensembling_data["top_k_acc"], color=RED_1)
+#         plt_ax.axvline(x=ensembling_data["avg_acc"], color=BLUE_2)
+#         plt_ax.axvline(x=ensembling_data["ensemble_acc"], color=BLUE_4)
+#         plt_ax.axvline(x=ensembling_data["top_k_acc"], color=RED_1)
 
-        plt_ax.set_title(ds_name)
+#         plt_ax.set_title(ds_name)
 
-        fig.tight_layout(h_pad=1, w_pad=1)
+#     fig.tight_layout(h_pad=1, w_pad=1)
 
-    plt.savefig("saved.pdf", bbox_inches="tight")
-
-    # plt.show()
+#     plt.savefig("saved.pdf", bbox_inches="tight")
 
 
-def prep_all_ensembling_data():
+def prep_all_ensembling_data(replace=False):
 
     save_dir = "ensembling_data"
 
@@ -67,7 +64,8 @@ def prep_all_ensembling_data():
         ds_name = fname.split("/")[1]
         save_fname = f"{save_dir}/{ds_name}.pkl"
 
-        save_ensembling_data(fname, save_fname)
+        if replace or not os.path.exists(save_fname):
+            save_ensembling_data(fname, save_fname)
 
 
 def plot_from_ensembling_data(data_fname):

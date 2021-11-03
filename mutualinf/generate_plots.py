@@ -1,9 +1,11 @@
 from collections import defaultdict
+from ensembling_utils import prep_all_ensembling_data
 from lifelines.utils import concordance_index
 from matplotlib import pyplot as plt
 import cmocean
 
 import pandas as pd
+import pickle
 import numpy as np
 import seaborn as sns
 import warnings
@@ -27,6 +29,87 @@ x_text_rotate = 40
 y_text_rotate = 0
 # cmap = 'Blues'
 cmap = 'RdBu'
+
+
+def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
+
+    # Make sure ensembling data has been gathered
+    prep_all_ensembling_data()
+
+    # Generate plot
+    dss = {"rocstories": "ROCStories",
+           "squad": "SQuAD",
+           "common_sense_qa": "CommonsenseQA",
+           "boolq": "BoolQ",
+           "imdb": "IMDB",
+           "anes": "ANES",
+           "copa": "COPA",
+           "wic": "WiC"}
+
+    # Make a grid of plots
+    n_rows = 2
+    n_cols = 4
+    sub_dim = 2.5
+    fig, axes = plt.subplots(nrows=n_rows,
+                             ncols=n_cols,
+                             figsize=(n_cols*sub_dim, n_rows*sub_dim))
+
+    # For each dataset in ds_names add a plot to the grid
+    for i, ds_name in enumerate(sorted(dss.keys())):
+
+        data_fname = f"ensembling_data/{ds_name}.pkl"
+
+        with open(data_fname, "rb") as f:
+            ensembling_data = pickle.load(f)
+
+        plt_ax = axes[i // n_cols, i % n_cols]
+
+        kde_vals = np.array(ensembling_data["kde_vals"])
+
+        sns.kdeplot(x=kde_vals,
+                    fill=True,
+                    color=BLUE_1,
+                    ax=plt_ax,
+                    shade=False)
+
+        kdeline = plt_ax.lines[0]
+        xs = kdeline.get_xdata()
+        ys = kdeline.get_ydata()
+
+        # Get index of first True in ys > 0.01
+        idx = np.where(ys > 0.25)[0][0]
+        low_bound = xs[idx-1]
+
+        # Get index of first True in reversed(ys) > 0.01
+        idx = np.where(ys[::-1] > 0.25)[0][0]
+        high_bound = xs[-idx+1]
+
+        plt_ax.axvline(x=ensembling_data["avg_acc"], color=BLUE_2)
+        plt_ax.axvline(x=ensembling_data["ensemble_acc"], color=BLUE_4)
+        plt_ax.axvline(x=ensembling_data["top_k_acc"], color=RED_1)
+        plt_ax.fill_between(kdeline.get_xdata(),
+                            0,
+                            kdeline.get_ydata(),
+                            facecolor=BLUE_1,
+                            alpha=0.2)
+
+        plt_ax.set(xlim=(low_bound, high_bound))
+        plt_ax.yaxis.label.set_visible(False)
+        plt_ax.set_title(dss[ds_name])
+
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor="none",
+                    which="both",
+                    top=False,
+                    bottom=False,
+                    left=False,
+                    right=False)
+    plt.xlabel("Accuracy")
+    plt.ylabel("Density")
+
+    fig.tight_layout(h_pad=0.5, w_pad=0)
+
+    plt.savefig(save_fname, bbox_inches="tight")
 
 
 def get_summary(df, model_name):
@@ -102,7 +185,7 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
         row_order=get_datasets(df),
     )
     # top left
-    plt.legend(bbox_to_anchor=(1,1))
+    plt.legend(bbox_to_anchor=(1, 1))
     # rotate xticks, right justification
     plt.xticks(rotation=x_text_rotate, ha="right")
     # ylabel accuracy
@@ -736,5 +819,6 @@ def generate_all():
     cover_plot(df)
 
 if __name__ == '__main__':
-    make_big_scatter(get_data())
+    # make_big_scatter(get_data())
     # generate_all()
+    make_ensembling_kde_plot()
