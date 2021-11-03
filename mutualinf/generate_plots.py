@@ -820,5 +820,6 @@ def generate_all():
 
 if __name__ == '__main__':
     # make_big_scatter(get_data())
+    generate_all()
     # generate_all()
     make_ensembling_kde_plot()
