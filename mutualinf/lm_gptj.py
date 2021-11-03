@@ -64,3 +64,16 @@ class LM_GPTJ(LMSamplerBaseClass):
             self.pred_dict[preds[i]] = np.log(logits_probs[probs[i]].item())
 
         return self.pred_dict
+
+
+    def sample_several(self, prompt, temperature=0, n_tokens=10):
+        inputs = self.tokenizer.encode(prompt, return_tensors="pt")
+        tokens = self.model.generate(input_ids=inputs, max_new_tokens=n_tokens, temperature=temperature)
+        preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
+        return preds[0][len(prompt)+1:]
+
+if __name__ == '__main__':
+    
+    model = LM_GPTJ('EleutherAI/gpt-j-6B')
+    text = model.sample_several(prompt="What is the capital of France?\nThe capital of France is")
+    print(text)

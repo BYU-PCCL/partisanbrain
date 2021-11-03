@@ -10,6 +10,7 @@ class LMSampler(LMSamplerBaseClass):
     Class to wrap all other LMSampler classes. This way, we can instantiate just by passing a model name, and it will initialize the corresponding class.
     '''
     def __init__(self, model_name):
+        self.model_name = model_name
         super().__init__(model_name)
         '''
         Supported models:
@@ -35,9 +36,16 @@ class LMSampler(LMSamplerBaseClass):
     def send_prompt(self, prompt, n_probs=100):
         return self.model.send_prompt(prompt, n_probs)
 
+    def sample_several(self, prompt, temperature=0, n_tokens=10):
+        return self.model.sample_several(prompt, temperature, n_tokens)
+      
+            
+
+
 if __name__ == '__main__':
     # model_name = 'gpt3-ada'
-    model_name = 'EleutherAI/gpt-j-6B'
+    model_name = 'gpt3-ada'
     sampler = LMSampler(model_name)
-    print(sampler.send_prompt('The best city in Spain is', 5))
-    print(sampler.send_prompt('In 2016, I voted for', 5))
+    print(sampler.sample_several('The capital of France is', temperature=0, n_tokens=10))
+    #print(sampler.send_prompt('The best city in Spain is', 5))
+    #print(sampler.send_prompt('In 2016, I voted for', 5))

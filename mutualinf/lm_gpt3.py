@@ -33,9 +33,19 @@ class LM_GPT3(LMSamplerBaseClass):
         sorted_logprobs = dict(sorted(logprobs.items(), key=lambda x: x[1], reverse=True))
         return sorted_logprobs
 
+    def sample_several(self, prompt, temperature=0, n_tokens=10):
+        response = openai.Completion.create(
+            engine=self.engine,
+            prompt=prompt,
+            max_tokens=n_tokens,
+            temperature=temperature,
+        )
+        return response['choices'][0]['text']
+
 if __name__ == '__main__':
     # test LM_GPT2
     lm = LM_GPT3("gpt3-ada")
-    probs = lm.send_prompt("What is the capital of France?\nThe capital of France is")
-    print(probs)
+    # probs = lm.send_prompt("What is the capital of France?\nThe capital of France is")
+    text = lm.sample_several(prompt="What is the capital of France?\nThe capital of France is", temperature=0, n_tokens=50)
+    print(text)
     pass
