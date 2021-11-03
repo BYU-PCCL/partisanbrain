@@ -68,7 +68,7 @@ class LM_GPTJ(LMSamplerBaseClass):
 
     def sample_several(self, prompt, temperature=0, n_tokens=10):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt")
-        tokens = self.model.generate(input_ids=inputs, max_new_tokens=n_tokens, temperature=temperature)
+        tokens = self.model.generate(input_ids=inputs, max_new_tokens=n_tokens, temperature=temperature).to('cpu')
         preds = self.tokenizer.batch_decode(tokens, clean_up_tokenization_spaces=True)
         return preds[0][len(prompt)+1:]
 
