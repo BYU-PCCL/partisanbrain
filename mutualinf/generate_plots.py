@@ -736,5 +736,5 @@ def generate_all():
     cover_plot(df)
 
 if __name__ == '__main__':
-    make_big_scatter(get_data())
-    # generate_all()
+    # make_big_scatter(get_data())
+    generate_all()
