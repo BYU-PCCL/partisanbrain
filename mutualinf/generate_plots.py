@@ -23,7 +23,7 @@ RED_1 = "#ef3c2d"  # Ours
 BLUE_4 = "#033270"  # Max
 
 # times new roman
-plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.family"] = "Times"
 
 x_text_rotate = 40
 y_text_rotate = 0
@@ -158,7 +158,8 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
         plot_data["dataset"] += [row["dataset"]] * 5
         plot_data["values"] += [row["min"], row["mean"], row["median"],
                                 row["mi_max"], row["max"]]
-        plot_data["hues"] += ["min", "mean", "mediar", "mi_max", "max"]
+        # plot_data["hues"] += ["min", "mean", "mediar", "mi_max", "max"]
+        plot_data["hues"] += ["Min", "Mean", "Median", "MI Choice", "Max"]
 
     plot_data = pd.DataFrame(plot_data)
 
@@ -184,8 +185,8 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
         legend=False,
         row_order=get_datasets(df),
     )
-    # top left
-    plt.legend(bbox_to_anchor=(1, 1))
+    # bottom right
+    plt.legend(loc="lower right")
     # rotate xticks, right justification
     plt.xticks(rotation=x_text_rotate, ha="right")
     # ylabel accuracy
@@ -460,7 +461,8 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_
         vmax=scale_max,
         annot=True,
         square=True,
-        cbar=True
+        cbar=True,
+        cbar_kws={'shrink': 0.68},
     )
     # columns
     plt.xticks(np.arange(len(df.columns))+0.5, df.columns, rotation=x_text_rotate, ha='right')
@@ -468,6 +470,7 @@ def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_
     plt.yticks(np.arange(len(df.index))+0.5, df.index, rotation=y_text_rotate, ha='right')
     plt.tight_layout()
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
+    plt.show()
     plt.close()
 
 def correlation_heatmap(df, save_path='plots/correlation_heatmap.pdf', scale_min=-1, scale_max=1, title=None):
@@ -488,12 +491,74 @@ def concordance_heatmap(df, save_path='plots/concordance_heatmap.pdf', scale_min
         title = 'Concordance between MI and Accuracy'
     heatmap(concs, save_path, scale_min=scale_min, scale_max=scale_max, title=title)
 
+def combined_corr_conc_heatmap(df, save_path='plots/corr_conc_heatmap.pdf'):
+    '''
+    Make a combined correlation and concordance heatmap.
+    '''
+    # correlation
+    corrs = get_corrs(df)
+    corrs = corrs.values.astype(float)
+    # round corrs
+    corrs = np.round(corrs, 2)
+
+    # concordance
+    concs = get_concordance_index(df)
+    concs = concs.values.astype(float)
+    # round concs
+    concs = np.round(concs, 2)
+    # make a 2x1 grid
+    fig, ax = plt.subplots(2, 1, figsize=(5.5, 8))
+
+
+    # correlation heatmap
+    sns.heatmap(
+        corrs,
+        cmap=cmap,
+        vmin=-1,
+        vmax=1,
+        annot=True,
+        square=True,
+        cbar=True,
+        cbar_kws={'shrink': 1},
+        ax=ax[0],
+    )
+    # set title
+    ax[0].set_title('Correlation between MI and Accuracy')
+    # rows are datasets
+    ax[0].set_yticks(np.arange(len(df.index))+0.5)
+    ax[0].set_yticklabels(df.index, rotation=y_text_rotate, ha='right')
+    # xticks off
+    ax[0].set_xticks([])
+
+    # concordance heatmap
+    sns.heatmap(
+        concs,
+        cmap=cmap,
+        vmin=0,
+        vmax=1,
+        annot=True,
+        square=True,
+        cbar=True,
+        cbar_kws={'shrink': 1},
+        ax=ax[1],
+    )
+    # set title
+    ax[1].set_title('Concordance between MI and Accuracy')
+
+    # columns
+    plt.xticks(np.arange(len(df.columns))+0.5, df.columns, rotation=x_text_rotate, ha='right')
+    # index
+    plt.yticks(np.arange(len(df.index))+0.5, df.index, rotation=y_text_rotate, ha='right')
+    plt.tight_layout()
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
 def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_max=1, title=None, round=2):
     '''
     Make a plot showing transfer ability.
     '''
     # two plots, one for MI and one for Oracle
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4.75))
     # MI
     ax[0].set_title('Mutual Information')
     # seaborn heatmap on ax[0]
@@ -509,6 +574,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
         square=True,
         cbar=True,
         ax=ax[0],
+        cbar_kws={'shrink': .88},
     )
     ax[0].set_xlabel('Inference Model')
     ax[0].set_ylabel('Selection Model')
@@ -533,6 +599,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
         square=True,
         cbar=True,
         ax=ax[1],
+        cbar_kws={'shrink': 0.88},
     )
     ax[1].set_xlabel('Inference Model')
     # set just xticks
@@ -553,6 +620,7 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     if save_path is None:
         save_path =  f'plots/transfer_heatmap_{dataset}.pdf'
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
+    plt.show()
     plt.close()
 
 
@@ -700,8 +768,6 @@ def plot_models_vs_mi_gain(df, save_path='plots/models_v_mi_gain.pdf'):
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-
-
 def get_corrs(df):
     '''
     Get correlation matrix between accuracy and mutual information for all models. Return a df with the correlations.
@@ -817,9 +883,11 @@ def generate_all():
     make_all_box_whisker(df)
     make_grouped_box_whisker(df, orientation='v')
     cover_plot(df)
+    combined_corr_conc_heatmap(df)
 
 if __name__ == '__main__':
     # make_big_scatter(get_data())
-    generate_all()
     # generate_all()
-    make_ensembling_kde_plot()
+    make_average_transfer_heatmap(get_data())
+    # generate_all()
+    # make_ensembling_kde_plot()
