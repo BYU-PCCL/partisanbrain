@@ -25,7 +25,6 @@ class ImdbDataset(Dataset):
 
             'review_follow_up_q3': (lambda row: (f"{row['review']}\n\n"
                                     "Was the sentiment of previous review negative or positive? The previous review was"), self.token_set_dict),
-
             'task_review_classify0' : (lambda row: ("After reading the following review, classify it as positive or negative. \n\nReview: "
                                         f"{row['review']} \n\nClassification:"), self.token_set_dict),
 
@@ -41,14 +40,14 @@ class ImdbDataset(Dataset):
             'task_review_follow_up2' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:  "
                                         f"{row['review']}\n\nIn general, was the sentiment positive or negative The sentiment was"), self.token_set_dict),
 
-            'task_review_follow_up3' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:  "
-                                        f"{row['review']}\n\nIn general, was the sentiment negative or positive? The sentiment was"), self.token_set_dict),
+            # 'task_review_follow_up3' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:  "
+            #                             f"{row['review']}\n\nIn general, was the sentiment negative or positive? The sentiment was"), self.token_set_dict),
 
             'task_review_follow_up3' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:\n\"\"\"\n"
                                         f"{row['review']}\n\"\"\"\nIn general, was the sentiment positive or negative? The sentiment was"), self.token_set_dict),
 
-            'task_review_follow_up4' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:\n\"\"\"\n"
-                                        f"{row['review']}\n\"\"\"\nIn general, was the sentiment negative or positive? The sentiment was"), self.token_set_dict),
+            # 'task_review_follow_up4' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:\n\"\"\"\n"
+            #                             f"{row['review']}\n\"\"\"\nIn general, was the sentiment negative or positive? The sentiment was"), self.token_set_dict),
 
             'task_review_follow_up4' : (lambda row: ("Considering this movie review, determine its sentiment.\n\nReview:\n\"\"\"\n"
                                         f"{row['review']}\n\"\"\"\nIn general, what was the sentiment of the review? The sentiment was"), self.token_set_dict),
