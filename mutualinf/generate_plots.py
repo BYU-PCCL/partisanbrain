@@ -425,6 +425,7 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
         # data = df.loc[dataset, 'gpt3-davinci']
         # data = df.loc[dataset, '175B (GPT-3)']
         data = df.loc[dataset, 'GPT-3: 175B']
+        breakpoint()
         scatter_plot(data, ax[ax_row, ax_col])
         ax[ax_row, ax_col].set_title(dataset)
     # for first column, add 'accuracy' as the ylabel
@@ -888,6 +889,6 @@ def generate_all():
 if __name__ == '__main__':
     # make_big_scatter(get_data())
     # generate_all()
-    make_average_transfer_heatmap(get_data())
-    # generate_all()
+    # make_average_transfer_heatmap(get_data())
+    generate_all()
     # make_ensembling_kde_plot()
