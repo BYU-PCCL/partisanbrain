@@ -23,7 +23,7 @@ RED_1 = "#ef3c2d"  # Ours
 BLUE_4 = "#033270"  # Max
 
 # times new roman
-plt.rcParams["font.family"] = "Times"
+plt.rcParams["font.family"] = "Times New Roman"
 
 x_text_rotate = 40
 y_text_rotate = 0
@@ -204,7 +204,7 @@ def davinci_box_whisker(df):
 
     prepped_df = get_summary(df, "gpt3-davinci")
 
-    sns.boxplot(x="accuracy", y="dataset", data=prepped_df, color=MAIN_COLOR, orient="h")
+    sns.boxplot(x="accuracy", y="dataset", data=prepped_df, color=BLUE_2, orient="h")
 
     mi_ds_dict = defaultdict(list)
     for ds_name in prepped_df["dataset"].unique().tolist():
@@ -217,7 +217,7 @@ def davinci_box_whisker(df):
     mi_ds = pd.DataFrame(mi_ds_dict)
     mi_ds = mi_ds.groupby("dataset").mean()
     mi_ds.reset_index(level=0, inplace=True)
-    sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=HIGHLIGHT_COLOR, size=10, alpha=0.5)
+    sns.swarmplot(x="accuracy", y="dataset", data=mi_ds, color=RED_1, size=10, alpha=0.5)
     plt.close()
 
 def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, save=True):
@@ -244,17 +244,18 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
         sns.boxplot(
             x = acc_models,
             y = accs,
-            color = MAIN_COLOR,
+            color = BLUE_2,
             orient = "v",
             showfliers = True,
             ax = ax,
+            saturation=1,
         )
         sns.swarmplot(
             x = models,
             y = mutual_inf_accs,
-            color = HIGHLIGHT_COLOR,
+            color = RED_1,
             size = 10,
-            alpha = 0.5,
+            alpha = 0.6,
             ax = ax,
         )
         if absolute_scaling:
@@ -268,7 +269,7 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
         sns.boxplot(
             x = accs,
             y = acc_models,
-            color = MAIN_COLOR,
+            color = BLUE_2,
             orient = "h",
             showfliers = True,
             ax = ax,
@@ -276,7 +277,7 @@ def box_whisker(df, dataset, orientation='v', absolute_scaling=False, ax=False, 
         sns.swarmplot(
             x = mutual_inf_accs,
             y = models,
-            color = HIGHLIGHT_COLOR,
+            color = RED_1,
             size = 10,
             alpha = 0.5,
             ax = ax,
@@ -363,12 +364,12 @@ def scatter_plot(df, ax):
     Make a scatter plot of 'mutual_inf' vs 'accuracy'.
     '''
     x, y = df['mutual_inf'], df['accuracy']
-    ax.scatter(x, y)
+    ax.scatter(x, y, color=BLUE_2, alpha=0.6)
     # do linear regression and plot
     a, b = np.polyfit(x, y, 1)
     xlim = ax.get_xlim()
     x_linspace = np.linspace(xlim[0], xlim[1], 100)
-    ax.plot(x, a*x+b, 'orange')
+    ax.plot(x, a*x+b, BLUE_4)
     ax.set_xlim(xlim)
 
 
@@ -885,10 +886,10 @@ def generate_all():
     make_grouped_box_whisker(df, orientation='v')
     cover_plot(df)
     combined_corr_conc_heatmap(df)
+    make_ensembling_kde_plot()
 
 if __name__ == '__main__':
     # make_big_scatter(get_data())
     # generate_all()
     # make_average_transfer_heatmap(get_data())
     generate_all()
-    # make_ensembling_kde_plot()
