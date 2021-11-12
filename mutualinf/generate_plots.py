@@ -328,8 +328,8 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
         for ax in axs[0]:
             ax.set_xticklabels([])
             ax.set_xlabel('')
-        # turn off ylabel on all but first column
-        for col in range(1, grid_shape[1]):
+        # turn off ylabel
+        for col in range(grid_shape[1]):
             for ax in axs[:, col]:
                 ax.set_ylabel('')
         # turn off xlabel on last row
@@ -344,7 +344,9 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
         # turn off xlabel on top row
         for ax in axs[0]:
             ax.set_xlabel('')
-                
+
+    fig.supylabel("Accuracy", x=0.04, y=0.53)
+    fig.suptitle("Template Accuracy Distributions by Dataset and Model")
     plt.tight_layout()
     plt.savefig('plots/grouped_box_whisker.pdf', bbox_inches='tight', pad_inches=0)
     plt.close()
@@ -419,8 +421,9 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
 
-    plt.subplots_adjust(wspace=0)
-    plt.suptitle("Mutual Information vs Accuracy for each Dataset and Model")
+    # plt.subplots_adjust(wspace=0)
+    fig.subplots_adjust(top=0.93)  # Move title down
+    plt.suptitle("Mutual Information vs Accuracy for each Dataset and Model", fontsize=18)
 
     # plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
@@ -902,8 +905,9 @@ def generate_all():
     make_ensembling_kde_plot()
 
 if __name__ == '__main__':
-    make_big_scatter(get_data())
+    # make_big_scatter(get_data())
     # generate_all()
     # make_average_transfer_heatmap(get_data())
     # make_ensembling_kde_plot()
     # generate_all()
+    make_grouped_box_whisker(get_data(), orientation='v')
