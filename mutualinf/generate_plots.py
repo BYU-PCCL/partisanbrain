@@ -409,7 +409,7 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
     for i in range(n_datasets):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
-    plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
+    # plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
@@ -894,4 +894,5 @@ if __name__ == '__main__':
     # generate_all()
     # make_ensembling_kde_plot()
     # make_grouped_box_whisker(get_data())
-    make_davinci_scatter(get_data())
+    # make_davinci_scatter(get_data())
+    make_big_scatter(get_data())
