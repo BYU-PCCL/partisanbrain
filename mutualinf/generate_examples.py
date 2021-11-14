@@ -57,6 +57,12 @@ if __name__ == '__main__':
     elif dataset == 'squad':
         from squad import SquadDataset
         ds = SquadDataset(n=500)
+    elif dataset == 'common_sense_qa':
+        from common_sense_qa import CommonSenseQaDataset
+        ds = CommonSenseQaDataset(n=500)
+    elif dataset == 'lambada':
+        from lambada import LambadaDataset
+        ds = LambadaDataset(n=500)
     else:
         raise ValueError(f'Dataset {dataset} not supported. Modify generate_examples.py to add support (should be easy).')
 
