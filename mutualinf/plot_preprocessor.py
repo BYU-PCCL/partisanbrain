@@ -6,7 +6,8 @@ from ensemble import get_ensemble_acc
 import os
 from pdb import set_trace as breakpoint
 
-datasets = ['squad', 'rocstories', 'common_sense_qa', 'anes', 'boolq', 'imdb', 'copa', 'wic']
+# datasets = ['squad', 'rocstories', 'common_sense_qa', 'anes', 'boolq', 'imdb', 'copa', 'wic']
+datasets = ['squad', 'rocstories', 'lambada', 'common_sense_qa', 'boolq', 'imdb', 'copa', 'wic']
 models = ['gpt3-davinci', 'gpt3-curie', 'gpt3-babbage', 'gpt-j', 'gpt-neo-2.7B', 'gpt3-ada', 'gpt2-xl', 'gpt2']
 
 model_map = {
@@ -22,8 +23,9 @@ model_map = {
 
 dataset_map = {
     'anes': 'ANES',
+    'lambada': 'LAMBADA',
     'boolq': 'BoolQ',
-    'common_sense_qa': 'CommonsenseQA',
+    'common_sense_qa': 'CoQA',
     'copa': 'COPA',
     'imdb': 'IMDB',
     'rocstories': 'ROCStories',
