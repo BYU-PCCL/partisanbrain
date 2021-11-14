@@ -9,7 +9,7 @@ import pickle
 import numpy as np
 import seaborn as sns
 import warnings
-from pdb import set_trace as breakpoint
+# from pdb import set_trace as breakpoint
 
 
 # Color constants
@@ -84,6 +84,10 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
         idx = np.where(ys[::-1] > 0.25)[0][0]
         high_bound = xs[-idx+1]
 
+        FS_1 = 12
+        FS_2 = 13
+        FS_3 = 14
+
         plt_ax.axvline(x=ensembling_data["avg_acc"], color=BLUE_2)
         plt_ax.axvline(x=ensembling_data["ensemble_acc"], color=BLUE_4)
         plt_ax.axvline(x=ensembling_data["top_k_acc"], color=RED_1)
@@ -95,17 +99,22 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
 
         plt_ax.set(xlim=(low_bound, high_bound))
         plt_ax.yaxis.label.set_visible(False)
-        plt_ax.set_title(dss[ds_name])
+        plt_ax.set_title(dss[ds_name], fontsize=FS_2)
+
+        for label in (plt_ax.get_xticklabels() +
+                      plt_ax.get_yticklabels()):
+            label.set_fontsize(FS_1)
 
     fig.add_subplot(111, frameon=False)
+    fig.suptitle("Accuracy by Ensembling Protocol on GPT-3 175B", fontsize=FS_3)
     plt.tick_params(labelcolor="none",
                     which="both",
                     top=False,
                     bottom=False,
                     left=False,
                     right=False)
-    plt.xlabel("Accuracy")
-    plt.ylabel("Density")
+    plt.xlabel("Accuracy", fontsize=FS_2)
+    plt.ylabel("Density", fontsize=FS_2)
 
     fig.tight_layout(h_pad=0.5, w_pad=0)
 
@@ -455,8 +464,8 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
         for ax in axs[0]:
             ax.set_xticklabels([])
             ax.set_xlabel('')
-        # turn off ylabel on all but first column
-        for col in range(1, grid_shape[1]):
+        # turn off ylabel
+        for col in range(grid_shape[1]):
             for ax in axs[:, col]:
                 ax.set_ylabel('')
         # turn off xlabel on last row
@@ -473,6 +482,7 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
             ax.set_xlabel('')
                 
     plt.suptitle('Distributions over Template Accuracies')
+    fig.supylabel("Accuracy", x=0.04, y=0.53)
     plt.tight_layout()
     plt.savefig('plots/grouped_box_whisker.pdf', bbox_inches='tight', pad_inches=0)
     plt.close()
@@ -546,7 +556,12 @@ def make_big_scatter(df, save_path='plots/big_scatter.pdf'):
     for i in range(n_datasets):
         for j in range(1, n_models):
             ax[i, j].set_yticks([])
-    plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
+
+    # plt.subplots_adjust(wspace=0)
+    fig.subplots_adjust(top=0.93)  # Move title down
+    plt.suptitle("Mutual Information vs Accuracy for each Dataset and Model", fontsize=18)
+
+    # plt.suptitle('Mutual Information vs Accuracy for each Model/Dataset')
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
@@ -1042,3 +1057,6 @@ if __name__ == '__main__':
     cover_plot(df)
     cover_plot2(df)
     cover_plot3(df)
+    # make_ensembling_kde_plot()
+    # generate_all()
+    make_grouped_box_whisker(get_data(), orientation='v')
