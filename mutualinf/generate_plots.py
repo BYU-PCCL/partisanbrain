@@ -42,7 +42,7 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
            "common_sense_qa": "CommonsenseQA",
            "boolq": "BoolQ",
            "imdb": "IMDB",
-           "anes": "ANES",
+           "lambada": "LAMBADA",
            "copa": "COPA",
            "wic": "WiC"}
 
@@ -55,7 +55,9 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
                              figsize=(n_cols*sub_dim, n_rows*sub_dim))
 
     # For each dataset in ds_names add a plot to the grid
-    for i, ds_name in enumerate(sorted(dss.keys())):
+    for i, ds_name in enumerate(["squad", "lambada",
+                                 "rocstories", "common_sense_qa",
+                                 "boolq", "imdb", "copa", "wic"]):
 
         data_fname = f"ensembling_data/{ds_name}.pkl"
 
@@ -908,6 +910,6 @@ if __name__ == '__main__':
     # make_big_scatter(get_data())
     # generate_all()
     # make_average_transfer_heatmap(get_data())
-    # make_ensembling_kde_plot()
+    make_ensembling_kde_plot()
     # generate_all()
-    make_grouped_box_whisker(get_data(), orientation='v')
+    # make_grouped_box_whisker(get_data(), orientation='v')
