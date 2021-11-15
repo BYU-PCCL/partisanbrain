@@ -57,7 +57,7 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
     # For each dataset in ds_names add a plot to the grid
     for i, ds_name in enumerate(["squad", "lambada",
                                  "rocstories", "common_sense_qa",
-                                 "boolq", "imdb", "copa", "wic"]):
+                                 "imdb", "boolq", "copa", "wic"]):
 
         data_fname = f"ensembling_data/{ds_name}.pkl"
 
@@ -204,11 +204,147 @@ def cover_plot(df, save_path='plots/cover_plot.pdf'):
     plt.ylabel('Accuracy')
     # xlabel none
     plt.xlabel('')
-    plt.title('Mutual Information performance on GPT-3 Davinci')
+    plt.title('Mutual Information Prompt vs. Others')
     plt.tight_layout()
     plt.ylim(0, 1)
     plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
     plt.close()
+
+def cover_plot2(df, save_path='plots/cover_plot2.pdf'):
+
+    # For GPT-3 and each individual dataset, make a cluster of bars
+
+    datasets = get_datasets(df)
+    # df = get_summary(df, "gpt3-davinci")
+    # df = get_summary(df, "175B (GPT-3)")
+    df = get_summary(df, "GPT-3: 175B")
+
+    ds_agg = df.groupby("dataset")["accuracy"].agg(["min",
+                                                    "mean",
+                                                    "median",
+                                                    "max"])
+    # order
+    ds_agg = ds_agg.loc[datasets]
+    ds_agg.reset_index(level=0, inplace=True)
+
+    ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
+    ds_mi = ds_mi.loc[datasets]
+    ds_agg["mi_max"] = ds_mi["accuracy"].values
+
+    plot_data = defaultdict(list)
+
+    for _, row in ds_agg.iterrows():
+        plot_data["dataset"] += [row["dataset"]] * 5
+        plot_data["values"] += [row["min"], row["mean"], row["median"],
+                                row["mi_max"], row["max"]]
+        # plot_data["hues"] += ["min", "mean", "mediar", "mi_max", "max"]
+        plot_data["hues"] += ["Min", "Mean", "Median", "MI Choice", "Max"]
+
+    plot_data = pd.DataFrame(plot_data)
+
+    # Make the plot
+    # size of plot
+    # TWO COLUMN PLOT
+    # height, aspect = 5, 2.5
+    # ONE COLUMN PLOT
+    height, aspect = 4.5, 1.35
+
+    # get axis for big plot
+    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
+    sns.set_palette(sns.color_palette(colors))
+    sns.catplot(
+        x="dataset",
+        y="values",
+        hue="hues",
+        data=plot_data,
+        kind="bar",
+        saturation=1,
+        height=height,
+        aspect=aspect,
+        legend=False,
+        row_order=get_datasets(df),
+    )
+    # far right off plot
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0)
+    # rotate xticks, right justification
+    plt.xticks(rotation=x_text_rotate, ha="right")
+    # ylabel accuracy
+    plt.ylabel('Accuracy')
+    # xlabel none
+    plt.xlabel('')
+    plt.title('Mutual Information Prompt vs. Others')
+    plt.tight_layout()
+    plt.ylim(0, 1)
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
+    plt.close()
+
+def cover_plot3(df, save_path='plots/cover_plot3.pdf'):
+
+    # For GPT-3 and each individual dataset, make a cluster of bars
+
+    datasets = get_datasets(df)
+    # df = get_summary(df, "gpt3-davinci")
+    # df = get_summary(df, "175B (GPT-3)")
+    df = get_summary(df, "GPT-3: 175B")
+
+    ds_agg = df.groupby("dataset")["accuracy"].agg(["min",
+                                                    "mean",
+                                                    "median",
+                                                    "max"])
+    # order
+    ds_agg = ds_agg.loc[datasets]
+    ds_agg.reset_index(level=0, inplace=True)
+
+    ds_mi = df.groupby("dataset").apply(lambda x: x.nlargest(1, "mutual_inf"))
+    ds_mi = ds_mi.loc[datasets]
+    ds_agg["mi_max"] = ds_mi["accuracy"].values
+
+    plot_data = defaultdict(list)
+
+    for _, row in ds_agg.iterrows():
+        plot_data["dataset"] += [row["dataset"]] * 5
+        plot_data["values"] += [row["min"], row["mean"], row["median"],
+                                row["mi_max"], row["max"]]
+        # plot_data["hues"] += ["min", "mean", "mediar", "mi_max", "max"]
+        plot_data["hues"] += ["Min", "Mean", "Median", "MI Choice", "Max"]
+
+    plot_data = pd.DataFrame(plot_data)
+
+    # ONE COLUMN PLOT
+    # height, aspect = 4.5, 1.35
+    r = 0.9
+    height, aspect = 4.5*r, 1.35*r
+
+    # get axis for big plot
+    colors = [BLUE_1, BLUE_2, BLUE_3, RED_1, BLUE_4]
+    sns.set_palette(sns.color_palette(colors))
+    sns.catplot(
+        x="dataset",
+        y="values",
+        hue="hues",
+        data=plot_data,
+        kind="bar",
+        saturation=1,
+        height=height,
+        aspect=aspect,
+        legend=False,
+        row_order=get_datasets(df),
+    )
+    # bottom right
+    plt.legend(loc="lower right")
+    # rotate xticks, right justification
+    plt.xticks(rotation=x_text_rotate, ha="right")
+    # ylabel accuracy
+    plt.ylabel('Accuracy')
+    # xlabel none
+    plt.xlabel('')
+    plt.title('Mutual Information Prompt vs. Others')
+    plt.tight_layout()
+    plt.ylim(0, 1)
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
+    plt.close()
+
+
 
 
 def davinci_box_whisker(df):
@@ -346,9 +482,9 @@ def make_grouped_box_whisker(df, orientation='v', absolute_scaling=False):
         # turn off xlabel on top row
         for ax in axs[0]:
             ax.set_xlabel('')
-
+                
+    plt.suptitle('Distributions over Template Accuracies')
     fig.supylabel("Accuracy", x=0.04, y=0.53)
-    fig.suptitle("Template Accuracy Distributions by Dataset and Model")
     plt.tight_layout()
     plt.savefig('plots/grouped_box_whisker.pdf', bbox_inches='tight', pad_inches=0)
     plt.close()
@@ -438,22 +574,26 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     datasets = get_datasets(df)
     # make a 4x2 scatter plot
     dims = (4, 2)
-    fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*2.5, dims[0]*2.5))
+    fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*2, dims[0]*2))
     for i, dataset in enumerate(datasets):
         ax_row, ax_col = i//dims[1], i%dims[1]
         # data = df.loc[dataset, 'gpt3-davinci']
         # data = df.loc[dataset, '175B (GPT-3)']
         data = df.loc[dataset, 'GPT-3: 175B']
-        # breakpoint()
         scatter_plot(data, ax[ax_row, ax_col])
         ax[ax_row, ax_col].set_title(dataset)
     # for first column, add 'accuracy' as the ylabel
     for i in range(dims[0]):
-        ax[i, 0].set_ylabel('accuracy')
-    # for bottom row, add 'Mutual Information (nats)' as the xlabel
-    for i in range(dims[1]):
-        ax[-1, i].set_xlabel('Mutual Information (nats)')
+        ax[i, 0].set_ylabel('Accuracy')
     plt.suptitle('Mutual Information vs Accuracy for each Dataset with GPT-3')
+    # for bottom row, add 'Mutual Information (nats)' as the xlabel
+    # for i in range(dims[1]):
+    #     ax[-1, i].set_xlabel('Mutual Information (nats)')
+    # make xlabel across entire bottom row
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
+    plt.xlabel('Mutual Information (nats)')
+
     plt.tight_layout()
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
@@ -578,7 +718,10 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     Make a plot showing transfer ability.
     '''
     # two plots, one for MI and one for Oracle
-    fig, ax = plt.subplots(1, 2, figsize=(10, 4.75))
+    # fig, ax = plt.subplots(1, 2, figsize=(10, 4.75))
+    scalar = .85
+    fig, ax = plt.subplots(1, 2, figsize=(10*scalar-.05, 4.75*scalar))
+    # fig, ax = plt.subplots(1, 2, figsize=(7.5, 4))
     # MI
     ax[0].set_title('Mutual Information')
     # seaborn heatmap on ax[0]
@@ -640,7 +783,6 @@ def make_transfer_heatmap(df_mi, df_oracle, save_path=None, scale_min=-1, scale_
     if save_path is None:
         save_path =  f'plots/transfer_heatmap_{dataset}.pdf'
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
-    plt.show()
     plt.close()
 
 
@@ -907,6 +1049,7 @@ def generate_all():
     make_ensembling_kde_plot()
 
 if __name__ == '__main__':
+    df = get_data()
     # make_big_scatter(get_data())
     # generate_all()
     # make_average_transfer_heatmap(get_data())
