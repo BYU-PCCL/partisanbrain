@@ -147,3 +147,4 @@ dmypy.json
 
 # Custom
 .DS_Store
+survey/gss_exploration.ipynb
