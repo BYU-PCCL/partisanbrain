@@ -33,11 +33,25 @@ def make_anes_data():
 
     df = pd.read_csv('data/intermediate/full_anes_download.csv')
 
-    dv_codes = {"protect_env": "V201321"}  # TODO: There will eventually be 20 DVs here
+    # Do any handling that is common for all DVs here
+    pass
+
+    demographic_colnames = {"age": "V201507x",
+                            "gender": "V201600",
+                            # "gender": "V202637",
+                            "party": "V201018",
+                            "education": "V201510",
+                            "ideology": "V201200",
+                            # "income": "V201607",  # RESTRICTED
+                            "religion": "V201458x",
+                            "race": "V201549x",
+                            "region": "V203003",
+                            "marital": "V201508"}
+    dv_codes = {"protect_env": "V201321"}  # Eventually 20 DVs here
 
     for dv_name, code in dv_codes.items():
         # Extract columns for demographics and this DV
-        dv_df = None
+        dv_df = df[list(demographic_colnames.values()) + [code]]
         # Save the DV data
         dv_df.to_pickle(f"data/{dv_name}/raw.pkl")
 
