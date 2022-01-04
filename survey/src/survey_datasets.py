@@ -9,6 +9,8 @@ class ExampleSurveyDataset(Dataset):
 
     def _format(self, df):
 
+        # Reduce rows (e.g., down to US)
+
         # Dropping all but relevant columns
         new_df = df[["Gender",
                      "Age",
@@ -30,8 +32,10 @@ class ExampleSurveyDataset(Dataset):
         # Removing "I don't understand this question" response
         new_df = new_df.loc[new_df["shot_first"].isin(["Han", "Greedo"])]
 
+        # Randomly sample columns!
+
         # Get only top 8 rows to keep things simple for testing
-        new_df = new_df.head(8)
+        new_df = new_df.head(105)
 
         return new_df
 
@@ -44,11 +48,3 @@ class ExampleSurveyDataset(Dataset):
                                lambda x: x),
                 "fan": ("When asked if I'm a Star Wars fan I say",
                         lambda x: x.lower())}
-
-
-if __name__ == '__main__':
-    import random
-    ds = ExampleSurveyDataset(n_exemplars=5)
-    random_idx = random.choice(ds.kept_indices)
-    print(ds.prompts)
-    # print(ds.prompts[random_idx])
