@@ -21,6 +21,8 @@ __pycache__/
 # C extensions
 *.so
 
+*DS_Store
+
 # Distribution / packaging
 .Python
 build/
@@ -142,4 +144,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Custom
+.DS_Store
 survey/gss_exploration.ipynb
