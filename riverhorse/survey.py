@@ -37,7 +37,7 @@ class Survey:
     def modify_data(self, df):
         """
         Take df (a pandas dataframe) and return a new dataframe
-        that has 31 columns. The ten demographic columns  should have
+        that has 30 columns. The ten demographic columns  should have
         exact names "age," "gender," "party," "ideology,"
         "education," "income," "religion," "race_ethnicity,"
         "region," and "marital_status." If multiple columns of the
@@ -47,6 +47,10 @@ class Survey:
         should be interpretable strings (not numbers or codes)
         that are *as close as possible* to exactly what is in the codebook.
         You do not need to save anything as part of this method.
+        This is also where you will clean up the data by dropping
+        individuals who don't have all the demographic variables
+        *present in the data*. Do not drop individuals who don't
+        have all the DV variables present in the data.
         """
         raise NotImplementedError
 

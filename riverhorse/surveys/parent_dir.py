@@ -11,4 +11,4 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 # Import parent directory modules
-from survey import Survey
+from survey import Survey, UserInterventionNeededError
