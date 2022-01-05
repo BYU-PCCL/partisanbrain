@@ -16,6 +16,7 @@ class Survey:
         df = self.download_data()
         df = self.modify_data(df)
         print(self.get_dv_questions())
+        # TODO: Warn if we're missing any demographic variables
 
     def download_data(self):
         """
@@ -42,6 +43,9 @@ class Survey:
         "education," "income," "religion," "race_ethnicity,"
         "region," and "marital_status." If multiple columns of the
         original data have relevant information, combine them together.
+        Really try to have all ten demographics represented, but
+        if you can't find them all in the data you don't need
+        to include them all.
         The 20 DV columns should have *descriptive* names for each
         DV. Importantly, responses for demographic and DV columns
         should be interpretable strings (not numbers or codes)
