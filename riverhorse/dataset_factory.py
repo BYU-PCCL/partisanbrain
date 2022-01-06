@@ -47,6 +47,8 @@ class DatasetFactory:
         """
         Modify the df that is the output of Survey
         object initialization to prepare it for templatizing.
+        Critically, make sure that DV responses match the responses
+        in get_templates().
         """
         raise NotImplementedError
 
