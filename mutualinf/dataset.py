@@ -5,6 +5,7 @@ import glob
 import os.path
 import pandas as pd
 import re
+from pandas.core.frame import DataFrame
 import tqdm
 
 
@@ -69,13 +70,19 @@ class Dataset(abc.ABC):
         self._snake_case_cls_name = self._get_snake_case_cls_name()
         recommended_ds_dir = f"data/{self._snake_case_cls_name}"
 
-        if in_fname is None:
-            in_fname = self._get_raw_data_fname(recommended_ds_dir)
+        # Loading the raw data
+        # TODO: Probably rename here - this is basically a hack to
+        # get riverhorse stuff working quickly
+        if type(in_fname) == pd.DataFrame:
+            self._df = in_fname
+        else:
+            if in_fname is None:
+                in_fname = self._get_raw_data_fname(recommended_ds_dir)
 
-        # Turn the dataset specified by in_fname
-        # into a pandas dataframe
-        self._df = Opener().open(fname=in_fname,
-                                 opening_func=opening_func)
+            # Turn the dataset specified by in_fname
+            # into a pandas dataframe
+            self._df = Opener().open(fname=in_fname,
+                                     opening_func=opening_func)
 
         # Modify the dataframe based on child class
         # specifications
