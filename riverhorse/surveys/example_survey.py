@@ -1,4 +1,5 @@
-from parent_dir import Survey, UserInterventionNeededError
+from parent_dir import DEMOGRAPHIC_COLNAMES, Survey
+from parent_dir import UserInterventionNeededError
 
 import os
 import pandas as pd
@@ -46,10 +47,7 @@ class ExampleSurvey(Survey):
         # necessarily be present). You may have to combine
         # multiple demographic columns to get the
         # demographic information you need.
-        mod_df = mod_df.dropna(subset=["age", "gender", "party",
-                                       "ideology", "education", "income",
-                                       "religion", "race_ethnicity",
-                                       "region", "marital_status"])
+        mod_df = mod_df.dropna(subset=DEMOGRAPHIC_COLNAMES)
 
         # Rename DV columns.
         mod_df = mod_df.rename(columns={"H32k44": "papusas_best_food",
@@ -57,6 +55,8 @@ class ExampleSurvey(Survey):
                                         "Nk3333": "naacl_tackle"})
 
         # More processing here to get the data super nice and clean
+        # like changing responses to exactly match what is in the
+        # codebook
         return mod_df
 
     def get_dv_questions(self):
