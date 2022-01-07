@@ -33,7 +33,7 @@ class ExampleFactory(DatasetFactory):
                 # In this example we have a list as the value for "Y". This
                 # should not be common practice. Use a string unless you're
                 # sure there should be a list (like in the "donald"/"trump"
-                # case). In the dictionary the key is the value in the
+                # case). In the dictionary the  key is the value in the
                 # dataframe and the value is the value you expect from the
                 # language model in response to your question.
                 "qa": (lambda row: ("Q: What is your gender?\nA: I "
@@ -47,11 +47,14 @@ class ExampleFactory(DatasetFactory):
                 "friend_asked": (lambda row: (f"I am {row['gender']}. When "
                                               "asked if dark whiteboards "
                                               "are better than light "
-                                              "ones I said"), ["yes", "no"]),
+                                              "ones I said"), {"yes": "yes",
+                                                               "no": "no"}),
                 # More templates here
             },
             # More DVs here
         }
+
+        # TODO: Per DV there would are things we need to drop!!!
 
 
 if __name__ == "__main__":
