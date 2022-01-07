@@ -35,12 +35,12 @@ class BaylorSurvey(Survey):
                                     "I_EDUC" : "education",
                                     "Q31" : "ideology",
                                     "Q95" : "income",
-                                    "Q1" : "religiosity",
-                                    "RACE" : "race",
+                                    "Q1" : "religion",
+                                    "RACE" : "race_ethnicity",
                                     "D9" : "marital_status"})
 
         # Drop na rows
-        mod_df = mod_df.dropna(subset=["age", "gender", "party", "education", "ideology", "income", "religiosity", "race", "marital_status"])
+        mod_df = mod_df.dropna(subset=["age", "gender", "party", "education", "ideology", "income", "religion", "race_ethnicity", "marital_status"])
 
         # Rename DV columns
         mod_df = mod_df.rename(columns={"T7G" : "tech_employment",
@@ -65,7 +65,7 @@ class BaylorSurvey(Survey):
                                         "R20F" : "god_plan"})
 
         # Drop extra columns
-        column_lst = ["age", "gender", "party", "education", "ideology", "income", "religiosity", "race", "marital_status"] + ["tech_employment", "legal_gay_marriage", "gay_choice", "husband_salary", "women_childcare", "men_politics", "refugee_terrorist", "mexican_criminals", "life_happy", "week_depression", "days_exercise", "police_race", "black_violent", "bible_belief", "god_belief", "god_concern_world", "god_concern_personal", "religious_attendance", "school_prayer", "god_plan"]
+        column_lst = ["age", "gender", "party", "education", "ideology", "income", "religion", "race_ethnicity", "marital_status"] + ["tech_employment", "legal_gay_marriage", "gay_choice", "husband_salary", "women_childcare", "men_politics", "refugee_terrorist", "mexican_criminals", "life_happy", "week_depression", "days_exercise", "police_race", "black_violent", "bible_belief", "god_belief", "god_concern_world", "god_concern_personal", "religious_attendance", "school_prayer", "god_plan"]
         mod_df = mod_df[column_lst]
 
         return mod_df
