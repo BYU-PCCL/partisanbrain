@@ -12,3 +12,5 @@ sys.path.append(parent + "/mutualinf")
 
 # Import mutual information modules
 from dataset import Dataset
+from experiment import Experiment
+from postprocessor import Postprocessor
