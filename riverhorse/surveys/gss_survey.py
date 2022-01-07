@@ -6,6 +6,7 @@ from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 
+
 class GssSurvey(Survey):
 
     def __init__(self):
@@ -13,15 +14,15 @@ class GssSurvey(Survey):
 
     def download_data(self):
         url = 'https://gss.norc.org/Documents/spss/2018_spss.zip'
-        directory = '../survey_data/gss_survey/'
+        directory = 'survey_data/gss_survey/'
 
         if not os.path.exists(directory):
             os.makedirs(directory)
         with urlopen(url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(directory)
-        os.rename("../survey_data/gss_survey/GSS2018.sav", "../survey_data/gss_survey/gss.sav")
-        df = pd.read_spss("../survey_data/gss_survey/gss.sav")
+        os.rename("survey_data/gss_survey/GSS2018.sav", "survey_data/gss_survey/gss.sav")
+        df = pd.read_spss("survey_data/gss_survey/gss.sav")
         return df
 
     def modify_data(self, df):
