@@ -30,9 +30,17 @@ class ExampleFactory(DatasetFactory):
         # use the curriculum for that
         return {
             "papusas_best_food": {
+                # In this example we have a list as the value for "Y". This
+                # should not be common practice. Use a string unless you're
+                # sure there should be a list (like in the "donald"/"trump"
+                # case). In the dictionary the key is the value in the
+                # dataframe and the value is the value you expect from the
+                # language model in response to your question.
                 "qa": (lambda row: ("Q: What is your gender?\nA: I "
                                     f"am {row['gender']}.\nQ: Are papusas "
-                                    "the best food?\nA:"), ["yes", "no"]),
+                                    "the best food?\nA:"), {"Y": ["yes",
+                                                                  "yea"],
+                                                            "N": "no"}),
                 # More templates here
             },
             "dark_light_whiteboard": {
