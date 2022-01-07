@@ -103,18 +103,4 @@ if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
     # recent code from GitHub. See surveys/example.py for more
     # information on making your subclass.
-    s = AddhealthSurvey(force_recreate=True)
-    print(
-        s._df.head()[
-            [
-                "age",
-                "gender",
-                "education",
-                "ideology",
-                "income",
-                "religion",
-                "race_ethnicity",
-                "marital_status",
-            ]
-        ]
-    )
+    s = AddhealthSurvey()
