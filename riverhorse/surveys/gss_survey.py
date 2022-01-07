@@ -16,8 +16,8 @@ class GssSurvey(Survey):
         url = 'https://gss.norc.org/Documents/spss/2018_spss.zip'
         directory = 'survey_data/gss_survey/'
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        # if not os.path.exists(directory):
+        #     os.makedirs(directory)
         with urlopen(url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(directory)
