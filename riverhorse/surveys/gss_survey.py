@@ -1,5 +1,4 @@
 from parent_dir import Survey, UserInterventionNeededError
-import requests
 import os
 import pandas as pd
 from io import BytesIO
@@ -8,72 +7,115 @@ from zipfile import ZipFile
 
 
 class GssSurvey(Survey):
-
     def __init__(self):
         super().__init__()
 
     def download_data(self):
-        url = 'https://gss.norc.org/Documents/spss/2018_spss.zip'
-        directory = 'survey_data/gss_survey/'
+        url = "https://gss.norc.org/Documents/spss/2018_spss.zip"
+        directory = "survey_data/gss_survey/"
 
         # if not os.path.exists(directory):
         #     os.makedirs(directory)
         with urlopen(url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(directory)
-        os.rename("survey_data/gss_survey/GSS2018.sav", "survey_data/gss_survey/gss.sav")
+        os.rename(
+            "survey_data/gss_survey/GSS2018.sav", "survey_data/gss_survey/gss.sav"
+        )
         df = pd.read_spss("survey_data/gss_survey/gss.sav")
         return df
 
     def modify_data(self, df):
         # Rename demographic columns
-        mod_df = df.rename(columns={"AGE": "age",
-                                    "SEX": "gender",
-                                    "PARTYID": "party",
-                                    "EDUC": "ideology",
-                                    "POLVIEWS": "education",
-                                    "INCOME": "income",
-                                    "RELIG": "religion",
-                                    "RACECEN1": "race_ethnicity",
-                                    "REGION": "region",
-                                    "MARITAL": "marital_status"})
+        mod_df = df.rename(
+            columns={
+                "AGE": "age",
+                "SEX": "gender",
+                "PARTYID": "party",
+                "EDUC": "ideology",
+                "POLVIEWS": "education",
+                "INCOME": "income",
+                "RELIG": "religion",
+                "RACECEN1": "race_ethnicity",
+                "REGION": "region",
+                "MARITAL": "marital_status",
+            }
+        )
         # Drop NA
-        mod_df = mod_df.dropna(subset=["age", "gender", "party",
-                                       "ideology", "education", "income",
-                                       "religion", "race_ethnicity",
-                                       "region", "marital_status"])
+        mod_df = mod_df.dropna(
+            subset=[
+                "age",
+                "gender",
+                "party",
+                "ideology",
+                "education",
+                "income",
+                "religion",
+                "race_ethnicity",
+                "region",
+                "marital_status",
+            ]
+        )
         # Rename DV columns.
-        mod_df = mod_df.rename(columns={"NATENVIR": "spending_protecting_environment",
-                                        "NATENRGY": "spending_developing_alternate_energy",
-                                        "CAPPUN" : "capital_punishment",
-                                        "POLHITOK" : "police_striking_adult_male",
-                                        "GRASS" : "marijuana_legality",
-                                        "WKSEXISM" : "gender_discrimination",
-                                        "FEPOL" : "men_better_suited_politics",
-                                        "HLTHMNTL" : "mental_health",
-                                        "MENTLOTH" : "who_to_visit_for_mental_health",
-                                        "FAMMHNEG" : "family_opinions_mental_health",
-                                        "DIAGNOSD" : "diagnosed_mental_health",
-                                        "OTHMHNEG" : "outside_family_opinions_mental_health",
-                                        "HLTHPHYS" : "physical_health",
-                                        "VOTE16" : "voted_in_2016",
-                                        "SPKRAC" : "free_speech_for_racists",
-                                        "BIBLE" : "bible_feelings",
-                                        "PRAYER" : "prayer_in_public_schools",
-                                        "CONCLERG" : "organized_religion_leader_opinions",
-                                        "RELITEN" : "religious_conviction",
-                                        "POSTLIFE": "life_after_death"})
+        mod_df = mod_df.rename(
+            columns={
+                "NATENVIR": "spending_protecting_environment",
+                "NATENRGY": "spending_developing_alternate_energy",
+                "CAPPUN": "capital_punishment",
+                "POLHITOK": "police_striking_adult_male",
+                "GRASS": "marijuana_legality",
+                "WKSEXISM": "gender_discrimination",
+                "FEPOL": "men_better_suited_politics",
+                "HLTHMNTL": "mental_health",
+                "MENTLOTH": "who_to_visit_for_mental_health",
+                "FAMMHNEG": "family_opinions_mental_health",
+                "DIAGNOSD": "diagnosed_mental_health",
+                "OTHMHNEG": "outside_family_opinions_mental_health",
+                "HLTHPHYS": "physical_health",
+                "VOTE16": "voted_in_2016",
+                "SPKRAC": "free_speech_for_racists",
+                "BIBLE": "bible_feelings",
+                "PRAYER": "prayer_in_public_schools",
+                "CONCLERG": "organized_religion_leader_opinions",
+                "RELITEN": "religious_conviction",
+                "POSTLIFE": "life_after_death",
+            }
+        )
         # Drop all extra columns
-        mod_df = mod_df[["age", "gender", "party", "ideology", "education", "income",
-                        "religion", "race_ethnicity", "region", "marital_status",
-                        "spending_protecting_environment", "spending_developing_alternate_energy",
-                        "capital_punishment", "police_striking_adult_male", "marijuana_legality",
-                        "gender_discrimination", "men_better_suited_politics", "mental_health",
-                        "who_to_visit_for_mental_health", "family_opinions_mental_health",
-                        "diagnosed_mental_health", "outside_family_opinions_mental_health",
-                        "physical_health", "voted_in_2016", "free_speech_for_racists",
-                        "bible_feelings", "prayer_in_public_schools", "organized_religion_leader_opinions",
-                        "religious_conviction", "life_after_death"]]
+        mod_df = mod_df[
+            [
+                "age",
+                "gender",
+                "party",
+                "ideology",
+                "education",
+                "income",
+                "religion",
+                "race_ethnicity",
+                "region",
+                "marital_status",
+                "spending_protecting_environment",
+                "spending_developing_alternate_energy",
+                "capital_punishment",
+                "police_striking_adult_male",
+                "marijuana_legality",
+                "gender_discrimination",
+                "men_better_suited_politics",
+                "mental_health",
+                "who_to_visit_for_mental_health",
+                "family_opinions_mental_health",
+                "diagnosed_mental_health",
+                "outside_family_opinions_mental_health",
+                "physical_health",
+                "voted_in_2016",
+                "free_speech_for_racists",
+                "bible_feelings",
+                "prayer_in_public_schools",
+                "organized_religion_leader_opinions",
+                "religious_conviction",
+                "life_after_death",
+            ]
+        ]
         return mod_df
 
     def get_dv_questions(self):
@@ -97,7 +139,7 @@ class GssSurvey(Survey):
             "prayer_in_public_schools": "The United States Supreme Court has ruled that no state or local government may require the reading of the Lord's Prayer or Bible verses in public schools. What are your views on this--do you approve or disapprove of the court ruling?",
             "organized_religion_leader_opinions": "As far as the people running organized religion are concerned, would you say you have a great deal of confidence, only some confidence, or hardly any confidence at all in them?",
             "religious_conviction": "Would you call yourself a strong (PREFERENCE NAMED IN RELIG) or a not very strong (PREFERENCE NAMED IN RELIG)?",
-            "life_after_death": "Do you believe there is a life after death?"
+            "life_after_death": "Do you believe there is a life after death?",
         }
 
         return dv_questions
