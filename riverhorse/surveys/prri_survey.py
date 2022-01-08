@@ -41,30 +41,30 @@ class PrriSurvey(Survey):
             "INCOME": "income",
             "REGION4": "region",
             
-            "PARTYLN": "party_leaning_to",
-            "EDUC4": "education_level",
-            "REGIST": "registered_voter",
-            "RELIG_OE": "specify_religion",
-            "BORN": "born_with_religion",
-            "ATTEND": "religious_practices",
-            "CLASS": "economic_class",
-            "EMPLOY2": "employment_type",
-            "EMPLOY": "emplyment_status",
-            "STATE": "state",
-            "HOME_TYPE": "home_type",
-            "METRO": "metro",
-            "HOUSING": "how_they_bought_house",
-            "INTERNET": "internet"
+            # "PARTYLN": "party_leaning_to",
+            # "EDUC4": "education_level",
+            # "REGIST": "registered_voter",
+            # "RELIG_OE": "specify_religion",
+            # "BORN": "born_with_religion",
+            # "ATTEND": "religious_practices",
+            # "CLASS": "economic_class",
+            # "EMPLOY2": "employment_type",
+            # "EMPLOY": "emplyment_status",
+            # "STATE": "state",
+            # "HOME_TYPE": "home_type",
+            # "METRO": "metro",
+            # "HOUSING": "how_they_bought_house",
+            # "INTERNET": "internet"
         }
         #Renaming Demographic Columns
         mod_df = df.rename(columns=demo)
 
         #Cleaning
         demo_cols = list(demo.values())
-        demo_cols.remove("party_leaning_to")
-        demo_cols.remove("specify_religion")
-        demo_cols.remove("born_with_religion")
-        demo_cols.remove("religious_practices")
+        # demo_cols.remove("party_leaning_to")
+        # demo_cols.remove("specify_religion")
+        # demo_cols.remove("born_with_religion")
+        # demo_cols.remove("religious_practices")
         mod_df = mod_df.dropna(subset=demo_cols)
 
 
