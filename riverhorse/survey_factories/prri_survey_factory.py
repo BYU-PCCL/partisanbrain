@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import PrriSurvey
 
 
 class PrriFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class PrriFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = PrriFactory()
+    factory = PrriFactory(PrriSurvey())

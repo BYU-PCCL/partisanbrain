@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import PewSurvey
 
 
 class PewFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class PewFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = PewFactory()
+    factory = PewFactory(PewSurvey())

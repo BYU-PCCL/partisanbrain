@@ -6,7 +6,7 @@ class ExampleFactory(DatasetFactory):
     def __init__(self, survey_obj, sample_seed=0, n=None):
         super().__init__(survey_obj=survey_obj,
                          sample_seed=sample_seed,
-                         n=None)
+                         n=n)
 
     # def get_backstory_1(self):
     #     # You're probably going to want to make other convenience

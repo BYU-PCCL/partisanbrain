@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import AnesSurvey
 
 
 class AnesFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class AnesFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = AnesFactory()
+    factory = AnesFactory(AnesSurvey())

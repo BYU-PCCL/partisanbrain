@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import BaylorSurvey
 
 
 class BaylorFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class BaylorFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = BaylorFactory()
+    factory = BaylorFactory(BaylorSurvey())

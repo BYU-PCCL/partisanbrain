@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import AddhealthSurvey
 
 
 class AddhealthFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class AddhealthFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = AddhealthFactory()
+    factory = AddhealthFactory(AddhealthSurvey())

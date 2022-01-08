@@ -1,4 +1,5 @@
 from parent_dir import DatasetFactory
+from survey_classes import CcesSurvey
 
 
 class CcesFactory(DatasetFactory):
@@ -16,4 +17,4 @@ class CcesFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = CcesFactory()
+    factory = CcesFactory(CcesSurvey())
