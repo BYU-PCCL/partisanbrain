@@ -12,3 +12,5 @@ sys.path.append(parent)
 
 # Import parent directory modules
 from dataset_factory import DatasetFactory
+from survey import Survey, UserInterventionNeededError
+from constants import DEMOGRAPHIC_COLNAMES
