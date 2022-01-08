@@ -1,11 +1,7 @@
 from parent_dir import DatasetFactory
-# from riverhorse.surveys.cces_survey import CcesSurvey
-from surveys import cces_survey
 import pandas as pd
 import numpy as np
-# from riverhorse.surveys.cces_survey import CcesSurvey
-
-
+from survey_classes import CcesSurvey
 
 
 class CcesFactory(DatasetFactory):
@@ -13,7 +9,7 @@ class CcesFactory(DatasetFactory):
     def __init__(self, survey_obj, sample_seed=0, n=None):
         super().__init__(survey_obj=survey_obj,
                          sample_seed=sample_seed,
-                         n=None)
+                         n=n)
 
     def modify_data(self, df):
         print(df)
@@ -109,5 +105,4 @@ class CcesFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = CcesFactory(cces_survey)
-    # josh needs to finish import thing
+    factory = CcesFactory(CcesSurvey())
