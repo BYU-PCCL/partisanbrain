@@ -8,7 +8,7 @@ class ExampleFactory(DatasetFactory):
                          sample_seed=sample_seed,
                          n=n)
 
-    # def get_backstory_1(self):
+    # def get_backstory_1(self, row):
     #     # You're probably going to want to make other convenience
     #     # functions for forming backstories, doing logic for
     #     # demographics, etc.
