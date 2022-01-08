@@ -21,7 +21,7 @@ class SimpleDataset(Dataset):
 class DatasetFactory:
 
     def __init__(self, survey_obj, sample_seed=0, n=None):
-        df = survey_obj.df
+        df = survey_obj._df
         df = self.modify_data(df)
         templates = self.get_templates(df)
 

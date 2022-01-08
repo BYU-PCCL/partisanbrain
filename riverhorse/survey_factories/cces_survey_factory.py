@@ -1,6 +1,11 @@
 from parent_dir import DatasetFactory
+# from riverhorse.surveys.cces_survey import CcesSurvey
+from surveys import cces_survey
 import pandas as pd
 import numpy as np
+# from riverhorse.surveys.cces_survey import CcesSurvey
+
+
 
 
 class CcesFactory(DatasetFactory):
@@ -16,7 +21,13 @@ class CcesFactory(DatasetFactory):
         pass
 
     def get_templates(self):
-        pass
+        return {
+            "epa_power": {
+                "friend_asked": (lambda row: (f"{self.make_backstory1}. "), {"yes": "yes",
+                                                               "no": "no"}),
+                # More templates here
+            }
+        }
 
     def make_backstory1(self, row):
         '''
@@ -98,6 +109,5 @@ class CcesFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = CcesFactory(CcesSurvey())
-    # alex needs to finish CcesSurvey Class
+    factory = CcesFactory(cces_survey)
     # josh needs to finish import thing
