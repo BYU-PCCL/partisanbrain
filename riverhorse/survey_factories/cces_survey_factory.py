@@ -1,5 +1,5 @@
 from parent_dir import DatasetFactory
-import pandas as pd
+# import pandas as pd
 import numpy as np
 from survey_classes import CcesSurvey
 
@@ -12,18 +12,21 @@ class CcesFactory(DatasetFactory):
                          n=n)
 
     def modify_data(self, df):
+        print("aaaaa")
         print(df)
         print(df.unique())
         pass
 
     def get_templates(self):
-        return {
+        templates = {
             "epa_power": {
-                "friend_asked": (lambda row: (f"{self.make_backstory1}. "), {"yes": "yes",
+                "i_believe": (lambda row: (f"{self.make_backstory1}\n I believe the Environmental Protection Agency should hold power to regulate Carbon Dioxide emissions, yes or no"), {"yes": "yes",
                                                                "no": "no"}),
+                
                 # More templates here
-            }
+            },
         }
+        return templates
 
     def make_backstory1(self, row):
         '''
@@ -105,4 +108,5 @@ class CcesFactory(DatasetFactory):
 
 
 if __name__ == "__main__":
-    factory = CcesFactory(CcesSurvey())
+    survey = CcesSurvey()
+    factory = CcesFactory(survey)
