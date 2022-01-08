@@ -1,5 +1,9 @@
 from parent_dir import DatasetFactory
+from datetime import date
+from collections import defaultdict
 from survey_classes import AddhealthSurvey
+import pandas as pd
+import numpy as np
 
 
 class AddhealthFactory(DatasetFactory):
@@ -53,7 +57,7 @@ class AddhealthFactory(DatasetFactory):
             'religion': {
                 np.nan: '',
                 'nan': '',
-                'default': f'''I am {row['gender']}. ''',
+                'default': f'''I am {row['religion']}. ''',
                 'Undifferentiated Protestant': 'Religiously, I am protestant. ',
                 'Undifferentiated Protstant': 'Religiously, I am protestant. ',
                 'Other Christian': 'Religiously, I am Christian. ',
@@ -94,11 +98,46 @@ class AddhealthFactory(DatasetFactory):
         # file.close()
         # for x in df:
         #     print(y)
+
+        # rename rows?
+        mod_df_dict = defaultdict(list)
+        for _, row in df.iterrows():
+            mod_df_dict['age'].append(self.get_age(row['age']))
+            mod_df_dict['gender'].append(row['gender'][4:])
+            mod_df_dict['education'].append(row['education'])
+            mod_df_dict['ideology'].append(row['ideology'])
+            mod_df_dict['income'].append(row['income'])
+            mod_df_dict['religion'].append(row['religion'])
+            mod_df_dict['race_ethnicity'].append(row['race_ethnicity'])
+            mod_df_dict['marital_status'].append(row['marital_status'])
+        new_df = pd.DataFrame(mod_df_dict, index=df.index)
+
+            
+
+
         print(df)
         pass
 
+    def get_age(self, year):
+        return date.today().year - year
+
+    def get_tokens_yn(self):
+        return {
+            'No': ['(0) No', 'No'], 
+            'Yes': ['(1) Yes', 'Yes']}
+
     def get_templates(self):
-        pass
+        templates = {
+            "shot_or_stabbed": {
+                "personal1": (lambda row: (f"{self.make_backstory1}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn),
+                "personal2": (lambda row: (f"{self.make_backstory1}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn),
+                
+                # More templates here
+            },
+        }
+        return templates
 
 
 if __name__ == "__main__":
