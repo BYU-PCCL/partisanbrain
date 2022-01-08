@@ -11,10 +11,10 @@ parent = os.path.dirname(current)
 sys.path.append(parent + "/surveys")
 
 # Import parent directory modules
-from gss_survey import GssSurvey
-from anes_survey import AnesSurvey
-from addhealth_survey import AddhealthSurvey
+# from gss_survey import GssSurvey
+# from anes_survey import AnesSurvey
+# from addhealth_survey import AddhealthSurvey
 from cces_survey import CcesSurvey
-from pew_survey import PewSurvey
-from prri_survey import PrriSurvey
-from baylor_survey import BaylorSurvey
+# from pew_survey import PewSurvey
+# from prri_survey import PrriSurvey
+# from baylor_survey import BaylorSurvey
