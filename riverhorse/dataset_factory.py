@@ -23,7 +23,8 @@ class DatasetFactory:
     def __init__(self, survey_obj, sample_seed=0, n=None):
         df = survey_obj.df
         df = self.modify_data(df)
-        templates = self.get_templates(df)
+        templates = self.get_templates()
+        # templates = self.get_templates(df)
 
         # Get the list of DV colnames
         dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
