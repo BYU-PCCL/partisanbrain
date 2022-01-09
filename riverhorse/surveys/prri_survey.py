@@ -30,7 +30,7 @@ class PrriSurvey(Survey):
     def modify_data(self, df):
         demo = {   
             
-            "PARTY": "party",
+            "PARTY": "party", 
             "RELIG": "religion",
             "IDEO": "ideology",
             "GENDER": "gender",
@@ -107,6 +107,7 @@ class PrriSurvey(Survey):
         # More processing here to get the data super nice and clean
         # like changing responses to exactly match what is in the
         # codebook
+        mod_df.to_csv("survey_data/prri_survey/modified.csv", index=False)
         return mod_df
 
     def get_dv_questions(self):
