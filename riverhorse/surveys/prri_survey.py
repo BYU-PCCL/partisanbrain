@@ -37,7 +37,12 @@ class PrriSurvey(Survey):
     def modify_data(self, df):
         
         demo = {   
+<<<<<<< HEAD
             "PARTY": "party", # includes party and party leaning
+=======
+            
+            "PARTY": "party", 
+>>>>>>> 6bc409f79d0cfc1bb9418d1faaea8ccc7277f6f1
             "RELIG": "religion",
             "IDEO": "ideology",
             "GENDER": "gender",
@@ -102,8 +107,12 @@ class PrriSurvey(Survey):
         # More processing here to get the data super nice and clean
         # like changing responses to exactly match what is in the
         # codebook
+<<<<<<< HEAD
         
 
+=======
+        mod_df.to_csv("survey_data/prri_survey/modified.csv", index=False)
+>>>>>>> 6bc409f79d0cfc1bb9418d1faaea8ccc7277f6f1
         return mod_df
 
     def get_dv_questions(self):
