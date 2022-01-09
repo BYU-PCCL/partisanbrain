@@ -13,6 +13,9 @@ class AddhealthFactory(DatasetFactory):
                          sample_seed=sample_seed,
                          n=n)
 
+    # Bacstory 1 - "I am" statements, how would you answer?
+    # Backstory 2 - Imagine you were this person; how would you imagine they answer?
+    # Backstory 3 - 
     def make_backstory1(self, row):
         '''
         list style backstory dropping nans
@@ -45,11 +48,14 @@ class AddhealthFactory(DatasetFactory):
                 'trade school': 'I attended trade school. ',
                 'professional school degree': 'I have a professional school degree. ',
                 "Bachelor's degree": "I have a Bachelor's degree. ",
+                'Some high school': "I didn't finish high school. ",
                 'less than high school': "I didn't finish high school. ",
                 'high school graduate': "I graduated high school. ",
                 "Master's degree": "I have a Master's degree. ",
                 'associate degree': "I have an associate's degree. ",
-                'some college but no degree': "I attended some college. ",
+                '(5) Completed vocational/technical training (after high scho' : "I completed vocational or technical training after high school",
+                'Some college': "I attended some college. ",
+                # 'some college but no degree': "I attended some college. ",
                 # no default, should be exhaustive
             },
             #income
@@ -104,12 +110,12 @@ class AddhealthFactory(DatasetFactory):
         for _, row in df.iterrows():
             mod_df_dict['age'].append(self.get_age(row['age']))
             mod_df_dict['gender'].append(row['gender'][4:])
-            mod_df_dict['education'].append(row['education'])
-            mod_df_dict['ideology'].append(row['ideology'])
-            mod_df_dict['income'].append(row['income'])
-            mod_df_dict['religion'].append(row['religion'])
-            mod_df_dict['race_ethnicity'].append(row['race_ethnicity'])
-            mod_df_dict['marital_status'].append(row['marital_status'])
+            mod_df_dict['education'].append(row['education'][4:])
+            mod_df_dict['ideology'].append(row['ideology'][4:])
+            mod_df_dict['income'].append(row['income'][4:])
+            mod_df_dict['religion'].append(row['religion'][4:])
+            mod_df_dict['race_ethnicity'].append(row['race_ethnicity'][4:])
+            mod_df_dict['marital_status'].append(row['marital_status'][4:])
         new_df = pd.DataFrame(mod_df_dict, index=df.index)
 
             
@@ -129,9 +135,17 @@ class AddhealthFactory(DatasetFactory):
     def get_templates(self):
         templates = {
             "shot_or_stabbed": {
-                "personal1": (lambda row: (f"{self.make_backstory1}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                "personal1": (lambda row: (f"{self.make_backstory1}\n Have you shot or stabbed someone in the past 12 months?"), 
                 self.get_tokens_yn),
                 "personal2": (lambda row: (f"{self.make_backstory1}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn),
+                "personal3": (lambda row: (f"{self.make_backstory1}\n In the past 12 months, have you shot or stabbed someone?"), 
+                self.get_tokens_yn),
+                "personal4": (lambda row: (f"{self.make_backstory1}\n In the past year, has someone been shot or stabbed by you?"), 
+                self.get_tokens_yn),
+                "personal5": (lambda row: (f"{self.make_backstory1}\n Have you shot or stabbed at least one person in the past year?"), 
+                self.get_tokens_yn),
+                "personal3": (lambda row: (f"{self.make_backstory1}\n In the past 12 months, have you shot or stabbed someone?"), 
                 self.get_tokens_yn),
                 
                 # More templates here
