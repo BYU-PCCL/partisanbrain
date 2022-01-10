@@ -45,22 +45,20 @@ class AddhealthFactory(DatasetFactory):
             'education': {
                 np.nan: '',
                 'nan': '',
-                # 'trade school': 'I attended trade school. ',
-                # 'professional school degree': 'I have a professional school degree. ',
-                # "Bachelor's degree": "I have a Bachelor's degree. ",
-                'Some high school': "I attended some high school. ",
-                # 'less than high school': "I didn't finish high school. ",
-                'High school graduate': "I graduated high school. ",
-                # "Master's degree": "I have a Master's degree. ",
-                # 'associate degree': "I have an associate's degree. ",
-                # 'Completed vocational/technical training (after high scho' : 
-                    # "I completed vocational or technical training after high school.",
-                'Some college': "I attended some college. ",
-                # 'some college but no degree': "I attended some college. ",
                 '8th grade or less' : "I completed up to 8th grade or less. ",
-                'Some post baccalaureate professional education' : 
-                    "I have some post baccalaureate professional education. ",
-                "Completed college (bachelor's degree)" : "I have a Bachelor's degree. "
+                'Some high school': "I attended some high school. ",
+                'High school graduate': "I graduated high school. ",
+                'Some vocational/technical training (after high school)': "I have completed some vocational/technical training",
+                'Completed vocational/technical training (after high scho' : 
+                    "I completed vocational or technical training after high school.",
+                'Some college': "I attended some college. ",
+                "Completed college (bachelor's degree)" : "I have a Bachelor's degree. ",
+                "Some graduate school" : "I have attended some graduate school",
+                "Completed a master's degree " : "I have a Master's degree",
+                "Some graduate training beyond a master's degree" : "I have attended some graduate training beyond a master's degree",
+                "Completed a doctoral degree " : "I have completed a doctoral degree",
+                "Some post baccalaureate professional education" : "I have completed some post baccalaureate professional education",
+                "Completed post baccalaureate professional education" : "I have completed post baccalaureate professional education"
                 # no default, should be exhaustive
             },
             #income
@@ -122,26 +120,26 @@ class AddhealthFactory(DatasetFactory):
             mod_df_dict['race_ethnicity'].append(row['race_ethnicity'][4:])
             mod_df_dict['marital_status'].append(row['marital_status'][4:])
 
-            mod_df_dict['shot_or_stabbed'].append(row['shot_or_stabbed'][4:])
-            mod_df_dict['arrested'].append(row['arrested'][4:])
-            mod_df_dict['physical_fight'].append(row['physical_fight'][4:])
-            mod_df_dict['convicted_of_charges'].append(row['convicted_of_charges'][4:])
-            mod_df_dict['sell_drugs'].append(row['sell_drugs'][4:])
-            mod_df_dict['counseling'].append(row['counseling'][4:])
-            mod_df_dict['sadness_family'].append(row['sadness_family'][4:])
-            mod_df_dict['worrying'].append(row['worrying'][4:])
-            mod_df_dict['suicide'].append(row['suicide'][4:])
-            mod_df_dict['optimism'].append(row['optimism'][4:])
-            mod_df_dict['happiness'].append(row['happiness'][4:])
-            mod_df_dict['fast_food'].append(row['fast_food'][4:])
-            mod_df_dict['hours_of_tv'].append(row['hours_of_tv'][4:])
-            mod_df_dict['individual_sports'].append(row['individual_sports'][4:])
-            mod_df_dict['smoked_cigarette'].append(row['smoked_cigarette'][4:])
-            mod_df_dict['physical_child_abuse'].append(row['physical_child_abuse'][4:])
-            mod_df_dict['age_of_first_drink'].append(row['age_of_first_drink'][4:])
-            mod_df_dict['car_accidents'].append(row['car_accidents'][4:])
-            mod_df_dict['drinking'].append(row['drinking'][4:])
-            mod_df_dict['prayer_in_private'].append(row['prayer_in_private'][4:])
+            # mod_df_dict['shot_or_stabbed'].append(row['shot_or_stabbed'][4:])
+            # mod_df_dict['arrested'].append(row['arrested'][4:])
+            # mod_df_dict['physical_fight'].append(row['physical_fight'][4:])
+            # mod_df_dict['convicted_of_charges'].append(row['convicted_of_charges'][4:])
+            # mod_df_dict['sell_drugs'].append(row['sell_drugs'][4:])
+            # mod_df_dict['counseling'].append(row['counseling'][4:])
+            # mod_df_dict['sadness_family'].append(row['sadness_family'][4:])
+            # mod_df_dict['worrying'].append(row['worrying'][4:])
+            # mod_df_dict['suicide'].append(row['suicide'][4:])
+            # mod_df_dict['optimism'].append(row['optimism'][4:])
+            # mod_df_dict['happiness'].append(row['happiness'][4:])
+            # mod_df_dict['fast_food'].append(row['fast_food'][4:])
+            # mod_df_dict['hours_of_tv'].append(row['hours_of_tv'][4:])
+            # mod_df_dict['individual_sports'].append(row['individual_sports'][4:])
+            # mod_df_dict['smoked_cigarette'].append(row['smoked_cigarette'][4:])
+            # mod_df_dict['physical_child_abuse'].append(row['physical_child_abuse'][4:])
+            # mod_df_dict['age_of_first_drink'].append(row['age_of_first_drink'][4:])
+            # mod_df_dict['car_accidents'].append(row['car_accidents'][4:])
+            # mod_df_dict['drinking'].append(row['drinking'][4:])
+            # mod_df_dict['prayer_in_private'].append(row['prayer_in_private'][4:])
             
         new_df = pd.DataFrame(mod_df_dict, index=df.index)
 
@@ -156,8 +154,8 @@ class AddhealthFactory(DatasetFactory):
 
     def get_tokens_yn(self):
         return {
-            'No': ['(0) No', 'No'], 
-            'Yes': ['(1) Yes', 'Yes']}
+            '(0) No': 'No', 
+            '(1) Yes': 'Yes'}
 
     def get_templates(self):
         templates = {
