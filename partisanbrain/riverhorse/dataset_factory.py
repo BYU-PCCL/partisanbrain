@@ -36,6 +36,7 @@ class DatasetFactory:
         for dv_colname in dv_colnames:
             sub_df = df.copy()[present_dems + [dv_colname]]
             sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
+            sub_df = sub_df.dropna(subset=["ground_truth"])
             SimpleDataset(
                 templates=templates[dv_colname],
                 df=sub_df,
