@@ -16,10 +16,20 @@ class AddhealthFactory(DatasetFactory):
     # Bacstory 1 - "I am" statements, how would you answer?
     # Backstory 2 - Imagine you were this person; how would you imagine they answer?
     # Backstory 3 - 
-    def make_backstory1(self, row):
-        '''
-        list style backstory dropping nans
-        '''
+
+    questions = {
+        'age': "What year were you born? ",
+        'gender': "What gender are you? ",
+        'ideology': "In terms of politics, do you consider yourself very conservative, " 
+            + "conservative, middle-of-the-road, liberal, or very liberal? ",
+        'education': "What is the highest level of education that you have achieved to date? ",
+        'income': "What is your household income? ",
+        'religion': "What is your present religion? ",
+        'race_ethnicity': "What race are you? ",
+        'marital': "How many persons have you ever married? (including a current spouse) ",
+    }
+
+    def get_dictionary(self, row):
         dictionary = {
             'age': {
                 '-1': '',
@@ -86,11 +96,33 @@ class AddhealthFactory(DatasetFactory):
                 # 'never married': 'I have never married. ',
                 'default': f'''I have married {row['marital']}. ''',
             },
-             
         }
+        return dictionary
+    
+    def make_backstory1(self, row):
+        '''
+        list style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
         backstory = ''
         for key in dictionary.keys():
             val = row[key]
+            if val in dictionary[key]:
+                backstory += dictionary[key][val]
+            else:
+                backstory += dictionary[key]['default']
+        return backstory
+
+    def make_backstory2(self, row):
+        '''
+        qa style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        backstory = ''
+        for key in dictionary.keys():
+            val = row[key]
+            backstory += "Q: " + questions[key] + "A: "
             if val in dictionary[key]:
                 backstory += dictionary[key][val]
             else:
