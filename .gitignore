@@ -148,3 +148,12 @@ dmypy.json
 # Custom
 .DS_Store
 survey/gss_exploration.ipynb
+
+# Riverhorse
+*.csv
+*.sav
+*playground.ipynb
+*temp.ipynb
+*Questionnaire.pdf
+*random_data.pdf
+*.pkl
