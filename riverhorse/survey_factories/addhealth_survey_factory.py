@@ -62,15 +62,34 @@ class AddhealthFactory(DatasetFactory):
                 # no default, should be exhaustive
             },
             #income
-            # i make between blank and blank per year
+            'income': {
+                np.nan: '',
+                'nan': '',
+                "Don't know": '',
+                'refused': '',
+                'default': f'''My household income is {row['income']}. ''',
+                # '$5,000 to $9,999' : ''
+                # '$10,000 to $14,999' : 
+                # '$15,000 to $19,999'
+                # '$20,000 to $24,999'
+                # '$25,000 to $29,999'
+                # '$30,000 to $39,999'
+                # '$40,000 to $49,999'
+                # '$50,000 to $74,999'
+                # '$75,000 to $99,999'
+                # '$100,000 to $149,999'
+                # '$150,000 or more'
+                
+            },
             'religion': {
                 np.nan: '',
                 'nan': '',
-                'default': f'''I am {row['religion']}. ''',
-                'Undifferentiated Protestant': 'Religiously, I am protestant. ',
-                'Undifferentiated Protstant': 'Religiously, I am protestant. ',
+                'none/atheist/agnostic' : "I am either atheist, agnostic, or non-religious",
+                'Protestant (Such as Assembly of God, Baptist, etc.)': 'Religiously, I identify as protestant',
                 'Other Christian': 'Religiously, I am Christian. ',
+                'Other' : "I am religious",
                 'default': f'Religiously, I identify as {row["religion"]}. ',
+                # 'default': f'''I am {row['religion']}. ''',
             },
             'race': {
                 np.nan: '',
