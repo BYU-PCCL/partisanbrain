@@ -23,61 +23,50 @@ class AddhealthFactory(DatasetFactory):
         dictionary = {
             'age': {
                 '-1': '',
-                'nan': '',
-                'default': f'''I am {row['age']} years old. ''',
+                'default': f'''I was born in the year {row['age']}. ''',
             },
             'gender': {
-                np.nan: '',
-                'nan': '',
                 'default': f'''I am {row['gender']}. ''',
             },
             'ideology': {
-                np.nan: '',
-                'nan': '',
+                'Refused' : np.nan,
+                "Dont' know" : np.nan,
                 'default': f'''Ideologically, I am {str(row['ideo']).strip().lower()}. ''',
             },
             'education': {
-                np.nan: '',
-                'nan': '',
+                "Don't know": np.nan,
+                'Refused': np.nan,
                 '8th grade or less' : "I completed up to 8th grade or less. ",
                 'Some high school': "I attended some high school. ",
                 'High school graduate': "I graduated high school. ",
-                'Some vocational/technical training (after high school)': "I have completed some vocational/technical training",
+                'Some vocational/technical training (after high school)': 
+                    "I have completed some vocational/technical training",
                 'Completed vocational/technical training (after high scho' : 
                     "I completed vocational or technical training after high school.",
                 'Some college': "I attended some college. ",
                 "Completed college (bachelor's degree)" : "I have a Bachelor's degree. ",
                 "Some graduate school" : "I have attended some graduate school",
                 "Completed a master's degree " : "I have a Master's degree",
-                "Some graduate training beyond a master's degree" : "I have attended some graduate training beyond a master's degree",
-                "Completed a doctoral degree " : "I have completed a doctoral degree",
-                "Some post baccalaureate professional education" : "I have completed some post baccalaureate professional education",
-                "Completed post baccalaureate professional education" : "I have completed post baccalaureate professional education"
+                "Some graduate training beyond a master's degree" : 
+                    "I have attended some graduate training beyond a master's degree",
+                "Completed a doctoral degree " : 
+                    "I have completed a doctoral degree",
+                "Some post baccalaureate professional education" : 
+                    "I have completed some post baccalaureate professional education",
+                "Completed post baccalaureate professional education" : 
+                    "I have completed post baccalaureate professional education"
                 # no default, should be exhaustive
             },
-            #income
             'income': {
-                np.nan: '',
-                'nan': '',
-                "Don't know": '',
-                'refused': '',
+                "Don't know": np.nan,
+                'Refused': np.nan,
                 'default': f'''My household income is {row['income']}. ''',
-                # '$5,000 to $9,999' : ''
-                # '$10,000 to $14,999' : 
-                # '$15,000 to $19,999'
-                # '$20,000 to $24,999'
-                # '$25,000 to $29,999'
-                # '$30,000 to $39,999'
-                # '$40,000 to $49,999'
-                # '$50,000 to $74,999'
-                # '$75,000 to $99,999'
-                # '$100,000 to $149,999'
-                # '$150,000 or more'
+                # '$5,000 to $9,999' : '', etc
                 
             },
             'religion': {
-                np.nan: '',
-                'nan': '',
+                "Don't know": np.nan,
+                'Refused': np.nan,
                 'none/atheist/agnostic' : "I am either atheist, agnostic, or non-religious",
                 'Protestant (Such as Assembly of God, Baptist, etc.)': 'Religiously, I identify as protestant',
                 'Other Christian': 'Religiously, I am Christian. ',
@@ -85,23 +74,19 @@ class AddhealthFactory(DatasetFactory):
                 # 'default': f'Religiously, I identify as {row["religion"]}. ',
                 'default': f'''I am {row['religion']}. ''',
             },
-            'race': {
-                np.nan: '',
-                'nan': '',
-                'default': f'''I am {row['race']}. ''',
+            'race_ethnicity': {
+                "Missing": np.nan,
+                'default': f'''I am {row['race_ethnicity']}. ''',
                 # 'default': f'Racially, I identify as {row["race"]}. ',
             },
             #region
             'marital': {
-                np.nan: '',
-                'nan': '',
+                "Don't know": np.nan,
+                'Refused': np.nan,
                 # 'never married': 'I have never married. ',
                 'default': f'''I have married {row['marital']}. ''',
             },
-            
-            
-            
-            
+             
         }
         backstory = ''
         for key in dictionary.keys():
@@ -123,7 +108,8 @@ class AddhealthFactory(DatasetFactory):
         # rename rows?
         mod_df_dict = defaultdict(list)
         for _, row in df.iterrows():
-            mod_df_dict['age'].append(self.get_age(row['age']))
+            # mod_df_dict['age'].append(self.get_age(row['age'])) should we have age or year of birth?
+            mod_df_dict['age'].append(row['age'])
             mod_df_dict['gender'].append(row['gender'][4:])
             mod_df_dict['education'].append(row['education'][4:])
             mod_df_dict['ideology'].append(row['ideology'][4:])
@@ -172,18 +158,26 @@ class AddhealthFactory(DatasetFactory):
     def get_templates(self):
         templates = {
             "shot_or_stabbed": {
-                "personal1": (lambda row: (f"{self.make_backstory1}\n Have you shot or stabbed someone in the past 12 months?"), 
-                self.get_tokens_yn),
-                "personal2": (lambda row: (f"{self.make_backstory1}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
-                self.get_tokens_yn),
-                "personal3": (lambda row: (f"{self.make_backstory1}\n In the past 12 months, have you shot or stabbed someone?"), 
-                self.get_tokens_yn),
-                "personal4": (lambda row: (f"{self.make_backstory1}\n In the past year, has someone been shot or stabbed by you?"), 
-                self.get_tokens_yn),
-                "personal5": (lambda row: (f"{self.make_backstory1}\n Have you shot or stabbed at least one person in the past year?"), 
-                self.get_tokens_yn),
-                "personal3": (lambda row: (f"{self.make_backstory1}\n In the past 12 months, have you shot or stabbed someone?"), 
-                self.get_tokens_yn),
+                "personal1": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn()),
+                "personal2": (lambda row: (f"{self.make_backstory1(row)}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn()),
+                "personal3": (lambda row: (f"{self.make_backstory1(row)}\n In the past 12 months, have you shot or stabbed someone?"), 
+                self.get_tokens_yn()),
+                "personal4": (lambda row: (f"{self.make_backstory1(row)}\n In the past year, has someone been shot or stabbed by you?"), 
+                self.get_tokens_yn()),
+                "personal5": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"), 
+                self.get_tokens_yn()),
+                "qa1": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn()),
+                "qa2": (lambda row: (f"{self.make_backstory1(row)}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                self.get_tokens_yn()),
+                "qa3": (lambda row: (f"{self.make_backstory1(row)}\n In the past 12 months, have you shot or stabbed someone?"), 
+                self.get_tokens_yn()),
+                "qa4": (lambda row: (f"{self.make_backstory1(row)}\n In the past year, has someone been shot or stabbed by you?"), 
+                self.get_tokens_yn()),
+                "qa15": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"), 
+                self.get_tokens_yn()),
                 
                 # More templates here
             },
