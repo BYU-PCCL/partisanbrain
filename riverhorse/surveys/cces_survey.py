@@ -1,11 +1,200 @@
+# Author: Alex Shaw
+
 from parent_dir import Survey, UserInterventionNeededError
 import os
 import pandas as pd
 
 
+demo_drop_dict = {
+    "race_ethnicity": [7],
+    "ideology": [8],
+    "income": [97],
+    "religion": [12],
+    "party": [4, 9, 13],
+}
+
+dv_drop_dict = {
+    "whites_understand_blacks": [8, 9],
+    "slavery_influence": [8, 9],
+    "resent_white_denial": [8, 9],
+    "nations_economy": [6],
+    "gender_change": [3],
+    "sexuality": [5, 6],
+}
+
+
 class CcesSurvey(Survey):
     def __init__(self, force_recreate=False):
         super().__init__(force_recreate=force_recreate)
+
+    def _map_answers(self, df):
+        mod_df = df
+
+        identity = lambda x: x
+        survey_year = 2020
+        demo_map = {
+            "age": identity,
+            "gender": {
+                1: "Male",
+                2: "Female",
+            },
+            "party": {
+                1: "Conservative Party",
+                2: "Constitution Party",
+                3: "Democratic Party",
+                5: "Green Party",
+                6: "Independent",
+                7: "Libertarian Party",
+                8: "No Party Affiliation",
+                10: "Reform Party",
+                11: "Republican Party",
+                12: "Socialist Party",
+                14: "Working Families Party",
+            },
+            "education": {
+                1: "Did not graduate from high school",
+                2: "High school graduate",
+                3: "Some college, but no degree (yet)",
+                4: "2-year college degree",
+                5: "4-year college degree",
+                6: "Postgraduate degree (MA, MBA, MD, JD, PhD, etc.)",
+            },
+            "ideology": {
+                1: "Very Liberal",
+                2: "Liberal",
+                3: "Somewhat Liberal",
+                4: "Middle of the Road",
+                5: "Somewhat Conservative",
+                6: "Conservative",
+                7: "Very Conservative",
+            },
+            "income": {
+                1: "Less than $10,000",
+                2: "$10,000 - $19,999",
+                3: "$20,000 - $29,999",
+                4: "$30,000 - $39,999",
+                5: "$40,000 - $49,999",
+                6: "$50,000 - $59,999",
+                7: "$60,000 - $69,999",
+                8: "$70,000 - $79,999",
+                9: "$80,000 - $99,999",
+                10: "$100,000 - $119,999",
+                11: "$120,000 - $149,999",
+                12: "$150,000 - $199,999",
+                13: "$200,000 - $249,999",
+                14: "$250,000 - $349,999",
+                15: "$350,000 - $499,999",
+                16: "$500,000 or more",
+            },
+            "religion": {
+                1: "Protestant",
+                2: "Roman Catholic",
+                3: "Mormon",
+                4: "Eastern or Greek Orthodox",
+                5: "Jewish",
+                6: "Muslim",
+                7: "Buddhist",
+                8: "Hindu",
+                9: "Atheist",
+                10: "Agnostic",
+                11: "Nothing in particular",
+            },
+            "race_ethnicity": {
+                1: "White",
+                2: "Black or African-American",
+                3: "Hispanic or Latino",
+                4: "Asian or Asian-American",
+                5: "Native American",
+                6: "Two or more races",
+                8: "Middle Eastern",
+            },
+            "region": {
+                1: "Northeast",
+                2: "Midwest",
+                3: "South",
+                4: "West",
+            },
+            "marital_status": {
+                1: "Married",
+                2: "Separated",
+                3: "Divorced",
+                4: "Widowed",
+                5: "Never married",
+                6: "Domestic/civil partnership",
+            },
+        }
+
+        for col, mapping in demo_map.items():
+            mod_df[col] = mod_df[col].map(mapping)
+
+        support_oppose_dict = {
+            1: "Support",
+            2: "Oppose",
+        }
+        agreement_dict = {
+            1: "Strongly agree",
+            2: "Somewhat agree",
+            3: "Neither agree nor disagree",
+            4: "Somewhat disagree",
+            5: "Strongly disagree",
+        }
+        yes_no_dict = {
+            1: "yes",
+            2: "no",
+        }
+        dv_map = {
+            "co2_emissions": support_oppose_dict,
+            "renewable_fuels": support_oppose_dict,
+            "clean_air": support_oppose_dict,
+            "crime_victim": yes_no_dict,
+            "police_feel": {
+                1: "Mostly safe",
+                2: "Somewhat safe",
+                3: "Somewhat unsafe",
+                4: "Mostly unsafe",
+            },
+            "body_cameras": support_oppose_dict,
+            "increase_police": support_oppose_dict,
+            "decrease_police": support_oppose_dict,
+            "nations_economy": {
+                1: "Gotten much better",
+                2: "Gotten somewhat better",
+                3: "Stayed about the same",
+                4: "Gotten somewhat worse",
+                5: "Gotten much worse",
+            },
+            "income_change": {
+                1: "Increased a lot",
+                2: "Increased somewhat",
+                3: "Stayed about the same",
+                4: "Decreased somewhat",
+                5: "Decreased a lot",
+            },
+            "labor_union": {
+                1: "Yes, I am currently a member of a labor union",
+                2: "I formerly was a member of a labor union",
+                3: "I am not now, nor have I been, a member of a labor union",
+            },
+            "gender_change": yes_no_dict,
+            "sexuality": {
+                1: "Heterosexual/straight",
+                2: "Lesbian/gay woman",
+                3: "Gay man",
+                4: "Bisexual",
+            },
+            "illegal_immigrants": support_oppose_dict,
+            "border_patrols": support_oppose_dict,
+            "withhold_police_funds": support_oppose_dict,
+            "reduce_immigration": support_oppose_dict,
+            "whites_understand_blacks": agreement_dict,
+            "slavery_influence": agreement_dict,
+            "resent_white_denial": agreement_dict,
+        }
+
+        for col, mapping in dv_map.items():
+            mod_df[col] = mod_df[col].map(mapping)
+
+        return mod_df
 
     def download_data(self):
         directory = "survey_data/cces/"
@@ -30,17 +219,13 @@ class CcesSurvey(Survey):
             "faminc_new": "income",
             "religpew": "religion",
             "race": "race_ethnicity",
-            "region_post": "region",
+            "region": "region",
             "marstat": "marital_status",
         }
         demo_cols = list(demo_dict.values())
 
         mod_df = df.rename(columns=demo_dict)
         mod_df = mod_df.dropna(subset=demo_cols)
-
-        # Turn age into an actual age
-        survey_year = 2020
-        mod_df["age"] = survey_year - mod_df["age"]
 
         dvs_dict = {
             "CC20_333a": "co2_emissions",
@@ -70,6 +255,8 @@ class CcesSurvey(Survey):
         cols = list(demo_dict.values()) + list(dvs_dict.values())
 
         mod_df = mod_df[cols]
+
+        mod_df = self._map_answers(mod_df)
 
         return mod_df
 

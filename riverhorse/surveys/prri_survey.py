@@ -1,4 +1,4 @@
-#MK
+''''Code by: MK'''
 
 from parent_dir import Survey, UserInterventionNeededError
 import os
@@ -27,46 +27,40 @@ class PrriSurvey(Survey):
 
         return pd.read_csv("survey_data/prri_survey/raw.csv")
 
+    # Helper function that returns combined columns in a list
+    def combine(self, col1, col2, df):
+
+        partyDf = df[[col1,col2]]
+        partyDf['combined'] = partyDf.values.tolist()
+        return partyDf['combined']
+
     def modify_data(self, df):
+        
         demo = {   
-            
-            "PARTY": "party",
+            "PARTY": "party", # includes party and party leaning
             "RELIG": "religion",
             "IDEO": "ideology",
             "GENDER": "gender",
             "AGE": "age",
             "RACETHNICITY": "race_ethnicity",
-            "EDUC": "education",
+            "EDUC": "education", # includes education and employment status
             "I_MARITAL": "marital_status",
-            "INCOME": "income",
-            "REGION4": "region",
-            
-            "PARTYLN": "party_leaning_to",
-            "EDUC4": "education_level",
-            "REGIST": "registered_voter",
-            "RELIG_OE": "specify_religion",
-            "BORN": "born_with_religion",
-            "ATTEND": "religious_practices",
-            "CLASS": "economic_class",
-            "EMPLOY2": "employment_type",
-            "EMPLOY": "emplyment_status",
-            "STATE": "state",
-            "HOME_TYPE": "home_type",
-            "METRO": "metro",
-            "HOUSING": "how_they_bought_house",
-            "INTERNET": "internet"
+            "INCOME": "income", # includes income  and class
+            "REGION4": "region", # includes region and state
         }
+
         #Renaming Demographic Columns
         mod_df = df.rename(columns=demo)
 
+        # Adding extra information to the columns
+        mod_df['party'] = self.combine('party','PARTYLN', mod_df)
+        mod_df['income'] = self.combine('income','CLASS', mod_df)
+        mod_df['region'] = self.combine('region','STATE', mod_df)
+        mod_df['education'] = self.combine('education','EMPLOY2', mod_df)
+        
         #Cleaning
         demo_cols = list(demo.values())
-        demo_cols.remove("party_leaning_to")
-        demo_cols.remove("specify_religion")
-        demo_cols.remove("born_with_religion")
-        demo_cols.remove("religious_practices")
         mod_df = mod_df.dropna(subset=demo_cols)
-
 
         # Drop all rows from df that have a null
         # value for the demographic columns that are
@@ -101,12 +95,14 @@ class PrriSurvey(Survey):
 
         mod_df = mod_df.rename(columns= dvs)
 
+        #Removing all other unecessary columns that we wont be using
         cols = list(dvs.values()) + list(demo.values())
         mod_df = mod_df[cols]
 
         # More processing here to get the data super nice and clean
         # like changing responses to exactly match what is in the
         # codebook
+
         return mod_df
 
     def get_dv_questions(self):

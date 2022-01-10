@@ -1,3 +1,5 @@
+# Author: Alex Shaw
+
 from parent_dir import Survey, UserInterventionNeededError
 import pandas as pd
 import os

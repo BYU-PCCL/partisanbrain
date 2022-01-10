@@ -4,12 +4,9 @@ import constants as k
 
 
 class SimpleDataset(Dataset):
-
-    def __init__(self, templates, df,
-                 sample_seed=0, n=None, out_fname=None):
+    def __init__(self, templates, df, sample_seed=0, n=None, out_fname=None):
         self.simple_dataset_templates = templates
-        super().__init__(sample_seed=sample_seed, n=n,
-                         in_fname=df, out_fname=out_fname)
+        super().__init__(sample_seed=sample_seed, n=n, in_fname=df, out_fname=out_fname)
 
     def _modify_raw_data(self, df):
         return df.copy()
@@ -19,11 +16,14 @@ class SimpleDataset(Dataset):
 
 
 class DatasetFactory:
-
     def __init__(self, survey_obj, sample_seed=0, n=None):
         df = survey_obj.df
+
+        # Alex added this to provide easier acces to the questions
+        self.questions = survey_obj.get_dv_questions()
+
         df = self.modify_data(df)
-        templates = self.get_templates(df)
+        templates = self.get_templates()
 
         # Get the list of DV colnames
         dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
@@ -31,17 +31,19 @@ class DatasetFactory:
         # Get the list of demographic colnames present
         present_dems = list(set(df.columns) & set(k.DEMOGRAPHIC_COLNAMES))
 
-        survey_name = survey_obj.get_survey_name()[:-len("Survey")].lower()
+        survey_name = survey_obj.get_survey_name()[: -len("Survey")].lower()
 
         # For each DV colname, make a dataset object
         for dv_colname in dv_colnames:
             sub_df = df.copy()[present_dems + [dv_colname]]
             sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
-            SimpleDataset(templates=templates[dv_colname],
-                          df=df,
-                          sample_seed=sample_seed,
-                          n=n,
-                          out_fname=f"data/{survey_name}/{dv_colname}/ds.pkl")
+            SimpleDataset(
+                templates=templates[dv_colname],
+                df=sub_df,
+                sample_seed=sample_seed,
+                n=n,
+                out_fname=f"data/{survey_name}/{dv_colname}/ds.pkl",
+            )
 
     def modify_data(self, df):
         """
