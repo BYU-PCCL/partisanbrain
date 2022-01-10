@@ -6,7 +6,8 @@ import os
 class SimpleDataset(Dataset):
     def __init__(self, templates, df, sample_seed=0, n=None, out_fname=None):
         self.simple_dataset_templates = templates
-        super().__init__(sample_seed=sample_seed, n=n, in_fname=df, out_fname=out_fname)
+        super().__init__(sample_seed=sample_seed, n=n,
+                         in_fname=df, out_fname=out_fname)
 
     def _modify_raw_data(self, df):
         return df.copy()
@@ -43,6 +44,7 @@ class DatasetFactory:
             if not os.path.exists(data_dir):
                 os.makedirs(data_dir)
 
+            sub_df = sub_df.dropna(subset=["ground_truth"])
             SimpleDataset(
                 templates=templates[dv_colname],
                 df=sub_df,
