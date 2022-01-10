@@ -21,13 +21,13 @@ class Survey:
 
         # Check if f"survey_data/{survey_dir}/full_data.pkl" exists
         survey_dir = self.camel_to_snake_case(self.get_survey_name())
-        full_data_path = f"survey_data/{survey_dir}/full_data.pkl"
+        full_data_path = k.SURVEY_DATA_PATH / f"{survey_dir}/full_data.pkl"
         if force_recreate or (not os.path.exists(full_data_path)):
 
             # Make sure the directory we're saving to eventually
             # exists. We're calling this early so subclasses don't need
             # to worry about it.
-            data_dir = f"survey_data/{survey_dir}/"
+            data_dir = k.SURVEY_DATA_PATH / f"{survey_dir}/"
             if not os.path.exists(data_dir):
                 os.makedirs(data_dir)
 
