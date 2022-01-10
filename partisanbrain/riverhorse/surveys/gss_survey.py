@@ -1,4 +1,5 @@
 from ..survey import Survey
+from ..constants import SURVEY_DATA_PATH
 import os
 import pandas as pd
 from io import BytesIO
@@ -12,16 +13,14 @@ class GssSurvey(Survey):
 
     def download_data(self):
         url = "https://gss.norc.org/Documents/spss/2018_spss.zip"
-        directory = "survey_data/gss_survey/"
+        directory = SURVEY_DATA_PATH / "gss_survey/"
 
-        # if not os.path.exists(directory):
-        #     os.makedirs(directory)
         with urlopen(url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(directory)
-        os.rename(
-            "survey_data/gss_survey/GSS2018.sav", "survey_data/gss_survey/gss.sav"
-        )
+        old_name = SURVEY_DATA_PATH / "gss_survey/GSS2018.sav"
+        new_name = SURVEY_DATA_PATH / "gss_survey/gss.sav"
+        os.rename(old_name, new_name)
         df = pd.read_spss("survey_data/gss_survey/gss.sav")
         return df
 
@@ -56,6 +55,10 @@ class GssSurvey(Survey):
                 "marital_status",
             ]
         )
+        mod_df = mod_df[mod_df['education'] != 98]
+        mod_df = mod_df[mod_df['education'] != 99]
+        mod_df = mod_df[mod_df['religion'] != "OTHER"]
+        mod_df = mod_df[mod_df['race_ethnicity'] != "SOME OTHER RACE"]
         # Rename DV columns.
         mod_df = mod_df.rename(
             columns={
@@ -116,6 +119,8 @@ class GssSurvey(Survey):
                 "life_after_death",
             ]
         ]
+
+        print("spending_protecting_environment: ", mod_df['spending_protecting_environment'].unique())
         return mod_df
 
     def get_dv_questions(self):
