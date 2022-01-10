@@ -1,4 +1,5 @@
-from parent_dir import Survey, UserInterventionNeededError
+from ..survey import Survey, UserInterventionNeededError
+from ..constants import DEMOGRAPHIC_COLNAMES
 import os
 import pandas as pd
 from io import BytesIO

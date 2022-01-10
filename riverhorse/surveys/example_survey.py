@@ -1,5 +1,5 @@
-from parent_dir import DEMOGRAPHIC_COLNAMES, Survey
-from parent_dir import UserInterventionNeededError
+from ..survey import Survey, UserInterventionNeededError
+from ..constants import DEMOGRAPHIC_COLNAMES
 
 import os
 import pandas as pd

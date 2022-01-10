@@ -1,6 +1,7 @@
 # @vinhowe
 
-from parent_dir import Survey, UserInterventionNeededError
+from ..survey import Survey, UserInterventionNeededError
+from ..constants import DEMOGRAPHIC_COLNAMES
 
 from pathlib import Path
 from typing import List, Dict

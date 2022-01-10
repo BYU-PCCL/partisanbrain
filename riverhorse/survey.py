@@ -1,4 +1,4 @@
-import constants as k
+from . import constants as k
 import os
 import pandas as pd
 import re

@@ -1,6 +1,7 @@
 # Author: Alex Shaw
 
-from parent_dir import Survey, UserInterventionNeededError
+from ..survey import Survey, UserInterventionNeededError
+from ..constants import DEMOGRAPHIC_COLNAMES
 import pandas as pd
 import os
 
