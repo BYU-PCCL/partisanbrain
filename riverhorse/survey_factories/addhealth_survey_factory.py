@@ -31,12 +31,6 @@ class AddhealthFactory(DatasetFactory):
                 'nan': '',
                 'default': f'''I am {row['gender']}. ''',
             },
-            'party': {
-                np.nan: '',
-                'nan': '',
-                'None/Independent': 'I am an independent. ',
-                'default': f'''I am a {row['party']}. ''',
-            },
             'ideology': {
                 np.nan: '',
                 'nan': '',
@@ -88,22 +82,21 @@ class AddhealthFactory(DatasetFactory):
                 'Protestant (Such as Assembly of God, Baptist, etc.)': 'Religiously, I identify as protestant',
                 'Other Christian': 'Religiously, I am Christian. ',
                 'Other' : "I am religious",
-                'default': f'Religiously, I identify as {row["religion"]}. ',
-                # 'default': f'''I am {row['religion']}. ''',
+                # 'default': f'Religiously, I identify as {row["religion"]}. ',
+                'default': f'''I am {row['religion']}. ''',
             },
             'race': {
                 np.nan: '',
                 'nan': '',
                 'default': f'''I am {row['race']}. ''',
-
-                'default': f'Racially, I identify as {row["race"]}. ',
+                # 'default': f'Racially, I identify as {row["race"]}. ',
             },
             #region
             'marital': {
                 np.nan: '',
                 'nan': '',
-                'never married': 'I have never married. ',
-                'default': f'''I am {row['marital']}. ''',
+                # 'never married': 'I have never married. ',
+                'default': f'''I have married {row['marital']}. ''',
             },
             
             
@@ -173,8 +166,8 @@ class AddhealthFactory(DatasetFactory):
 
     def get_tokens_yn(self):
         return {
-            '(0) No': 'No', 
-            '(1) Yes': 'Yes'}
+            'No': 'No', 
+            'Yes': 'Yes'}
 
     def get_templates(self):
         templates = {
