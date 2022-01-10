@@ -21,7 +21,7 @@ class GssSurvey(Survey):
         old_name = SURVEY_DATA_PATH / "gss_survey/GSS2018.sav"
         new_name = SURVEY_DATA_PATH / "gss_survey/gss.sav"
         os.rename(old_name, new_name)
-        df = pd.read_spss("survey_data/gss_survey/gss.sav")
+        df = pd.read_spss(SURVEY_DATA_PATH / "gss_survey/gss.sav")
         return df
 
     def modify_data(self, df):
@@ -120,7 +120,6 @@ class GssSurvey(Survey):
             ]
         ]
 
-        print("spending_protecting_environment: ", mod_df['spending_protecting_environment'].unique())
         return mod_df
 
     def get_dv_questions(self):
