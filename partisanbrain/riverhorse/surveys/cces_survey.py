@@ -1,31 +1,50 @@
-# Author: Alex Shaw
+"""
+Author: Alex Shaw
+Email: alexgshaw64@gmail.com
+"""
 
 from ..survey import Survey, UserInterventionNeededError
 import os
 import pandas as pd
-
-
-demo_drop_dict = {
-    "race_ethnicity": [7],
-    "ideology": [8],
-    "income": [97],
-    "religion": [12],
-    "party": [4, 9, 13],
-}
-
-dv_drop_dict = {
-    "whites_understand_blacks": [8, 9],
-    "slavery_influence": [8, 9],
-    "resent_white_denial": [8, 9],
-    "nations_economy": [6],
-    "gender_change": [3],
-    "sexuality": [5, 6],
-}
+import numpy as np
 
 
 class CcesSurvey(Survey):
     def __init__(self, force_recreate=False):
         super().__init__(force_recreate=force_recreate)
+
+    def _drop_answers(self, df):
+        """This doesn't actually drop answers but just sets unhelpful ones to NaN for dropping later"""
+        demo_drop_dict = {
+            "race_ethnicity": [7],
+            "ideology": [8],
+            "income": [97],
+            "religion": [12],
+            "party": [4, 9, 13],
+        }
+
+        dv_drop_dict = {
+            "whites_understand_blacks": [8, 9],
+            "slavery_influence": [8, 9],
+            "resent_white_denial": [8, 9],
+            "nations_economy": [6],
+            "gender_change": [3],
+            "sexuality": [5, 6],
+        }
+
+        dv_replace_dict = {
+            dv: {code: np.nan for code in codes} for dv, codes in dv_drop_dict.items()
+        }
+
+        demo_replace_dict = {
+            demo: {code: np.nan for code in codes}
+            for demo, codes in demo_drop_dict.items()
+        }
+
+        mod_df = df.replace(demo_replace_dict)
+        mod_df = mod_df.replace(dv_replace_dict)
+
+        return mod_df
 
     def _map_answers(self, df):
         mod_df = df
@@ -124,8 +143,9 @@ class CcesSurvey(Survey):
             },
         }
 
-        for col, mapping in demo_map.items():
-            mod_df[col] = mod_df[col].map(mapping)
+        # Commenting this out to copy some of the code from ../../survey/src/cces
+        # for col, mapping in demo_map.items():
+        #     mod_df[col] = mod_df[col].map(mapping)
 
         support_oppose_dict = {
             1: "Support",
@@ -257,6 +277,7 @@ class CcesSurvey(Survey):
         mod_df = mod_df[cols]
 
         mod_df = self._map_answers(mod_df)
+        mod_df = self._drop_answers(mod_df)
 
         return mod_df
 
@@ -289,4 +310,4 @@ if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
     # recent code from GitHub. See surveys/example.py for more
     # information on making your subclass.
-    s = CcesSurvey()
+    s = CcesSurvey(force_recreate=True)

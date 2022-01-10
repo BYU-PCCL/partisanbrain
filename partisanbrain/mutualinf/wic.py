@@ -65,7 +65,7 @@ A: Yes
 """,
 ]
 
-WIC_CONTEXT = '''Depending on its context, an ambiguous word can refer to multiple, potentially unrelated, meanings. Mainstream static word embeddings, such as Word2vec and GloVe, are unable to reflect this dynamic semantic nature. Contextualised word embeddings are an attempt at addressing this limitation by computing dynamic representations for words which can adapt based on context. A system's task on the WiC dataset is to identify the intended meaning of words. WiC is framed as a binary classification task. Each instance in WiC has a target word w, either a verb or a noun, for which two contexts are provided. Each of these contexts triggers a specific meaning of w. The task is to identify if the occurrences of w in the two contexts correspond to the same meaning or not. In fact, the dataset can also be viewed as an application of Word Sense Disambiguation in practise.
+WIC_CONTEXT = """Depending on its context, an ambiguous word can refer to multiple, potentially unrelated, meanings. Mainstream static word embeddings, such as Word2vec and GloVe, are unable to reflect this dynamic semantic nature. Contextualised word embeddings are an attempt at addressing this limitation by computing dynamic representations for words which can adapt based on context. A system's task on the WiC dataset is to identify the intended meaning of words. WiC is framed as a binary classification task. Each instance in WiC has a target word w, either a verb or a noun, for which two contexts are provided. Each of these contexts triggers a specific meaning of w. The task is to identify if the occurrences of w in the two contexts correspond to the same meaning or not. In fact, the dataset can also be viewed as an application of Word Sense Disambiguation in practise.
 WiC features multiple interesting characteristics:
 
 * It is suitable for evaluating a wide range of applications, including contextualized word and sense representation and Word Sense Disambiguation;
@@ -75,9 +75,9 @@ WiC features multiple interesting characteristics:
 Examples from the dataset:
 Context-1 // Context-2 // Target // Label
 There's a lot of trash on the bed of the river // I keep a glass of water on my bed when I sleep // bed // Different
-Air pollution // Open a window and let in some air // air // Same'''
+Air pollution // Open a window and let in some air // air // Same"""
 
-WIKIPEDIA_CONTEXT = '''In linguistics, a word sense is one of the meanings of a word. Words are in two sets: a large set with multiple meanings (word senses) and a small set with only one meaning (word sense). For example, a dictionary may have over 50 different senses of the word "play", each of these having a different meaning based on the context of the word's usage in a sentence, as follows:
+WIKIPEDIA_CONTEXT = """In linguistics, a word sense is one of the meanings of a word. Words are in two sets: a large set with multiple meanings (word senses) and a small set with only one meaning (word sense). For example, a dictionary may have over 50 different senses of the word "play", each of these having a different meaning based on the context of the word's usage in a sentence, as follows:
 
 "We went to see the play Romeo and Juliet at the theater."
 "The coach devised a great play that put the visiting team on the defensive."
@@ -92,195 +92,214 @@ The following are examples of two sentences where the meaning of the word is eit
 
 Examples:
 There's a lot of trash on the bed of the river // I keep a glass of water on my bed when I sleep // bed // Different
-Air pollution // Open a window and let in some air // air // Same'''
+Air pollution // Open a window and let in some air // air // Same"""
 
 
 class WicDataset(Dataset):
-
     def __init__(self, sample_seed=0, n=None):
         self._token_set = {
-            'question': {
-                'True': ['yes'],
-                'False': ['no'],
+            "question": {
+                "True": ["yes"],
+                "False": ["no"],
             },
-            'true_false_classify': {
-                'True': ['true'],
-                'False': ['false'],
+            "true_false_classify": {
+                "True": ["true"],
+                "False": ["false"],
             },
-            'few_shot': {
-                'True': ['same'],
-                'False': ['different'],
+            "few_shot": {
+                "True": ["same"],
+                "False": ["different"],
             },
         }
         super().__init__(sample_seed=sample_seed, n=n)
 
     def _modify_raw_data(self, df):
         # change "ground_truth" column from bool to str
-        df['ground_truth'] = df['ground_truth'].astype(str)
+        df["ground_truth"] = df["ground_truth"].astype(str)
         return df
 
     def _get_templates(self):
         templates = {
-            'question0': (
+            "question0": (
                 lambda row: (
-                    f'{row.sentence1} // {row.sentence2}\n'
+                    f"{row.sentence1} // {row.sentence2}\n"
                     f'Choose "yes" or "no". Does the word {row.word} have the same meaning in the previous sentences? "'
-                ), self._token_set['question']
+                ),
+                self._token_set["question"],
             ),
-            'few_shot0': (
+            "few_shot0": (
                 lambda row: (
-                    'Classify whether the following two sentences\' use of the word has the same meaning or not.\n\n' +
-                    SHOTS[0] +
-                    f'Word: {row.word}\n'
-                    f'Usage 1: {row.sentence1}\n'
-                    f'Usage 2: {row.sentence2}\n'
-                    f'Meaning:'
-                ), self._token_set['few_shot']
+                    "Classify whether the following two sentences' use of the word has the same meaning or not.\n\n"
+                    + SHOTS[0]
+                    + f"Word: {row.word}\n"
+                    f"Usage 1: {row.sentence1}\n"
+                    f"Usage 2: {row.sentence2}\n"
+                    f"Meaning:"
+                ),
+                self._token_set["few_shot"],
             ),
-            'few_shot1': (
+            "few_shot1": (
                 lambda row: (
-                    'Classify whether the following two sentences\' use of the word has the same meaning or not.\n\n' +
-                    ''.join(SHOTS[:2]) +
-                    f'Word: {row.word}\n'
-                    f'Usage 1: {row.sentence1}\n'
-                    f'Usage 2: {row.sentence2}\n'
-                    f'Meaning:'
-                ), self._token_set['few_shot']
+                    "Classify whether the following two sentences' use of the word has the same meaning or not.\n\n"
+                    + "".join(SHOTS[:2])
+                    + f"Word: {row.word}\n"
+                    f"Usage 1: {row.sentence1}\n"
+                    f"Usage 2: {row.sentence2}\n"
+                    f"Meaning:"
+                ),
+                self._token_set["few_shot"],
             ),
-            'few_shot2': (
+            "few_shot2": (
                 lambda row: (
-                    'Classify whether the following two sentences\' use of the word has the same meaning or not.\n\n' +
-                    ''.join(SHOTS[:3]) +
-                    f'Word: {row.word}\n'
-                    f'Usage 1: {row.sentence1}\n'
-                    f'Usage 2: {row.sentence2}\n'
-                    f'Meaning:'
-                ), self._token_set['few_shot']
+                    "Classify whether the following two sentences' use of the word has the same meaning or not.\n\n"
+                    + "".join(SHOTS[:3])
+                    + f"Word: {row.word}\n"
+                    f"Usage 1: {row.sentence1}\n"
+                    f"Usage 2: {row.sentence2}\n"
+                    f"Meaning:"
+                ),
+                self._token_set["few_shot"],
             ),
-            'few_shot3': (
+            "few_shot3": (
                 lambda row: (
-                    'Classify whether the following two sentences\' use of the word has the same meaning or not.\n\n' +
-                    ''.join(SHOTS[:4]) +
-                    f'Word: {row.word}\n'
-                    f'Usage 1: {row.sentence1}\n'
-                    f'Usage 2: {row.sentence2}\n'
-                    f'Meaning:'
-                ), self._token_set['few_shot']
+                    "Classify whether the following two sentences' use of the word has the same meaning or not.\n\n"
+                    + "".join(SHOTS[:4])
+                    + f"Word: {row.word}\n"
+                    f"Usage 1: {row.sentence1}\n"
+                    f"Usage 2: {row.sentence2}\n"
+                    f"Meaning:"
+                ),
+                self._token_set["few_shot"],
             ),
-            'question_answer_logic0': (
+            "question_answer_logic0": (
                 lambda row: (
-                    ''.join(LOGIC_QUESTIONS[:1]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(LOGIC_QUESTIONS[:1])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'question_answer_logic1': (
+            "question_answer_logic1": (
                 lambda row: (
-                    ''.join(LOGIC_QUESTIONS[:2]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(LOGIC_QUESTIONS[:2])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'question_answer_fact0': (
+            "question_answer_fact0": (
                 lambda row: (
-                    ''.join(FACT_QUESTIONS[:1]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(FACT_QUESTIONS[:1])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'question_answer_fact1': (
+            "question_answer_fact1": (
                 lambda row: (
-                    ''.join(FACT_QUESTIONS[:2]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(FACT_QUESTIONS[:2])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'question_answer_yes_no0': (
+            "question_answer_yes_no0": (
                 lambda row: (
-                    ''.join(YES_NO_QUESTIONS[:1]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(YES_NO_QUESTIONS[:1])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'question_answer_yes_no1': (
+            "question_answer_yes_no1": (
                 lambda row: (
-                    ''.join(YES_NO_QUESTIONS[:2]) +
-                    f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
+                    "".join(YES_NO_QUESTIONS[:2])
+                    + f'Q: Does the word "{row.word}" have the same meaning in the following sentences? '
                     f'"{row.sentence1}"; "{row.sentence2}"\n'
-                    f'A:'
-                ), self._token_set['question']
+                    f"A:"
+                ),
+                self._token_set["question"],
             ),
-            'true_false_classify1': (
+            "true_false_classify1": (
                 lambda row: (
                     f'In the sentences "{row.sentence1}" and "{row.sentence2}", '
-                    f'true or false, '
+                    f"true or false, "
                     f'the statement "the word {row.word} has the same meaning" is'
-                ), self._token_set['true_false_classify']
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify2': (
+            "true_false_classify2": (
                 lambda row: (
                     f'In the sentences "{row.sentence1}" and "{row.sentence2}" '
                     f'and choosing "true" or "false", '
                     f'the statement "the word {row.word} has the same meaning" is "'
-                ), self._token_set['true_false_classify']
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify3': (
+            "true_false_classify3": (
                 lambda row: (
                     f'"{row.sentence1}"\n'
                     f'"{row.sentence2}"\n\n'
-                    f'True or false, the word {row.word} has the same meaning.\n'
-                    f'Answer:'
-                ), self._token_set['true_false_classify']
+                    f"True or false, the word {row.word} has the same meaning.\n"
+                    f"Answer:"
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify4': (
+            "true_false_classify4": (
                 lambda row: (
                     f'"{row.sentence1}"\n'
                     f'"{row.sentence2}"\n\n'
                     f'"True" or "False", the word {row.word} has the same meaning.\n'
                     f'Answer: "'
-                ), self._token_set['true_false_classify']
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify5': (
+            "true_false_classify5": (
                 lambda row: (
                     f'"{row.sentence1}"\n'
                     f'"{row.sentence2}"\n\n'
                     f'True or False, the word "{row.word}" has the same meaning.\n'
-                    f'Answer:'
-                ), self._token_set['true_false_classify']
+                    f"Answer:"
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify6': (
+            "true_false_classify6": (
                 lambda row: (
                     f'True or False, the word "{row.word}" has the same meaning in the following sentences.\n\n'
                     f'Sentence 1: "{row.sentence1}"\n'
                     f'Sentence 2: "{row.sentence2}"\n\n'
-                    f'Answer:'
-                ), self._token_set['true_false_classify']
+                    f"Answer:"
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'true_false_classify7': (
+            "true_false_classify7": (
                 lambda row: (
-                    'I am going to answer true or false questions about whether a word that appears in two sentences has the same meaning or not.\n\n'
+                    "I am going to answer true or false questions about whether a word that appears in two sentences has the same meaning or not.\n\n"
                     f'True or False, the word "{row.word}" has the same meaning in the following sentences.\n\n'
-                    f'Sentence 1: {row.sentence1}\n'
-                    f'Sentence 2: {row.sentence2}\n'
-                    f'Answer:'
-                ), self._token_set['true_false_classify']
+                    f"Sentence 1: {row.sentence1}\n"
+                    f"Sentence 2: {row.sentence2}\n"
+                    f"Answer:"
+                ),
+                self._token_set["true_false_classify"],
             ),
-            'wic_context': (
+            "wic_context": (
                 lambda row: (
-                    WIC_CONTEXT +
-                    f'\n{row.sentence1} // {row.sentence2} // {row.word} //'
-                ), self._token_set['few_shot']
+                    WIC_CONTEXT
+                    + f"\n{row.sentence1} // {row.sentence2} // {row.word} //"
+                ),
+                self._token_set["few_shot"],
             ),
-            'wikipedia_context': (
+            "wikipedia_context": (
                 lambda row: (
-                    WIKIPEDIA_CONTEXT +
-                    f'\n{row.sentence1} // {row.sentence2} // {row.word} //'
-                ), self._token_set['few_shot']
+                    WIKIPEDIA_CONTEXT
+                    + f"\n{row.sentence1} // {row.sentence2} // {row.word} //"
+                ),
+                self._token_set["few_shot"],
             ),
         }
 

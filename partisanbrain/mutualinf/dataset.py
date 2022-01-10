@@ -18,7 +18,7 @@ class Opener:
             "pkl": self._load_pickled_df,
             "pickle": self._load_pickled_df,
             "sav": pd.read_spss,
-            "dta": pd.read_stata
+            "dta": pd.read_stata,
         }
 
     def _load_csv(self, fname):
@@ -59,13 +59,9 @@ class Opener:
 
 
 class Dataset(abc.ABC):
-
-    def __init__(self,
-                 in_fname=None,
-                 opening_func=None,
-                 out_fname=None,
-                 sample_seed=0,
-                 n=None):
+    def __init__(
+        self, in_fname=None, opening_func=None, out_fname=None, sample_seed=0, n=None
+    ):
 
         self._snake_case_cls_name = self._get_snake_case_cls_name()
         recommended_ds_dir = f"data/{self._snake_case_cls_name}"
@@ -81,8 +77,7 @@ class Dataset(abc.ABC):
 
             # Turn the dataset specified by in_fname
             # into a pandas dataframe
-            self._df = Opener().open(fname=in_fname,
-                                     opening_func=opening_func)
+            self._df = Opener().open(fname=in_fname, opening_func=opening_func)
 
         # Modify the dataframe based on child class
         # specifications
@@ -90,9 +85,11 @@ class Dataset(abc.ABC):
 
         # Ensure ground_truth is now a column name
         if "ground_truth" not in list(self._df):
-            msg = ("The dataframe returned from "
-                   f"{self.__class__.__name__}._modify_raw_data is "
-                   "missing column name \"ground_truth.\"")
+            msg = (
+                "The dataframe returned from "
+                f"{self.__class__.__name__}._modify_raw_data is "
+                'missing column name "ground_truth."'
+            )
             raise RuntimeError(msg)
 
         # Sample down to n rows if requested
@@ -119,12 +116,11 @@ class Dataset(abc.ABC):
     def _get_snake_case_cls_name(self):
         cls_name = self.__class__.__name__
         snake_name = re.sub(r"(?<!^)(?=[A-Z])", "_", cls_name).lower()
-        snake_name = snake_name[:-len("_dataset")]
+        snake_name = snake_name[: -len("_dataset")]
         return snake_name
 
     def _get_raw_data_fname(self, ds_dir):
-        dir_fnames = [f.split("/")[-1] for f in
-                      glob.glob(f"{ds_dir}/*")]
+        dir_fnames = [f.split("/")[-1] for f in glob.glob(f"{ds_dir}/*")]
         for fname in dir_fnames:
             if fname.startswith("raw"):
                 return f"{ds_dir}/{fname}"
