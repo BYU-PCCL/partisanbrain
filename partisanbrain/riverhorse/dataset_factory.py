@@ -1,11 +1,13 @@
 from ..mutualinf.dataset import Dataset
 from . import constants as k
+import os
 
 
 class SimpleDataset(Dataset):
     def __init__(self, templates, df, sample_seed=0, n=None, out_fname=None):
         self.simple_dataset_templates = templates
-        super().__init__(sample_seed=sample_seed, n=n, in_fname=df, out_fname=out_fname)
+        super().__init__(sample_seed=sample_seed, n=n,
+                         in_fname=df, out_fname=out_fname)
 
     def _modify_raw_data(self, df):
         return df.copy()
@@ -25,23 +27,30 @@ class DatasetFactory:
         templates = self.get_templates()
 
         # Get the list of DV colnames
-        dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
+        self.dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
 
         # Get the list of demographic colnames present
-        present_dems = list(set(df.columns) & set(k.DEMOGRAPHIC_COLNAMES))
+        self.present_dems = list(set(df.columns) & set(k.DEMOGRAPHIC_COLNAMES))
 
         survey_name = survey_obj.get_survey_name()[: -len("Survey")].lower()
 
         # For each DV colname, make a dataset object
-        for dv_colname in dv_colnames:
-            sub_df = df.copy()[present_dems + [dv_colname]]
+        for dv_colname in self.dv_colnames:
+            sub_df = df.copy()[self.present_dems + [dv_colname]]
             sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
+
+            data_dir = f"data/{survey_name}/{dv_colname}"
+
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+
+            sub_df = sub_df.dropna(subset=["ground_truth"])
             SimpleDataset(
                 templates=templates[dv_colname],
                 df=sub_df,
                 sample_seed=sample_seed,
                 n=n,
-                out_fname=f"data/{survey_name}/{dv_colname}/ds.pkl",
+                out_fname=os.path.join(data_dir, "ds.pkl"),
             )
 
     def modify_data(self, df):
