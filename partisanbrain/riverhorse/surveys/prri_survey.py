@@ -4,7 +4,7 @@ from ..survey import Survey
 import os
 import pandas as pd
 import requests
-
+from ..constants import SURVEY_DATA_PATH
 
 class PrriSurvey(Survey):
 
@@ -12,20 +12,20 @@ class PrriSurvey(Survey):
         super().__init__()
 
     def download_data(self):
-
-        if not os.path.exists("survey_data/prri_survey/raw.csv"):
+        print("download")
+        if not os.path.exists(SURVEY_DATA_PATH / "prri_survey/raw.csv"):
             # download the data
             fsav = requests.get("https://osf.io/x6gnf/download")
             # save
-            with open("survey_data/prri_survey/raw.sav", "wb") as f:
+            with open(SURVEY_DATA_PATH / "prri_survey/raw.sav", "wb") as f:
                 f.write(fsav.content)
             f.close()
             #convert sav file to csv
-            df = pd.read_spss("survey_data/prri_survey/raw.sav")
-            df.to_csv("survey_data/prri_survey/raw.csv", index=False)
+            df = pd.read_spss(SURVEY_DATA_PATH / "prri_survey/raw.sav")
+            df.to_csv(SURVEY_DATA_PATH / "prri_survey/raw.csv", index=False)
 
 
-        return pd.read_csv("survey_data/prri_survey/raw.csv")
+        return pd.read_csv(SURVEY_DATA_PATH / "prri_survey/raw.csv")
 
     # Helper function that returns combined columns in a list
     def combine(self, col1, col2, df):
@@ -43,10 +43,10 @@ class PrriSurvey(Survey):
             "GENDER": "gender",
             "AGE": "age",
             "RACETHNICITY": "race_ethnicity",
-            "EDUC": "education", # includes education and employment status
+            "EDUC": "education", 
             "I_MARITAL": "marital_status",
-            "INCOME": "income", # includes income  and class
-            "REGION4": "region", # includes region and state
+            "INCOME": "income",
+            "STATE": "region"
         }
 
         #Renaming Demographic Columns
@@ -54,9 +54,6 @@ class PrriSurvey(Survey):
 
         # Adding extra information to the columns
         mod_df['party'] = self.combine('party','PARTYLN', mod_df)
-        mod_df['income'] = self.combine('income','CLASS', mod_df)
-        mod_df['region'] = self.combine('region','STATE', mod_df)
-        mod_df['education'] = self.combine('education','EMPLOY2', mod_df)
         
         #Cleaning
         demo_cols = list(demo.values())
@@ -99,6 +96,8 @@ class PrriSurvey(Survey):
         cols = list(dvs.values()) + list(demo.values())
         mod_df = mod_df[cols]
 
+        print("hello")
+
         # More processing here to get the data super nice and clean
         # like changing responses to exactly match what is in the
         # codebook
@@ -134,4 +133,5 @@ if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
     # recent code from GitHub. See surveys/example.py for more
     # information on making your subclass.
+    print("Entered file")
     s = PrriSurvey()
