@@ -1,4 +1,6 @@
 import re
+
+from numpy.core.numeric import outer
 from ..dataset_factory import DatasetFactory
 from ..surveys.addhealth_survey import AddhealthSurvey
 from datetime import date
@@ -31,7 +33,16 @@ class AddhealthFactory(DatasetFactory):
     }
 
     answers = {
-        'age': "number",
+        'age': ["1974",
+                "1975",
+                "1976",
+                "1977",
+                "1978",
+                "1979",
+                "1980",
+                "1981",
+                "1982",
+                "1983", ],
         'gender': ["Male", "Female"],
         'ideology': ["Conservative", "Middle-of-the-road", "Liberal"],
         'education': ['8th grade or less',
@@ -237,7 +248,7 @@ class AddhealthFactory(DatasetFactory):
         }
         return dictionary
     
-    # 
+    # 01 Personal
     def make_backstory1(self, row):
         '''
         list style backstory dropping nans
@@ -252,7 +263,7 @@ class AddhealthFactory(DatasetFactory):
                 backstory += dictionary[key]['default']
         return backstory
 
-    #QA
+    # 02 QA
     def make_backstory2(self, row):
         '''
         qa style backstory dropping nans
@@ -270,7 +281,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Q: "
         return backstory
 
-    # First PersonConversation (P1, P2)
+    # 03 First PersonConversation (P1, P2)
     def make_backstory3(self, row):
         '''
         conversation style backstory dropping nans
@@ -288,7 +299,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "P1: "
         return backstory
 
-    # First Person Answer Key
+    # 04 First Person Answer Key
     def make_backstory4(self, row):
         '''
         Answer key style backstory dropping nans
@@ -319,21 +330,22 @@ class AddhealthFactory(DatasetFactory):
             val = row[key]
             answer_key += val + "\n" + x + ") "
             
-    # Survey Response
-    def make_backstory_mult(self, row):
+    # 05 Survey Response
+    def make_backstory_survey(self, row):
         '''
-        multiple choice style backstory dropping nans
+        survey style backstory dropping nans
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
+        answers = self.answers
         backstory = ''
         x = 1
         for key in dictionary.keys():
             val = row[key]
             backstory += "Question " + x + ": " + questions[key] + " ("
             comma = ""
-            for val in dictionary[key]:
-                backstory += comma + val
+            for ans in answers[key]:
+                backstory += comma + ans
                 comma = ", "
             backstory += ")\n Answer " + x + ": "
             if val in dictionary[key]:
@@ -349,33 +361,32 @@ class AddhealthFactory(DatasetFactory):
     def get_answer_num(self, row):
         return len(self.get_dictionary(row).keys())
 
-    # Multiple Choice Response
-    def make_backstory_survey(self, row):
+    # 06 Multiple Choice Response
+    def make_backstory_mult(self, row):
         '''
         mutliple choice style backstory dropping nans
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
+        answers = self.answers
         backstory = ''
         x = 1
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Question " + x + ": " + questions[key] + " ("
-            comma = ""
-            
-            for val in dictionary[key]:
-                backstory += comma + val
-                comma = ", "
-            backstory += ")\n Answer " + x + ": "
-            if val in dictionary[key]:
-                backstory += dictionary[key][val] + "\n"
-            else:
-                backstory += dictionary[key]['default'] + "\n"
+            backstory += "Question " + x + ": " + questions[key] + "\n"
+            x = 0
+            backstory += self.format_mult(answers[key])
+            backstory += "Correct Answer: " + x + ": " + chr(65 + answers.index(val))
             x += 1
         
         backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
         return backstory
     
+    def format_mult(self,answers):
+        output = ""
+        for ans in answers:
+                output += chr(65 + answers.index(ans)) + ": " + ans + "\n"
+        return output
 
     
     def modify_data(self, df):
