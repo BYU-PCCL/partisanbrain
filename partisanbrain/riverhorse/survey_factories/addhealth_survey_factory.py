@@ -72,6 +72,18 @@ class AddhealthFactory(DatasetFactory):
                 'Refused': np.nan,
                 'default': f'''My household income is {row['income']}. ''',
                 # '$5,000 to $9,999' : '', etc
+
+                # '$5,000 to $9,999'
+                # '$10,000 to $14,999'
+                # '$15,000 to $19,999'
+                # '$20,000 to $24,999'
+                # '$25,000 to $29,999'
+                # '$30,000 to $39,999'
+                # '$40,000 to $49,999'
+                # '$50,000 to $74,999'
+                # '$75,000 to $99,999'
+                # '$100,000 to $149,999'
+                # '$150,000 or more'
                 
             },
             'religion': {
@@ -98,7 +110,90 @@ class AddhealthFactory(DatasetFactory):
             },
         }
         return dictionary
+
+    def get_dictionary_personal(self, row, name):
+        dictionary = {
+            'age': {
+                '-1': '',
+                'default': f'''{name} was born in the year {row['age']}. ''',
+            },
+            'gender': {
+                'default': f'''{name} is {row['gender']}. ''',
+            },
+            'ideology': {
+                'Refused' : np.nan,
+                "Dont' know" : np.nan,
+                'default': f'''Ideologically, {name} is {str(row['ideo']).strip().lower()}. ''',
+            },
+            'education': {
+                "Don't know": np.nan,
+                'Refused': np.nan,
+                '8th grade or less' : f"{name} completed up to 8th grade or less. ",
+                'Some high school': f"{name} attended some high school. ",
+                'High school graduate': f"{name} graduated high school. ",
+                'Some vocational/technical training (after high school)': 
+                    f"{name} has completed some vocational/technical training",
+                'Completed vocational/technical training (after high scho' : 
+                    f"{name} completed vocational or technical training after high school.",
+                'Some college': f"{name} attended some college. ",
+                "Completed college (bachelor's degree)" : f"{name} have a Bachelor's degree. ",
+                "Some graduate school" : f"{name} have attended some graduate school",
+                "Completed a master's degree " : f"{name} have a Master's degree",
+                "Some graduate training beyond a master's degree" : 
+                    f"{name} have attended some graduate training beyond a master's degree",
+                "Completed a doctoral degree " : 
+                    f"{name} have completed a doctoral degree",
+                "Some post baccalaureate professional education" : 
+                    f"{name} have completed some post baccalaureate professional education",
+                "Completed post baccalaureate professional education" : 
+                    f"{name} have completed post baccalaureate professional education"
+                # no default, should be exhaustive
+            },
+            'income': {
+                "Don't know": np.nan,
+                'Refused': np.nan,
+                'default': f'''{name}'s household income is {row['income']}. ''',
+                # '$5,000 to $9,999' : '', etc
+                
+                # '$5,000 to $9,999'
+                # '$10,000 to $14,999'
+                # '$15,000 to $19,999'
+                # '$20,000 to $24,999'
+                # '$25,000 to $29,999'
+                # '$30,000 to $39,999'
+                # '$40,000 to $49,999'
+                # '$50,000 to $74,999'
+                # '$75,000 to $99,999'
+                # '$100,000 to $149,999'
+                # '$150,000 or more'
+                
+            },
+            'religion': {
+                "Don't know": np.nan,
+                'Refused': np.nan,
+                'none/atheist/agnostic' : f"{name} is either atheist, agnostic, or non-religious",
+                'Protestant (Such as Assembly of God, Baptist, etc.)': f'Religiously, {name} identifies as protestant',
+                'Other Christian': f'Religiously, {name} is Christian. ',
+                'Other' : f"{name} is religious",
+                # 'default': f'Religiously, I identify as {row["religion"]}. ',
+                'default': f'''{name} is {row['religion']}. ''',
+            },
+            'race_ethnicity': {
+                "Missing": np.nan,
+                'default': f'''{name} is {row['race_ethnicity']}. ''',
+                # 'default': f'Racially, I identify as {row["race"]}. ',
+            },
+            #region
+            'marital': {
+                "Don't know": np.nan,
+                'Refused': np.nan,
+                # 'never married': 'I have never married. ',
+                'default': f'''{name} has married {row['marital']}. ''',
+            },
+        }
+        return dictionary
     
+    # 
     def make_backstory1(self, row):
         '''
         list style backstory dropping nans
@@ -122,12 +217,62 @@ class AddhealthFactory(DatasetFactory):
         backstory = ''
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Q: " + questions[key] + "A: "
+            backstory += "Q: " + questions[key] + "\nA: "
+            if val in dictionary[key]:
+                backstory += dictionary[key][val] + "\n"
+            else:
+                backstory += dictionary[key]['default'] + "\n"
+        backstory += "Q: "
+        return backstory
+
+    def make_backstory3(self, row):
+        '''
+        conversation style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        backstory = ''
+        for key in dictionary.keys():
+            val = row[key]
+            backstory += "P1: " + questions[key] + "\nP2: "
+            if val in dictionary[key]:
+                backstory += dictionary[key][val] + "\n"
+            else:
+                backstory += dictionary[key]['default'] + "\n"
+        backstory += "P1: "
+        return backstory
+
+    def make_backstory4(self, row):
+        '''
+        Answer key style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        backstory = "PASSAGE:\n"
+        for key in dictionary.keys():
+            val = row[key]
             if val in dictionary[key]:
                 backstory += dictionary[key][val]
             else:
                 backstory += dictionary[key]['default']
+        backstory += "\n\n QUESTIONS: \n"
+        x = 1
+        for key in dictionary.keys():
+            backstory += x + ") " + questions[key] + "\n"
+            x += 1
         return backstory
+
+    def make_backstory4_answerkey(self, row):
+        dictionary = self.get_dictionary(row)
+        x = 1
+        answer_key = "ANSWER KEY:\n\n" + x + ") "
+        
+        for key in dictionary.keys():
+            x += 1
+            val = row[key]
+            answer_key += val + "\n" + x + ") "
+            
+
 
     
     def modify_data(self, df):
@@ -198,18 +343,35 @@ class AddhealthFactory(DatasetFactory):
                 self.get_tokens_yn()),
                 "personal4": (lambda row: (f"{self.make_backstory1(row)}\n In the past year, has someone been shot or stabbed by you?"), 
                 self.get_tokens_yn()),
-                "personal5": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"), 
+                "personal5": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"),  
                 self.get_tokens_yn()),
-                "qa1": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed someone in the past 12 months?"), 
+                
+                "qa1": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed someone in the past 12 months? A: "), 
                 self.get_tokens_yn()),
-                "qa2": (lambda row: (f"{self.make_backstory1(row)}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                "qa2": (lambda row: (f"{self.make_backstory2(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? A:"), 
                 self.get_tokens_yn()),
-                "qa3": (lambda row: (f"{self.make_backstory1(row)}\n In the past 12 months, have you shot or stabbed someone?"), 
+                "qa3": (lambda row: (f"{self.make_backstory2(row)}\n In the past 12 months, have you shot or stabbed someone? A:"), 
                 self.get_tokens_yn()),
-                "qa4": (lambda row: (f"{self.make_backstory1(row)}\n In the past year, has someone been shot or stabbed by you?"), 
+                "qa4": (lambda row: (f"{self.make_backstory2(row)}\n In the past year, has someone been shot or stabbed by you? A:"), 
                 self.get_tokens_yn()),
-                "qa15": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"), 
+                "qa5": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed at least one person in the past year? A:"), 
                 self.get_tokens_yn()),
+                
+                "conv1": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed someone in the past 12 months? P2:"), 
+                self.get_tokens_yn()),
+                "conv2": (lambda row: (f"{self.make_backstory2(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? P2:"), 
+                self.get_tokens_yn()),
+                "conv3": (lambda row: (f"{self.make_backstory2(row)}\n In the past 12 months, have you shot or stabbed someone? P2:"), 
+                self.get_tokens_yn()),
+                "conv4": (lambda row: (f"{self.make_backstory2(row)}\n In the past year, has someone been shot or stabbed by you? P2:"), 
+                self.get_tokens_yn()),
+                "conv5": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed at least one person in the past year? P2:"), 
+                self.get_tokens_yn()),
+
+                "anskey1": (lambda row: (f"{self.make_backstory4(row)}\n Have you shot or stabbed someone in the past 12 months? {self.make_backstory4_answerkey}"), 
+                self.get_tokens_yn()),
+
+
                 
                 # More templates here
             },
