@@ -208,6 +208,7 @@ class AddhealthFactory(DatasetFactory):
                 backstory += dictionary[key]['default']
         return backstory
 
+    #QA
     def make_backstory2(self, row):
         '''
         qa style backstory dropping nans
@@ -225,6 +226,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Q: "
         return backstory
 
+    # First PersonConversation (P1, P2)
     def make_backstory3(self, row):
         '''
         conversation style backstory dropping nans
@@ -242,6 +244,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "P1: "
         return backstory
 
+    # First Person Answer Key
     def make_backstory4(self, row):
         '''
         Answer key style backstory dropping nans
@@ -272,7 +275,24 @@ class AddhealthFactory(DatasetFactory):
             val = row[key]
             answer_key += val + "\n" + x + ") "
             
-
+    # Survey Response
+    def make_backstory_survey(self, row):
+        '''
+        survey style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        backstory = ''
+        x = 1
+        for key in dictionary.keys():
+            val = row[key]
+            backstory += "Question " + x + ": " + questions[key] + "\n"
+            if val in dictionary[key]:
+                backstory += dictionary[key][val] + "\n"
+            else:
+                backstory += dictionary[key]['default'] + "\n"
+        backstory += "P1: "
+        return backstory
 
     
     def modify_data(self, df):
