@@ -34,7 +34,7 @@ class AddhealthFactory(DatasetFactory):
         'marital': "How many persons have you ever married? (including a current spouse) ",
     }
 
-    answers = {
+    answers_backstory = {
         'age': ["1974",
                 "1975",
                 "1976",
@@ -98,6 +98,8 @@ class AddhealthFactory(DatasetFactory):
                 # "Don't know"
                 ],
     }
+
+    answers_
 
     def get_dictionary(self, row):
         dictionary = {
@@ -291,7 +293,7 @@ class AddhealthFactory(DatasetFactory):
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
-        answers = self.answers
+        answers = self.answers_backstory
         backstory = ''
         for key in dictionary.keys():
             val = row[key]
@@ -364,7 +366,7 @@ class AddhealthFactory(DatasetFactory):
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
-        answers = self.answers
+        answers = self.answers_backstory
         backstory = ''
         x = 1
         for key in dictionary.keys():
@@ -395,24 +397,24 @@ class AddhealthFactory(DatasetFactory):
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
-        answers = self.answers
+        answers_backstory = self.answers_backstory
         backstory = ''
         x = 1
         for key in dictionary.keys():
             val = row[key]
             backstory += "Question " + x + ": " + questions[key] + "\n"
             x = 0
-            backstory += self.format_mult(answers[key]) # includes "Correct Answer: "
-            backstory += chr(65 + answers[key].index(val))
+            backstory += self.format_mult(answers_backstory[key]) # includes "Correct Answer: "
+            backstory += chr(65 + answers_backstory[key].index(val))
             x += 1
         
         backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
         return backstory
     
-    def format_mult(self,answers):
+    def format_mult(self,answers_backstory):
         output = ""
-        for ans in answers:
-                output += chr(65 + answers.index(ans)) + ": " + ans + "\n"
+        for ans in answers_backstory:
+                output += chr(65 + answers_backstory.index(ans)) + ": " + ans + "\n"
         output += "Correct Answer: "
         return output
 
@@ -486,8 +488,8 @@ class AddhealthFactory(DatasetFactory):
 
     def get_tokens_yn(self):
         return {
-            'No': 'No', 
-            'Yes': 'Yes'}
+            'Yes': 'Yes', 
+            'No': 'No'}
 
     def get_tokens_mult(self):
         return {
@@ -496,72 +498,72 @@ class AddhealthFactory(DatasetFactory):
 
     def get_tokens_2_times(self):
         return {
-            "Never", 
-            "1 or 2 times", 
-            "3 or 4 times", 
-            "5 or more times"}
+            "Never" : "Never", 
+            "1 or 2 times" : "1 or 2 times", 
+            "3 or 4 times" : "3 or 4 times", 
+            "5 or more times" : "5 or more times"}
 
     def get_tokens_charges(self):
         return {
-            "No", 
-            "Once", 
-            "More than once"}
+            "No" : "No", 
+            "Once" : "Once", 
+            "More than once" : "More than once"}
 
     def get_tokens_occasion(self):
         return {
-            "Never or rarely", 
-            "Sometimes", 
-            "A lot of the time",
-            "Most of the time or all of the time"}
+            "Never or rarely" : "Never or rarely", 
+            "Sometimes" : "Sometimes", 
+            "A lot of the time" : "A lot of the time",
+            "Most of the time or all of the time" : "Most of the time or all of the time"}
 
     def get_tokens_agree(self):
         return {
             # "Strongly agree" 
-            "Agree", 
-            "Neither agree nor disagree",
-            "Disagree",
+            "Agree" : "Agree", 
+            "Neither agree nor disagree" : "Neither agree nor disagree",
+            "Disagree" : "Disagree",
             # "Strongly disagree"
-            "Most of the time or all of the time"}
+            "Most of the time or all of the time" : "Most of the time or all of the time"}
 
     def get_tokens_times(self):
         return {
-            "None",
-            "Once",
-            "Twice",
-            "3 or 4 times"
-            "5 or 6 times"
+            "None" : "None",
+            "Once" : "Once",
+            "Twice" : "Twice",
+            "3 or 4 times" : "3 or 4 times",
+            "5 or 6 times" : "5 or 6 times"
         }
 
     def get_tokens_times7(self):
         return {
-            "1 time",
-            "2 times",
-            "3 times",
-            "4 times",
-            "5 times",
-            "6 times",
-            "7 or more times",
+            "1 time" : "1 time",
+            "2 times" : "2 times",
+            "3 times" : "3 times",
+            "4 times" : "4 times",
+            "5 times" : "5 times", 
+            "6 times" : "6 times",
+            "7 or more times" : "7 or more times",
         }
 
     def get_tokens_abuse(self):
         return {
-            "one time",
-            "two times",
-            "three times",
-            "six to ten times",
-            "more than ten times",
-            "this has never happened",
+            "one time" : "one time",
+            "two times" : "two times",
+            "three times" : "three times",
+            "six to ten times" : "six to ten times",
+            "more than ten times" : "more than ten times",
+            "this has never happened" : "this has never happened",
         }
 
     def get_tokens_prayer(self):
         return {
-            "Never",
-            "Once a month",
-            "A few times a month",
-            "Once a week",
-            "A few times a day",
-            "Once a day",
-            "More than once a day",
+            "Never" : "Never",
+            "Once a month" : "Once a month",
+            "A few times a month" : "A few times a month",
+            "Once a week" : "Once a week",
+            "A few times a day" : "A few times a day",
+            "Once a day" : "Once a day",
+            "More than once a day" : "More than once a day",
         }
 
     
