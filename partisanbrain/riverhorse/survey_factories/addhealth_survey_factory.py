@@ -30,6 +30,62 @@ class AddhealthFactory(DatasetFactory):
         'marital': "How many persons have you ever married? (including a current spouse) ",
     }
 
+    answers = {
+        'age': "number",
+        'gender': ["Male", "Female"],
+        'ideology': ["Conservative", "Middle-of-the-road", "Liberal"],
+        'education': ['8th grade or less',
+                'Some high school',
+                'High school graduate',
+                'Some vocational/technical training (after high school)',
+                'Completed vocational/technical training (after high scho',
+                'Some college',
+                "Completed college (bachelor's degree)",
+                "Some graduate school",
+                "Completed a master's degree ",
+                "Some graduate training beyond a master's degree",
+                "Completed a doctoral degree ",
+                "Some post baccalaureate professional education",
+                "Completed post baccalaureate professional education"],
+        'income': ['$5,000 to $9,999',
+                '$10,000 to $14,999',
+                '$15,000 to $19,999',
+                '$20,000 to $24,999',
+                '$25,000 to $29,999',
+                '$30,000 to $39,999',
+                '$40,000 to $49,999',
+                '$50,000 to $74,999',
+                '$75,000 to $99,999',
+                '$100,000 to $149,999',
+                '$150,000 or more'],
+        'religion': ["none/atheist/agnostic",
+                "Protestant (such as Assembly of God, Baptist, Lutheran, Methodist, Presbyterian, etc.)"
+                "Catholic",
+                "Other Christian",
+                "Jewish",
+                "Buddhist",
+                "Hindu",
+                "Muslim",
+                "Other",
+                # "Refused",
+                # "Don't know"
+                ],
+        'race_ethnicity': ["White",
+                "Black or African American",
+                "American Indian or Alaska Native",
+                "Asian or Pacific Islander",
+                # "Missing"
+                ],
+        'marital': ["0 persons",
+                "1 person",
+                "2 persons",
+                "3 persons",
+                "4 persons",
+                # "refused",
+                # "Don't know"
+                ],
+    }
+
     def get_dictionary(self, row):
         dictionary = {
             'age': {
@@ -72,19 +128,6 @@ class AddhealthFactory(DatasetFactory):
                 "Don't know": np.nan,
                 'Refused': np.nan,
                 'default': f'''My household income is {row['income']}. ''',
-                # '$5,000 to $9,999' : '', etc
-
-                # '$5,000 to $9,999'
-                # '$10,000 to $14,999'
-                # '$15,000 to $19,999'
-                # '$20,000 to $24,999'
-                # '$25,000 to $29,999'
-                # '$30,000 to $39,999'
-                # '$40,000 to $49,999'
-                # '$50,000 to $74,999'
-                # '$75,000 to $99,999'
-                # '$100,000 to $149,999'
-                # '$150,000 or more'
                 
             },
             'religion': {
@@ -277,9 +320,9 @@ class AddhealthFactory(DatasetFactory):
             answer_key += val + "\n" + x + ") "
             
     # Survey Response
-    def make_backstory_survey(self, row):
+    def make_backstory_mult(self, row):
         '''
-        survey style backstory dropping nans
+        multiple choice style backstory dropping nans
         '''
         dictionary = self.get_dictionary(row)
         questions = self.questions
@@ -302,8 +345,37 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
         return backstory
 
+    # better way to do this?
     def get_answer_num(self, row):
         return len(self.get_dictionary(row).keys())
+
+    # Multiple Choice Response
+    def make_backstory_survey(self, row):
+        '''
+        mutliple choice style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        backstory = ''
+        x = 1
+        for key in dictionary.keys():
+            val = row[key]
+            backstory += "Question " + x + ": " + questions[key] + " ("
+            comma = ""
+            
+            for val in dictionary[key]:
+                backstory += comma + val
+                comma = ", "
+            backstory += ")\n Answer " + x + ": "
+            if val in dictionary[key]:
+                backstory += dictionary[key][val] + "\n"
+            else:
+                backstory += dictionary[key]['default'] + "\n"
+            x += 1
+        
+        backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
+        return backstory
+    
 
     
     def modify_data(self, df):
@@ -320,7 +392,7 @@ class AddhealthFactory(DatasetFactory):
             mod_df_dict['age'].append(row['age'])
             mod_df_dict['gender'].append(row['gender'][4:])
             mod_df_dict['education'].append(row['education'][4:])
-            mod_df_dict['ideology'].append(row['ideology'][4:])
+            mod_df_dict['ideology'].append(self.get_ideo(row['ideology'][4:]))
             mod_df_dict['income'].append(row['income'][4:])
             mod_df_dict['religion'].append(row['religion'][4:])
             mod_df_dict['race_ethnicity'].append(row['race_ethnicity'][4:])
@@ -357,6 +429,16 @@ class AddhealthFactory(DatasetFactory):
 
     def get_age(self, year):
         return date.today().year - year
+
+    def get_ideo(self, ideo):
+        if ideo == "Very Conservative":
+            return "Conservative"
+        if ideo == "Very Liberal":
+            return "Liberal"
+        if ideo == np.nan: 
+            return 'Refused'
+        return ideo
+        
 
     def get_tokens_yn(self):
         return {
