@@ -53,7 +53,7 @@ class AddhealthSurvey(Survey):
             "H4HS9": "counseling", # yn
             "H4MH19": "sadness_family", # occasion
             "H4PE6": "worrying", # agree
-            "H4SE2": "suicide",
+            "H4SE2": "suicide", # suicide
             "H4PE23": "optimism", # agree
             "H4MH24": "happiness", # occasion
             "H4GH8": "fast_food", # this is a weird one
