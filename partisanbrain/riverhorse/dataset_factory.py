@@ -1,6 +1,7 @@
 from ..mutualinf.dataset import Dataset
 from . import constants as k
 import os
+from pdb import set_trace as breakpoint
 
 
 class SimpleDataset(Dataset):
@@ -21,6 +22,7 @@ class DatasetFactory:
         df = survey_obj.df
 
         # Alex added this to provide easier acces to the questions
+        # TODO - this is a bit of a hack, might be a bug here.
         self.questions = survey_obj.get_dv_questions()
 
         df = self.modify_data(df)
@@ -36,22 +38,26 @@ class DatasetFactory:
 
         # For each DV colname, make a dataset object
         for dv_colname in self.dv_colnames:
-            sub_df = df.copy()[self.present_dems + [dv_colname]]
-            sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
+            try:
+                sub_df = df.copy()[self.present_dems + [dv_colname]]
+                sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
 
-            data_dir = f"data/{survey_name}/{dv_colname}"
+                data_dir = f"data/{survey_name}/{dv_colname}"
 
-            if not os.path.exists(data_dir):
-                os.makedirs(data_dir)
+                if not os.path.exists(data_dir):
+                    os.makedirs(data_dir)
 
-            sub_df = sub_df.dropna(subset=["ground_truth"])
-            SimpleDataset(
-                templates=templates[dv_colname],
-                df=sub_df,
-                sample_seed=sample_seed,
-                n=n,
-                out_fname=os.path.join(data_dir, "ds.pkl"),
-            )
+                sub_df = sub_df.dropna(subset=["ground_truth"])
+                SimpleDataset(
+                    templates=templates[dv_colname],
+                    df=sub_df,
+                    sample_seed=sample_seed,
+                    n=n,
+                    out_fname=os.path.join(data_dir, "ds.pkl"),
+                )
+                print(f"Created dataset for {dv_colname}")
+            except:
+                print(f"Failed to create dataset for {dv_colname}")
 
     def modify_data(self, df):
         """
@@ -74,4 +80,4 @@ class DatasetFactory:
 
 
 if __name__ == "__main__":
-    factory = DatasetFactory()
+    factory = DatasetFactory(n=200)

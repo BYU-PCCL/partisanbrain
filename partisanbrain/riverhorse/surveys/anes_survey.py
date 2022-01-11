@@ -12,8 +12,8 @@ SURVEY_URL = "https://electionstudies.org/anes_timeseries_2020_csv_20210719/"
 
 class AnesSurvey(Survey):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, force_recreate=False):
+        super().__init__(force_recreate=force_recreate)
 
     def download_data(self):
         if not os.path.exists("survey_data/anes_survey/raw.csv"):
