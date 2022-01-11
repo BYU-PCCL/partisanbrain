@@ -165,13 +165,23 @@ class AddhealthFactory(DatasetFactory):
             "More than once a day",],
     }
 
-    def answers_or(self, key):
-        answers = self.answers_dv[key]
+    def answers_or(self, answers):
+        # answers = self.answers_dv[key]
         output = ""
         x = 0
         for ans in answers:
-            sep = "" if x == 0 else ", or" if x == len(answers) - 1  else  ", "
-            output += sep + ans
+            comma = "" if x == 0 else ", or" if x == len(answers) - 1  else  ", "
+            output += comma + ans
+        return output
+
+    def answers_paren(self, answers):
+        # answers = self.answers_dv[key]
+        output = "("
+        comma = ""
+        for ans in answers:
+            output += comma + ans
+            comma = ", "
+        output += ")"
         return output
 
 
@@ -424,7 +434,7 @@ class AddhealthFactory(DatasetFactory):
             x += 1
         return backstory
 
-    def ans_key_answers(self, row):
+    def mb_ans_key_answers(self, row):
         dictionary = self.get_dictionary(row)
         x = 1
         answer_key = "\n\nANSWER KEY:\n\n" + x + ") "
@@ -566,10 +576,15 @@ class AddhealthFactory(DatasetFactory):
             'Yes': 'Yes', 
             'No': 'No'}
 
-    def get_tokens_mult(self):
-        return {
-            'A': 'Yes',
-            'B': 'No', }
+    def get_tokens_mult(self, answers):
+        tokens = {}
+        counter = 0
+        for ans in answers:
+            tokens[chr(65 + counter)] = ans
+        return tokens
+        # return {
+        #     'A': 'Yes',
+        #     'B': 'No', }
 
     def get_tokens_times(self):
         return {
@@ -641,9 +656,11 @@ class AddhealthFactory(DatasetFactory):
             "More than once a day" : "More than once a day",
         }
 
-    
+
 
     def get_templates(self):
+        pf_ans_or = self.answers_or(self.answers_dv["physical_fight"])
+        pf_ans_paren = self.answers_paren(self.answers_dv["physical_fight"])
         templates = {
             "shot_or_stabbed": {
                 "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n Have I shot or stabbed someone in the past 12 months? My answer is"), 
@@ -681,11 +698,11 @@ class AddhealthFactory(DatasetFactory):
                 # "conv3": (lambda row: (f"{self.mb_qa(row)}\n Did you shoot or stab someone in the past 12 months? P2:"), 
                 # self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n In the past year, has someone been shot or stabbed by you? {self.ans_key_answers(row)}"), 
+                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n In the past year, has someone been shot or stabbed by you? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
-                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Was someone shot or stabbed by you in the past year? {self.ans_key_answers(row)}"), 
+                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Was someone shot or stabbed by you in the past year? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
-                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you shot or stabbed someone in the past 12 months? {self.ans_key_answers(row)}"), 
+                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you shot or stabbed someone in the past 12 months? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
 
                 "survey1": (lambda row: (f"{self.mb_survey(row)}\n In the past year, have you shot or stabbed someone? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
@@ -694,11 +711,11 @@ class AddhealthFactory(DatasetFactory):
                 self.get_tokens_yn()),
 
                 "mult1": (lambda row: (f"{self.mb_mult(row)}\n You have shot or stabbed someone within 12 months from today. Is this true? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
                 "mult2": (lambda row: (f"{self.mb_mult(row)}\n Can you honestly say that in the past 12 months, you have shot or stabbed someone? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
                 "mult3": (lambda row: (f"{self.mb_mult(row)}\n In the past 12 months, have you shot or stabbed someone? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
             },
             "arrested": {
                 "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n Have you ever been arrested?"), 
@@ -736,11 +753,11 @@ class AddhealthFactory(DatasetFactory):
                 # "conv3": (lambda row: (f"{self.mb_qa(row)}\n Did you shoot or stab someone ? P2:"), 
                 # self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested? {self.ans_key_answers(row)}"), 
+                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
-                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested by someone? {self.ans_key_answers(row)}"), 
+                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested by someone? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
-                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you been arrested? {self.ans_key_answers(row)}"), 
+                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you been arrested? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
 
                 "survey1": (lambda row: (f"{self.mb_survey(row)}\n Is it true that you have been arrested before? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
@@ -749,59 +766,59 @@ class AddhealthFactory(DatasetFactory):
                 self.get_tokens_yn()),
 
                 "mult1": (lambda row: (f"{self.mb_mult(row)}\n You have been arrested before. Is this true? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
                 "mult2": (lambda row: (f"{self.mb_mult(row)}\n Can you honestly say that you have been arrested? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
                 "mult3": (lambda row: (f"{self.mb_mult(row)}\n Have you ever been arrested? \n{self.get_mult_yn()}"), 
-                self.get_tokens_mult()),
+                self.get_tokens_mult(["Yes", "No"])),
             },
             "physical_fight": {
-                "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n In the past 12 months, how often did you get into a serious physical fight? Answer: "), 
+                "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n In the past 12 months, how often did you get into a serious physical fight? Answer {pf_ans_or}: "),  # why can't I use self.answers_or(self.answers_dv["physical_fight"])?
                 self.get_tokens_times()),
                 "first_person2": (lambda row: (f"{self.mb_first_person(row)}\n How frequently have you had a serious physical fight in the past year?"), 
                 self.get_tokens_times()),
-                "first_person3": (lambda row: (f"{self.mb_first_person(row)}\n I heard that you have been arrested. Is that true?"), 
+                "first_person3": (lambda row: (f"{self.mb_first_person(row)}\n How often have you had a serious physical fight with someone in the past year? Answer {pf_ans_or}"), 
                 self.get_tokens_times()),
 
                 # "third_person1": (lambda row: (f"{self.mb_third_person(row)}\n , has {self.GENDER_NEUTRAL_NAME} shot or stabbed someone?"), 
                 # self.get_tokens_yn()),
-                "third_person2": (lambda row: (f"{self.mb_third_person(row)}\n Has {self.GENDER_NEUTRAL_NAME} been arrested?"),  
-                self.get_tokens_yn()),
-                "third_person3": (lambda row: (f"{self.mb_third_person(row)}\n Is it likely that {self.GENDER_NEUTRAL_NAME} has been arrested before? Answer yes or no:"), 
-                self.get_tokens_yn()),
+                "third_person2": (lambda row: (f"{self.mb_third_person(row)}\n In the past year, how often has {self.GENDER_NEUTRAL_NAME} been in a serious physical fight?"),  
+                self.get_tokens_times()),
+                "third_person3": (lambda row: (f"{self.mb_third_person(row)}\n How frequently has {self.GENDER_NEUTRAL_NAME} been in a serious physical fight in the past 12 months? Answer {pf_ans_or}:"), 
+                self.get_tokens_times()),
                 
-                "qa1": (lambda row: (f"{self.mb_qa(row)}\n Have you been arrested before? \nA:"), 
-                self.get_tokens_yn()),
-                "qa2": (lambda row: (f"{self.mb_qa(row)}\n Is it true that you have been arrested? \nA:"), 
-                self.get_tokens_yn()),
-                "qa3": (lambda row: (f"{self.mb_qa(row)}\n Can you honestly say that you have been arrested? \nA:"), 
-                self.get_tokens_yn()),
+                "qa1": (lambda row: (f"{self.mb_qa(row)}\n In the past 12 months, how often did you get into a serious physical fight? \nA:"), 
+                self.get_tokens_times()),
+                "qa2": (lambda row: (f"{self.mb_qa(row)}\n How frequently have you had a serious physical fight in the past year? \nA:"), 
+                self.get_tokens_times()),
+                "qa3": (lambda row: (f"{self.mb_qa(row)}\n How often have you had a serious physical fight with someone in the past year? \nA:"), 
+                self.get_tokens_times()),
 
-                "qa1": (lambda row: (f"{self.mb_qa_exp(row)}\n Have you ever been arrested (Yes, No) ? \nA:"), 
-                self.get_tokens_yn()),
-                "qa2": (lambda row: (f"{self.mb_qa(row)}\n Is it likely that you have been arrested before (Yes, No) ? \nA:"), 
-                self.get_tokens_yn()),
+                "qa1": (lambda row: (f"{self.mb_qa_exp(row)}\n In the past year, how frequently did you get into a serious physical fight? {pf_ans_paren} ? \nA:"), 
+                self.get_tokens_times()),
+                "qa2": (lambda row: (f"{self.mb_qa(row)}\n How often have you had a serious physical fight in the past 12 months? {pf_ans_paren} ? \nA:"), 
+                self.get_tokens_times()),
                 # "qa3": (lambda row: (f"{self.mb_qa(row)}\n have you been arrested  (Yes, No) ? \nA:"), 
                 # self.get_tokens_yn()),
                 
-                "conv1": (lambda row: (f"{self.mb_qa(row)}\n Is it true that you have been arrested before? P2:"), 
-                self.get_tokens_yn()),
-                "conv2": (lambda row: (f"{self.mb_qa(row)}\n I heard that you have been arrested before. Is that true? P2:"), 
-                self.get_tokens_yn()),
+                "conv1": (lambda row: (f"{self.mb_qa(row)}\n How often have you, in the past year, gotten into a serious physical fight? P2:"), 
+                self.get_tokens_times()),
+                "conv2": (lambda row: (f"{self.mb_qa(row)}\n In the past 12 months, how frequently have you gotten into a serious physical fight? P2:"), 
+                self.get_tokens_times()),
                 # "conv3": (lambda row: (f"{self.mb_qa(row)}\n Did you shoot or stab someone ? P2:"), 
                 # self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested? {self.ans_key_answers(row)}"), 
-                self.get_tokens_yn()),
-                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested by someone? {self.ans_key_answers(row)}"), 
-                self.get_tokens_yn()),
-                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you been arrested? {self.ans_key_answers(row)}"), 
-                self.get_tokens_yn()),
+                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n How often have you been in a serious physical fight? {self.mb_ans_key_answers(row)}"), 
+                self.get_tokens_times()),
+                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested by someone? {self.mb_ans_key_answers(row)}"), 
+                self.get_tokens_times()),
+                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you been arrested? {self.mb_ans_key_answers(row)}"), 
+                self.get_tokens_times()),
 
                 "survey1": (lambda row: (f"{self.mb_survey(row)}\n Is it true that you have been arrested before? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
-                self.get_tokens_yn()),
+                self.get_tokens_times()),
                 "survey2": (lambda row: (f"{self.mb_survey(row)}\n Is it likely that you have been arrested before? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
-                self.get_tokens_yn()),
+                self.get_tokens_times()),
 
                 "mult1": (lambda row: (f"{self.mb_mult(row)}\n You have been arrested before. Is this true? \n{self.get_mult_yn()}"), 
                 self.get_tokens_mult()),
