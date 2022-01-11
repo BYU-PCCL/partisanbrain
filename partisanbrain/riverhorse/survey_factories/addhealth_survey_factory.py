@@ -165,6 +165,17 @@ class AddhealthFactory(DatasetFactory):
             "More than once a day",],
     }
 
+    def answers_or(self, key):
+        answers = self.answers_dv[key]
+        output = ""
+        x = 0
+        for ans in answers:
+            sep = "" if x == 0 else ", or" if x == len(answers) - 1  else  ", "
+            output += sep + ans
+        return output
+
+
+
     def get_dictionary(self, row):
         dictionary = {
             'age': {
@@ -745,12 +756,12 @@ class AddhealthFactory(DatasetFactory):
                 self.get_tokens_mult()),
             },
             "physical_fight": {
-                "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n Have you ever been arrested?"), 
-                self.get_tokens_yn()),
-                "first_person2": (lambda row: (f"{self.mb_first_person(row)}\n Is it true that you have been arrested?"), 
-                self.get_tokens_yn()),
+                "first_person1": (lambda row: (f"{self.mb_first_person(row)}\n In the past 12 months, how often did you get into a serious physical fight? Answer: "), 
+                self.get_tokens_times()),
+                "first_person2": (lambda row: (f"{self.mb_first_person(row)}\n How frequently have you had a serious physical fight in the past year?"), 
+                self.get_tokens_times()),
                 "first_person3": (lambda row: (f"{self.mb_first_person(row)}\n I heard that you have been arrested. Is that true?"), 
-                self.get_tokens_yn()),
+                self.get_tokens_times()),
 
                 # "third_person1": (lambda row: (f"{self.mb_third_person(row)}\n , has {self.GENDER_NEUTRAL_NAME} shot or stabbed someone?"), 
                 # self.get_tokens_yn()),
