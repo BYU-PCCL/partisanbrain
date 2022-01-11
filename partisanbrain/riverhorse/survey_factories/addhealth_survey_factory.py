@@ -20,6 +20,8 @@ class AddhealthFactory(DatasetFactory):
     # Backstory 2 - Imagine you were this person; how would you imagine they answer?
     # Backstory 3 - 
 
+    GENDER_NEUTRAL_NAME = "Sam"
+
     questions = {
         'age': "What year were you born? ",
         'gender': "What gender are you? ",
@@ -166,7 +168,7 @@ class AddhealthFactory(DatasetFactory):
         }
         return dictionary
 
-    def get_dictionary_personal(self, row, name):
+    def get_dictionary_third_person(self, row, name):
         dictionary = {
             'age': {
                 '-1': '',
@@ -191,37 +193,23 @@ class AddhealthFactory(DatasetFactory):
                 'Completed vocational/technical training (after high scho' : 
                     f"{name} completed vocational or technical training after high school.",
                 'Some college': f"{name} attended some college. ",
-                "Completed college (bachelor's degree)" : f"{name} have a Bachelor's degree. ",
-                "Some graduate school" : f"{name} have attended some graduate school",
-                "Completed a master's degree " : f"{name} have a Master's degree",
+                "Completed college (bachelor's degree)" : f"{name} has a Bachelor's degree. ",
+                "Some graduate school" : f"{name} has attended some graduate school",
+                "Completed a master's degree " : f"{name} has a Master's degree",
                 "Some graduate training beyond a master's degree" : 
-                    f"{name} have attended some graduate training beyond a master's degree",
+                    f"{name} has attended some graduate training beyond a master's degree",
                 "Completed a doctoral degree " : 
-                    f"{name} have completed a doctoral degree",
+                    f"{name} has completed a doctoral degree",
                 "Some post baccalaureate professional education" : 
-                    f"{name} have completed some post baccalaureate professional education",
+                    f"{name} has completed some post baccalaureate professional education",
                 "Completed post baccalaureate professional education" : 
-                    f"{name} have completed post baccalaureate professional education"
+                    f"{name} has completed post baccalaureate professional education"
                 # no default, should be exhaustive
             },
             'income': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
                 'default': f'''{name}'s household income is {row['income']}. ''',
-                # '$5,000 to $9,999' : '', etc
-                
-                # '$5,000 to $9,999'
-                # '$10,000 to $14,999'
-                # '$15,000 to $19,999'
-                # '$20,000 to $24,999'
-                # '$25,000 to $29,999'
-                # '$30,000 to $39,999'
-                # '$40,000 to $49,999'
-                # '$50,000 to $74,999'
-                # '$75,000 to $99,999'
-                # '$100,000 to $149,999'
-                # '$150,000 or more'
-                
             },
             'religion': {
                 "Don't know": np.nan,
@@ -263,7 +251,22 @@ class AddhealthFactory(DatasetFactory):
                 backstory += dictionary[key]['default']
         return backstory
 
-    # 02 QA
+    # Third Person
+    def mb_third_person(self, row):
+        '''
+        list style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary_third_person(row, self.GENDER_NEUTRAL_NAME)
+        backstory = ''
+        for key in dictionary.keys():
+            val = row[key]
+            if val in dictionary[key]:
+                backstory += dictionary[key][val]
+            else:
+                backstory += dictionary[key]['default']
+        return backstory
+
+    # QA
     def mb_qa(self, row):
         '''
         qa style backstory dropping nans
@@ -281,7 +284,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Q: "
         return backstory
 
-    # 03 QA Explicit
+    # Explicit
     def mb_qa_exp(self, row):
         '''
         qa style backstory dropping nans
@@ -292,7 +295,7 @@ class AddhealthFactory(DatasetFactory):
         backstory = ''
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Q: " + questions[key] + "("
+            backstory += "Q: " + questions[key][:len(questions[key])-2] + " ("
             comma = ""
             for ans in answers[key]:
                 backstory += comma + ans
@@ -305,7 +308,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Q: "
         return backstory
 
-    # 04 First PersonConversation (P1, P2)
+    # First PersonConversation (P1, P2)
     def mb_convo(self, row):
         '''
         conversation style backstory dropping nans
@@ -323,7 +326,7 @@ class AddhealthFactory(DatasetFactory):
         backstory += "P1: "
         return backstory
 
-    # 05 First Person Answer Key
+    # First Person Answer Key
     def mb_ans_key(self, row):
         '''
         Answer key style backstory dropping nans
