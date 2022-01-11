@@ -1,6 +1,7 @@
 # Author: Alex Shaw
 
 from ..survey import Survey, UserInterventionNeededError
+from ..constants import SURVEY_DATA_PATH
 import pandas as pd
 import os
 
@@ -10,11 +11,12 @@ class AddhealthSurvey(Survey):
         super().__init__(force_recreate=force_recreate)
 
     def download_data(self):
-        directory = "survey_data/addhealth/"
+        directory = SURVEY_DATA_PATH/"addhealth/"
         filename = "21600-0022-Data.sav"
-        filepath = os.path.join(directory, filename)
+        filepath = directory/filename
 
-        if os.path.exists(filepath):
+        print(filepath)
+        if filepath.exists():
             return pd.read_spss(filepath)
         else:
             if not os.path.exists(directory):
@@ -64,7 +66,7 @@ class AddhealthSurvey(Survey):
             "H4TO34": "age_of_first_drink", # big range of numbers
             "H4ID8": "car_accidents", # yn
             "H4TO33": "drinking", # yn
-            "H4RE10": "prayer_in_private",
+            "H4RE10": "prayer_in_private", # prayer
         }
 
         # Rename the DVs

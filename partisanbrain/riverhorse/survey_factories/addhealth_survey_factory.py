@@ -25,26 +25,26 @@ class AddhealthFactory(DatasetFactory):
     questions = {
         'age': "What year were you born? ",
         'gender': "What gender are you? ",
-        'ideology': "In terms of politics, do you consider yourself very conservative, " 
-            + "conservative, middle-of-the-road, liberal, or very liberal? ",
+        'ideology': "In terms of politics, do you consider yourself " 
+            + "conservative, middle-of-the-road, or liberal? ",
         'education': "What is the highest level of education that you have achieved to date? ",
         'income': "What is your household income? ",
         'religion': "What is your present religion? ",
         'race_ethnicity': "What race are you? ",
-        'marital': "How many persons have you ever married? (including a current spouse) ",
+        'marital_status': "How many times have you been married? ",
     }
 
     answers_backstory = {
-        'age': ["1974",
-                "1975",
-                "1976",
-                "1977",
-                "1978",
-                "1979",
-                "1980",
-                "1981",
-                "1982",
-                "1983", ],
+        'age': [1974,
+                1975,
+                1976,
+                1977,
+                1978,
+                1979,
+                1980,
+                1981,
+                1982,
+                1983, ],
         'gender': ["Male", "Female"],
         'ideology': ["Conservative", "Middle-of-the-road", "Liberal"],
         'education': ['8th grade or less',
@@ -71,8 +71,8 @@ class AddhealthFactory(DatasetFactory):
                 '$75,000 to $99,999',
                 '$100,000 to $149,999',
                 '$150,000 or more'],
-        'religion': ["none/atheist/agnostic",
-                "Protestant (such as Assembly of God, Baptist, Lutheran, Methodist, Presbyterian, etc.)"
+        'religion': ["Non/athiest/agnostic",
+                "Protestant (such as Assembly of God, Baptist, Lutheran, Methodist, Presbyterian, etc.)",
                 "Catholic",
                 "Other Christian",
                 "Jewish",
@@ -89,11 +89,17 @@ class AddhealthFactory(DatasetFactory):
                 "Asian or Pacific Islander",
                 # "Missing"
                 ],
-        'marital': ["0 persons",
-                "1 person",
-                "2 persons",
-                "3 persons",
-                "4 persons",
+        'marital_status': [
+                0,
+                1,
+                2,
+                3,
+                4,
+                # "0 persons",
+                # "1 person",
+                # "2 persons",
+                # "3 persons",
+                # "4 persons",
                 # "refused",
                 # "Don't know"
                 ],
@@ -198,7 +204,7 @@ class AddhealthFactory(DatasetFactory):
             'ideology': {
                 'Refused' : np.nan,
                 "Dont' know" : np.nan,
-                'default': f'''Ideologically, I am {str(row['ideo']).strip().lower()}. ''',
+                'default': f'''Ideologically, I am {str(row['ideology']).strip().lower()}. ''',
             },
             'education': {
                 "Don't know": np.nan,
@@ -227,13 +233,13 @@ class AddhealthFactory(DatasetFactory):
             'income': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
-                'default': f'''My household income is {row['income']}. ''',
+                'default': f'''My household income is around {row['income']}. ''',
                 
             },
             'religion': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
-                'none/atheist/agnostic' : "I am either atheist, agnostic, or non-religious",
+                'Non/athiest/agnostic' : "I am either atheist, agnostic, or non-religious",
                 'Protestant (Such as Assembly of God, Baptist, etc.)': 'Religiously, I identify as protestant',
                 'Other Christian': 'Religiously, I am Christian. ',
                 'Other' : "I am religious",
@@ -246,11 +252,13 @@ class AddhealthFactory(DatasetFactory):
                 # 'default': f'Racially, I identify as {row["race"]}. ',
             },
             #region
-            'marital': {
+            'marital_status': {
+                # This should just be 1/2/3/4 persons, but the data is a number. So be it I guess
                 "Don't know": np.nan,
                 'Refused': np.nan,
                 # 'never married': 'I have never married. ',
-                'default': f'''I have married {row['marital']}. ''',
+                1 : f'''I have been married once. ''',
+                'default': f'''I have been married {row['marital_status']} times. ''',
             },
         }
         return dictionary
@@ -267,7 +275,7 @@ class AddhealthFactory(DatasetFactory):
             'ideology': {
                 'Refused' : np.nan,
                 "Dont' know" : np.nan,
-                'default': f'''Ideologically, {name} is {str(row['ideo']).strip().lower()}. ''',
+                'default': f'''Ideologically, {name} is {str(row['ideology']).strip().lower()}. ''',
             },
             'education': {
                 "Don't know": np.nan,
@@ -296,12 +304,12 @@ class AddhealthFactory(DatasetFactory):
             'income': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
-                'default': f'''{name}'s household income is {row['income']}. ''',
+                'default': f'''{name}'s household income is around {row['income']}. ''',
             },
             'religion': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
-                'none/atheist/agnostic' : f"{name} is either atheist, agnostic, or non-religious",
+                'Non/athiest/agnostic' : f"{name} is either atheist, agnostic, or non-religious",
                 'Protestant (Such as Assembly of God, Baptist, etc.)': f'Religiously, {name} identifies as protestant',
                 'Other Christian': f'Religiously, {name} is Christian. ',
                 'Other' : f"{name} is religious",
@@ -313,12 +321,11 @@ class AddhealthFactory(DatasetFactory):
                 'default': f'''{name} is {row['race_ethnicity']}. ''',
                 # 'default': f'Racially, I identify as {row["race"]}. ',
             },
-            #region
-            'marital': {
+            'marital_status': {
                 "Don't know": np.nan,
                 'Refused': np.nan,
                 # 'never married': 'I have never married. ',
-                'default': f'''{name} has married {row['marital']}. ''',
+                'default': f'''{name} has married {row['marital_status']}. ''',
             },
         }
         return dictionary
@@ -430,19 +437,21 @@ class AddhealthFactory(DatasetFactory):
         backstory += "\n\n QUESTIONS: \n"
         x = 1
         for key in dictionary.keys():
-            backstory += x + ") " + questions[key] + "\n"
+            backstory += str(x) + ") " + questions[key] + "\n"
             x += 1
+        backstory += str(x) + ") "
         return backstory
 
     def mb_ans_key_answers(self, row):
         dictionary = self.get_dictionary(row)
         x = 1
-        answer_key = "\n\nANSWER KEY:\n\n" + x + ") "
+        answer_key = "\n\nANSWER KEY:\n\n" + str(x) + ") "
         
         for key in dictionary.keys():
             x += 1
             val = row[key]
-            answer_key += val + "\n" + x + ") "
+            answer_key += val + "\n" + str(x) + ") "
+        return answer_key
             
     # 07 Survey Response
     def mb_survey(self, row):
@@ -456,24 +465,24 @@ class AddhealthFactory(DatasetFactory):
         x = 1
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Question " + x + ": " + questions[key] + " ("
+            backstory += "Question " + str(x) + ": " + questions[key] + " ("
             comma = ""
             for ans in answers[key]:
                 backstory += comma + ans
                 comma = ", "
-            backstory += ")\n Answer " + x + ": "
+            backstory += ")\nAnswer " + str(x) + ": "
             if val in dictionary[key]:
                 backstory += dictionary[key][val] + "\n"
             else:
                 backstory += dictionary[key]['default'] + "\n"
             x += 1
         
-        backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
+        backstory += "Question " + str(x) + ": " # should be len(dictionary.keys()), right?
         return backstory
 
     # better way to do this?
     def get_answer_num(self, row):
-        return len(self.get_dictionary(row).keys())
+        return len(self.get_dictionary(row)) + 1 
 
     # 08 Multiple Choice Response
     def mb_mult(self, row):
@@ -487,19 +496,18 @@ class AddhealthFactory(DatasetFactory):
         x = 1
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Question " + x + ": " + questions[key] + "\n"
-            x = 0
+            backstory += "Question " + str(x) + ": " + questions[key] + "\n"
             backstory += self.format_mult(answers_backstory[key]) # includes "Correct Answer: "
-            backstory += chr(65 + answers_backstory[key].index(val))
+            backstory += chr(65 + answers_backstory[key].index(val)) + "\n\n"
             x += 1
         
-        backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
+        backstory += "Question " + str(x) + ": " 
         return backstory
     
     def format_mult(self,answers_backstory):
         output = ""
         for ans in answers_backstory:
-                output += chr(65 + answers_backstory.index(ans)) + ": " + ans + "\n"
+                output += chr(65 + answers_backstory.index(ans)) + ": " + str(ans) + "\n"
         output += "Correct Answer: "
         return output
 
@@ -521,14 +529,14 @@ class AddhealthFactory(DatasetFactory):
         mod_df_dict = defaultdict(list)
         for _, row in df.iterrows():
             # mod_df_dict['age'].append(self.get_age(row['age'])) should we have age or year of birth?
-            mod_df_dict['age'].append(str(row['age']))
+            mod_df_dict['age'].append(int(row['age']))
             mod_df_dict['gender'].append(str(row['gender'])[4:])
             mod_df_dict['education'].append(str(row['education'])[4:])
             mod_df_dict['ideology'].append(self.get_ideo(row['ideology'])[4:])
             mod_df_dict['income'].append(str(row['income'])[4:])
             mod_df_dict['religion'].append(str(row['religion'])[4:])
             mod_df_dict['race_ethnicity'].append(str(row['race_ethnicity'])[4:])
-            mod_df_dict['marital_status'].append(str(row['marital_status']))
+            mod_df_dict['marital_status'].append(int(row['marital_status']))
 
             # if False:
             #     maybe = {
