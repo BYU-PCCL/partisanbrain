@@ -1,3 +1,4 @@
+import re
 from ..dataset_factory import DatasetFactory
 from ..surveys.addhealth_survey import AddhealthSurvey
 from datetime import date
@@ -286,13 +287,23 @@ class AddhealthFactory(DatasetFactory):
         x = 1
         for key in dictionary.keys():
             val = row[key]
-            backstory += "Question " + x + ": " + questions[key] + "\n"
+            backstory += "Question " + x + ": " + questions[key] + " ("
+            comma = ""
+            for val in dictionary[key]:
+                backstory += comma + val
+                comma = ", "
+            backstory += ")\n Answer " + x + ": "
             if val in dictionary[key]:
                 backstory += dictionary[key][val] + "\n"
             else:
                 backstory += dictionary[key]['default'] + "\n"
-        backstory += "P1: "
+            x += 1
+        
+        backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
         return backstory
+
+    def get_answer_num(self, row):
+        return len(self.get_dictionary(row).keys())
 
     
     def modify_data(self, df):
@@ -388,7 +399,10 @@ class AddhealthFactory(DatasetFactory):
                 "conv5": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed at least one person in the past year? P2:"), 
                 self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.make_backstory4(row)}\n Have you shot or stabbed someone in the past 12 months? {self.make_backstory4_answerkey}"), 
+                "anskey1": (lambda row: (f"{self.make_backstory4(row)}\n Have you shot or stabbed someone in the past 12 months? {self.make_backstory4_answerkey(row)}"), 
+                self.get_tokens_yn()),
+
+                "survey1": (lambda row: (f"{self.make_backstory_survey(row)}\n In the past 12 months, have you shot or stabbed someone? (Yes, No) Answer {self.get_answer_num}: "), 
                 self.get_tokens_yn()),
 
 
