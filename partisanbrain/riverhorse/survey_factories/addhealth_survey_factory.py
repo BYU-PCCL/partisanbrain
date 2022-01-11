@@ -524,7 +524,7 @@ class AddhealthFactory(DatasetFactory):
             mod_df_dict['age'].append(str(row['age']))
             mod_df_dict['gender'].append(str(row['gender'])[4:])
             mod_df_dict['education'].append(str(row['education'])[4:])
-            mod_df_dict['ideology'].append(get_ideo(row['ideology'])[4:])
+            mod_df_dict['ideology'].append(self.get_ideo(row['ideology'])[4:])
             mod_df_dict['income'].append(str(row['income'])[4:])
             mod_df_dict['religion'].append(str(row['religion'])[4:])
             mod_df_dict['race_ethnicity'].append(str(row['race_ethnicity'])[4:])
