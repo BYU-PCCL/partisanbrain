@@ -521,38 +521,38 @@ class AddhealthFactory(DatasetFactory):
         mod_df_dict = defaultdict(list)
         for _, row in df.iterrows():
             # mod_df_dict['age'].append(self.get_age(row['age'])) should we have age or year of birth?
-            mod_df_dict['age'].append(row['age'])
-            mod_df_dict['gender'].append(row['gender'][4:])
-            mod_df_dict['education'].append(row['education'][4:])
-            mod_df_dict['ideology'].append(self.get_ideo(row['ideology'][4:]))
-            mod_df_dict['income'].append(row['income'][4:])
-            mod_df_dict['religion'].append(row['religion'][4:])
-            mod_df_dict['race_ethnicity'].append(row['race_ethnicity'][4:])
-            mod_df_dict['marital_status'].append(row['marital_status'][4:])
+            mod_df_dict['age'].append(str(row['age']))
+            mod_df_dict['gender'].append(str(row['gender'])[4:])
+            mod_df_dict['education'].append(str(row['education'])[4:])
+            mod_df_dict['ideology'].append(get_ideo(row['ideology'])[4:])
+            mod_df_dict['income'].append(str(row['income'])[4:])
+            mod_df_dict['religion'].append(str(row['religion'])[4:])
+            mod_df_dict['race_ethnicity'].append(str(row['race_ethnicity'])[4:])
+            mod_df_dict['marital_status'].append(str(row['marital_status']))
 
-            if False:
-                maybe = {
-                # mod_df_dict['shot_or_stabbed'].append(row['shot_or_stabbed'][4:])
-                # mod_df_dict['arrested'].append(row['arrested'][4:])
-                # mod_df_dict['physical_fight'].append(row['physical_fight'][4:])
-                # mod_df_dict['convicted_of_charges'].append(row['convicted_of_charges'][4:])
-                # mod_df_dict['sell_drugs'].append(row['sell_drugs'][4:])
-                # mod_df_dict['counseling'].append(row['counseling'][4:])
-                # mod_df_dict['sadness_family'].append(row['sadness_family'][4:])
-                # mod_df_dict['worrying'].append(row['worrying'][4:])
-                # mod_df_dict['suicide'].append(row['suicide'][4:])
-                # mod_df_dict['optimism'].append(row['optimism'][4:])
-                # mod_df_dict['happiness'].append(row['happiness'][4:])
-                # mod_df_dict['fast_food'].append(row['fast_food'][4:])
-                # mod_df_dict['hours_of_tv'].append(row['hours_of_tv'][4:])
-                # mod_df_dict['individual_sports'].append(row['individual_sports'][4:])
-                # mod_df_dict['smoked_cigarette'].append(row['smoked_cigarette'][4:])
-                # mod_df_dict['physical_child_abuse'].append(row['physical_child_abuse'][4:])
-                # mod_df_dict['age_of_first_drink'].append(row['age_of_first_drink'][4:])
-                # mod_df_dict['car_accidents'].append(row['car_accidents'][4:])
-                # mod_df_dict['drinking'].append(row['drinking'][4:])
-                # mod_df_dict['prayer_in_private'].append(row['prayer_in_private'][4:])
-                }
+            # if False:
+            #     maybe = {
+            mod_df_dict['shot_or_stabbed'].append(str(row['shot_or_stabbed'])[4:])
+            mod_df_dict['arrested'].append(str(row['arrested'])[4:])
+            mod_df_dict['physical_fight'].append(str(row['physical_fight'])[4:])
+            mod_df_dict['convicted_of_charges'].append(str(row['convicted_of_charges'])[4:]) #????
+            mod_df_dict['sell_drugs'].append(str(row['sell_drugs'])[4:])
+            mod_df_dict['counseling'].append(str(row['counseling'])[4:])
+            mod_df_dict['sadness_family'].append(str(row['sadness_family'])[4:])
+            mod_df_dict['worrying'].append(str(row['worrying'])[4:])
+            mod_df_dict['suicide'].append(str(row['suicide'])[4:])
+            mod_df_dict['optimism'].append(str(row['optimism'])[4:])
+            mod_df_dict['happiness'].append(str(row['happiness'])[4:])
+            mod_df_dict['fast_food'].append(str(row['fast_food']))
+            mod_df_dict['hours_of_tv'].append(str(row['hours_of_tv']))
+            mod_df_dict['individual_sports'].append(str(row['individual_sports']))
+            mod_df_dict['smoked_cigarette'].append(str(row['smoked_cigarette'])[4:])
+            mod_df_dict['physical_child_abuse'].append(str(row['physical_child_abuse'])[4:])
+            mod_df_dict['age_of_first_drink'].append(str(row['age_of_first_drink']))
+            mod_df_dict['car_accidents'].append(str(row['car_accidents'])[4:])
+            mod_df_dict['drinking'].append(str(row['drinking'])[4:])
+            mod_df_dict['prayer_in_private'].append(str(row['prayer_in_private'])[4:])
+                # }
             
         new_df = pd.DataFrame(mod_df_dict, index=df.index)
 
@@ -791,7 +791,7 @@ class AddhealthFactory(DatasetFactory):
                 self.get_tokens_times()),
                 "qa2": (lambda row: (f"{self.mb_qa(row)}\n How frequently have you had a serious physical fight in the past year? \nA:"), 
                 self.get_tokens_times()),
-                "qa3": (lambda row: (f"{self.mb_qa(row)}\n How often have you had a serious physical fight with someone in the past year? \nA:"), 
+                "qa3": (lambda row: (f"{self.mb_qa(row)}\n What is the frequency in which you have had a serious physical fight in the past year? \nA:"), 
                 self.get_tokens_times()),
 
                 "qa1": (lambda row: (f"{self.mb_qa_exp(row)}\n In the past year, how frequently did you get into a serious physical fight? {pf_ans_paren} ? \nA:"), 
@@ -808,14 +808,14 @@ class AddhealthFactory(DatasetFactory):
                 # "conv3": (lambda row: (f"{self.mb_qa(row)}\n Did you shoot or stab someone ? P2:"), 
                 # self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n How often have you been in a serious physical fight? {self.mb_ans_key_answers(row)}"), 
+                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n How often have you been in a serious physical fight in the past year? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_times()),
-                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n Have you ever been arrested by someone? {self.mb_ans_key_answers(row)}"), 
+                "anskey2": (lambda row: (f"{self.mb_ans_key(row)}\n How frequently have you had a serious physical fight with someone? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_times()),
-                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, have you been arrested? {self.mb_ans_key_answers(row)}"), 
+                "anskey3": (lambda row: (f"{self.mb_ans_key(row)}\n If these are true about you, how often have you had a serious physical fight in the past 12 months? {self.mb_ans_key_answers(row)}"), 
                 self.get_tokens_times()),
 
-                "survey1": (lambda row: (f"{self.mb_survey(row)}\n Is it true that you have been arrested before? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
+                "survey1": (lambda row: (f"{self.mb_survey(row)}\n What is the frequency in which you have had a serious physical fight in the past year? {pf_ans_paren} \nAnswer {self.get_answer_num(row)}: "), 
                 self.get_tokens_times()),
                 "survey2": (lambda row: (f"{self.mb_survey(row)}\n Is it likely that you have been arrested before? (Yes, No) \nAnswer {self.get_answer_num(row)}: "), 
                 self.get_tokens_times()),
