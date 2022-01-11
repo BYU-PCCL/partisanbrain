@@ -99,7 +99,71 @@ class AddhealthFactory(DatasetFactory):
                 ],
     }
 
-    answers_
+    answers_dv = {
+        "shot_or_stabbed" : ["Yes, No"],
+        "arrested" : ["Yes, No"],
+        "physical_fight" : ["Never", 
+            "1 or 2 times", 
+            "3 or 4 times", 
+            "5 or more times"],        
+        "convicted_of_charges" : ["No", 
+            "Once", 
+            "More than once"], 
+        "sell_drugs" : ["Never", 
+            "1 or 2 times", 
+            "3 or 4 times", 
+            "5 or more times"],
+        "counseling" : ["Yes, No"],
+        "sadness_family" : ["Never or rarely", 
+            "Sometimes", 
+            "A lot of the time",
+            "Most of the time or all of the time"],
+        "worrying" : ["Agree", 
+            "Neither agree nor disagree",
+            "Disagree",
+            # "Strongly disagree"
+            "Most of the time or all of the time"],
+        "suicide" : ["None",
+            "Once",
+            "Twice",
+            "3 or 4 times"
+            "5 or 6 times"],
+        "optimism" : ["Agree", 
+            "Neither agree nor disagree",
+            "Disagree",
+            # "Strongly disagree"
+            "Most of the time or all of the time"],
+        "happiness" : ["Never or rarely", 
+            "Sometimes", 
+            "A lot of the time",
+            "Most of the time or all of the time"],
+        # "fast_food", # this is a weird one
+        # "hours_of_tv", # weird one too
+        "individual_sports" : ["1 time",
+            "2 times",
+            "3 times",
+            "4 times",
+            "5 times",
+            "6 times",
+            "7 or more times",],
+        "smoked_cigarette" : ["Yes, No"],
+        "physical_child_abuse" : ["One time",
+            "Two times",
+            "Three times",
+            "Six to ten times",
+            "More than ten times",
+            "This has never happened",],
+        # "age_of_first_drink", # big range of numbers
+        "car_accidents" : ["Yes, No"],
+        "drinking" : ["Yes, No"],
+        "prayer_in_private" : ["Never",
+            "Once a month",
+            "A few times a month",
+            "Once a week",
+            "A few times a day",
+            "Once a day",
+            "More than once a day",],
+    }
 
     def get_dictionary(self, row):
         dictionary = {
@@ -496,7 +560,7 @@ class AddhealthFactory(DatasetFactory):
             'A': 'Yes',
             'B': 'No', }
 
-    def get_tokens_2_times(self):
+    def get_tokens_times(self):
         return {
             "Never" : "Never", 
             "1 or 2 times" : "1 or 2 times", 
@@ -525,7 +589,7 @@ class AddhealthFactory(DatasetFactory):
             # "Strongly disagree"
             "Most of the time or all of the time" : "Most of the time or all of the time"}
 
-    def get_tokens_times(self):
+    def get_tokens_suicide(self):
         return {
             "None" : "None",
             "Once" : "Once",
