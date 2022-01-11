@@ -46,24 +46,24 @@ class AddhealthSurvey(Survey):
         # Get the DVs now TODO two of these aren't in the df
         dvs_dict = {
             "H4DS20": "shot_or_stabbed",
-            "H4CJ1": "arrested",
-            "H4DS11": "physical_fight",
-            "H4CJ10": "convicted_of_charges",
-            "H4DS5": "sell_drugs",
-            "H4HS9": "counseling",
-            "H4MH19": "sadness_family",
-            "H4PE6": "worrying",
+            "H4CJ1": "arrested", # yn
+            "H4DS11": "physical_fight", # times
+            "H4CJ10": "convicted_of_charges", # No, 
+            "H4DS5": "sell_drugs", # times
+            "H4HS9": "counseling", # yn
+            "H4MH19": "sadness_family", # occasion
+            "H4PE6": "worrying", # agree
             "H4SE2": "suicide",
-            "H4PE23": "optimism",
-            "H4MH24": "happiness",
-            "H4GH8": "fast_food",
-            "H4DA1": "hours_of_tv",
-            "H4DA5": "individual_sports",
-            "H4TO1": "smoked_cigarette",
-            "H4MA3": "physical_child_abuse",
-            "H4TO34": "age_of_first_drink",
-            "H4ID8": "car_accidents",
-            "H4TO33": "drinking",
+            "H4PE23": "optimism", # agree
+            "H4MH24": "happiness", # occasion
+            "H4GH8": "fast_food", # this is a weird one
+            "H4DA1": "hours_of_tv", # weird one too
+            "H4DA5": "individual_sports", # times7
+            "H4TO1": "smoked_cigarette", # yn
+            "H4MA3": "physical_child_abuse", # abuse
+            "H4TO34": "age_of_first_drink", # big range of numbers
+            "H4ID8": "car_accidents", # yn
+            "H4TO33": "drinking", # yn
             "H4RE10": "prayer_in_private",
         }
 
