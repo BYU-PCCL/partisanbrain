@@ -248,8 +248,8 @@ class AddhealthFactory(DatasetFactory):
         }
         return dictionary
     
-    # 01 Personal
-    def make_backstory1(self, row):
+    # 01 First Person
+    def mb_first_person(self, row):
         '''
         list style backstory dropping nans
         '''
@@ -264,7 +264,7 @@ class AddhealthFactory(DatasetFactory):
         return backstory
 
     # 02 QA
-    def make_backstory2(self, row):
+    def mb_qa(self, row):
         '''
         qa style backstory dropping nans
         '''
@@ -281,8 +281,32 @@ class AddhealthFactory(DatasetFactory):
         backstory += "Q: "
         return backstory
 
-    # 03 First PersonConversation (P1, P2)
-    def make_backstory3(self, row):
+    # 03 QA Explicit
+    def mb_qa_exp(self, row):
+        '''
+        qa style backstory dropping nans
+        '''
+        dictionary = self.get_dictionary(row)
+        questions = self.questions
+        answers = self.answers
+        backstory = ''
+        for key in dictionary.keys():
+            val = row[key]
+            backstory += "Q: " + questions[key] + "("
+            comma = ""
+            for ans in answers[key]:
+                backstory += comma + ans
+                comma = ", "
+            backstory += ") ?\nA: "
+            if val in dictionary[key]:
+                backstory += dictionary[key][val] + "\n"
+            else:
+                backstory += dictionary[key]['default'] + "\n"
+        backstory += "Q: "
+        return backstory
+
+    # 04 First PersonConversation (P1, P2)
+    def mb_convo(self, row):
         '''
         conversation style backstory dropping nans
         '''
@@ -299,8 +323,8 @@ class AddhealthFactory(DatasetFactory):
         backstory += "P1: "
         return backstory
 
-    # 04 First Person Answer Key
-    def make_backstory4(self, row):
+    # 05 First Person Answer Key
+    def mb_ans_key(self, row):
         '''
         Answer key style backstory dropping nans
         '''
@@ -320,7 +344,7 @@ class AddhealthFactory(DatasetFactory):
             x += 1
         return backstory
 
-    def make_backstory4_answerkey(self, row):
+    def ans_key_answers(self, row):
         dictionary = self.get_dictionary(row)
         x = 1
         answer_key = "ANSWER KEY:\n\n" + x + ") "
@@ -330,8 +354,8 @@ class AddhealthFactory(DatasetFactory):
             val = row[key]
             answer_key += val + "\n" + x + ") "
             
-    # 05 Survey Response
-    def make_backstory_survey(self, row):
+    # 06 Survey Response
+    def mb_survey(self, row):
         '''
         survey style backstory dropping nans
         '''
@@ -361,8 +385,8 @@ class AddhealthFactory(DatasetFactory):
     def get_answer_num(self, row):
         return len(self.get_dictionary(row).keys())
 
-    # 06 Multiple Choice Response
-    def make_backstory_mult(self, row):
+    # 07 Multiple Choice Response
+    def mb_mult(self, row):
         '''
         mutliple choice style backstory dropping nans
         '''
@@ -376,7 +400,7 @@ class AddhealthFactory(DatasetFactory):
             backstory += "Question " + x + ": " + questions[key] + "\n"
             x = 0
             backstory += self.format_mult(answers[key])
-            backstory += "Correct Answer: " + x + ": " + chr(65 + answers.index(val))
+            backstory += "Correct Answer: " + x + ": " + chr(65 + answers[key].index(val))
             x += 1
         
         backstory += "Question " + x + ": " # should be len(dictionary.keys()), right?
@@ -387,6 +411,12 @@ class AddhealthFactory(DatasetFactory):
         for ans in answers:
                 output += chr(65 + answers.index(ans)) + ": " + ans + "\n"
         return output
+
+    def get_mult_yn(self):
+        return self.format_mult(["Yes", "No"])
+    # For yes/no, do format_mult(["Yes, "No"])
+
+    
 
     
     def modify_data(self, df):
@@ -409,34 +439,33 @@ class AddhealthFactory(DatasetFactory):
             mod_df_dict['race_ethnicity'].append(row['race_ethnicity'][4:])
             mod_df_dict['marital_status'].append(row['marital_status'][4:])
 
-            # mod_df_dict['shot_or_stabbed'].append(row['shot_or_stabbed'][4:])
-            # mod_df_dict['arrested'].append(row['arrested'][4:])
-            # mod_df_dict['physical_fight'].append(row['physical_fight'][4:])
-            # mod_df_dict['convicted_of_charges'].append(row['convicted_of_charges'][4:])
-            # mod_df_dict['sell_drugs'].append(row['sell_drugs'][4:])
-            # mod_df_dict['counseling'].append(row['counseling'][4:])
-            # mod_df_dict['sadness_family'].append(row['sadness_family'][4:])
-            # mod_df_dict['worrying'].append(row['worrying'][4:])
-            # mod_df_dict['suicide'].append(row['suicide'][4:])
-            # mod_df_dict['optimism'].append(row['optimism'][4:])
-            # mod_df_dict['happiness'].append(row['happiness'][4:])
-            # mod_df_dict['fast_food'].append(row['fast_food'][4:])
-            # mod_df_dict['hours_of_tv'].append(row['hours_of_tv'][4:])
-            # mod_df_dict['individual_sports'].append(row['individual_sports'][4:])
-            # mod_df_dict['smoked_cigarette'].append(row['smoked_cigarette'][4:])
-            # mod_df_dict['physical_child_abuse'].append(row['physical_child_abuse'][4:])
-            # mod_df_dict['age_of_first_drink'].append(row['age_of_first_drink'][4:])
-            # mod_df_dict['car_accidents'].append(row['car_accidents'][4:])
-            # mod_df_dict['drinking'].append(row['drinking'][4:])
-            # mod_df_dict['prayer_in_private'].append(row['prayer_in_private'][4:])
+            if False:
+                maybe = {
+                # mod_df_dict['shot_or_stabbed'].append(row['shot_or_stabbed'][4:])
+                # mod_df_dict['arrested'].append(row['arrested'][4:])
+                # mod_df_dict['physical_fight'].append(row['physical_fight'][4:])
+                # mod_df_dict['convicted_of_charges'].append(row['convicted_of_charges'][4:])
+                # mod_df_dict['sell_drugs'].append(row['sell_drugs'][4:])
+                # mod_df_dict['counseling'].append(row['counseling'][4:])
+                # mod_df_dict['sadness_family'].append(row['sadness_family'][4:])
+                # mod_df_dict['worrying'].append(row['worrying'][4:])
+                # mod_df_dict['suicide'].append(row['suicide'][4:])
+                # mod_df_dict['optimism'].append(row['optimism'][4:])
+                # mod_df_dict['happiness'].append(row['happiness'][4:])
+                # mod_df_dict['fast_food'].append(row['fast_food'][4:])
+                # mod_df_dict['hours_of_tv'].append(row['hours_of_tv'][4:])
+                # mod_df_dict['individual_sports'].append(row['individual_sports'][4:])
+                # mod_df_dict['smoked_cigarette'].append(row['smoked_cigarette'][4:])
+                # mod_df_dict['physical_child_abuse'].append(row['physical_child_abuse'][4:])
+                # mod_df_dict['age_of_first_drink'].append(row['age_of_first_drink'][4:])
+                # mod_df_dict['car_accidents'].append(row['car_accidents'][4:])
+                # mod_df_dict['drinking'].append(row['drinking'][4:])
+                # mod_df_dict['prayer_in_private'].append(row['prayer_in_private'][4:])
+                }
             
         new_df = pd.DataFrame(mod_df_dict, index=df.index)
 
-            
-
-
-        print(df)
-        pass
+        return new_df
 
     def get_age(self, year):
         return date.today().year - year
@@ -456,47 +485,55 @@ class AddhealthFactory(DatasetFactory):
             'No': 'No', 
             'Yes': 'Yes'}
 
+    def get_tokens_mult(self):
+        return {
+            'A': 'Yes',
+            'B': 'No', }
+
     def get_templates(self):
         templates = {
             "shot_or_stabbed": {
-                "personal1": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed someone in the past 12 months?"), 
+                "personal1": (lambda row: (f"{self.mb_first_person(row)}\n Have I shot or stabbed someone in the past 12 months?"), 
                 self.get_tokens_yn()),
-                "personal2": (lambda row: (f"{self.make_backstory1(row)}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
+                "personal2": (lambda row: (f"{self.mb_first_person(row)}\n Is it true that you have shot or stabbed someone in the past 12 months?"), 
                 self.get_tokens_yn()),
-                "personal3": (lambda row: (f"{self.make_backstory1(row)}\n In the past 12 months, have you shot or stabbed someone?"), 
+                "personal3": (lambda row: (f"{self.mb_first_person(row)}\n In the past 12 months, have you shot or stabbed someone?"), 
                 self.get_tokens_yn()),
-                "personal4": (lambda row: (f"{self.make_backstory1(row)}\n In the past year, has someone been shot or stabbed by you?"), 
+                "personal4": (lambda row: (f"{self.mb_first_person(row)}\n In the past year, has someone been shot or stabbed by you?"), 
                 self.get_tokens_yn()),
-                "personal5": (lambda row: (f"{self.make_backstory1(row)}\n Have you shot or stabbed at least one person in the past year?"),  
-                self.get_tokens_yn()),
-                
-                "qa1": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed someone in the past 12 months? A: "), 
-                self.get_tokens_yn()),
-                "qa2": (lambda row: (f"{self.make_backstory2(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? A:"), 
-                self.get_tokens_yn()),
-                "qa3": (lambda row: (f"{self.make_backstory2(row)}\n In the past 12 months, have you shot or stabbed someone? A:"), 
-                self.get_tokens_yn()),
-                "qa4": (lambda row: (f"{self.make_backstory2(row)}\n In the past year, has someone been shot or stabbed by you? A:"), 
-                self.get_tokens_yn()),
-                "qa5": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed at least one person in the past year? A:"), 
+                "personal5": (lambda row: (f"{self.mb_first_person(row)}\n Have you shot or stabbed at least one person in the past year?"),  
                 self.get_tokens_yn()),
                 
-                "conv1": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed someone in the past 12 months? P2:"), 
+                "qa1": (lambda row: (f"{self.mb_qa(row)}\n Have you shot or stabbed someone in the past 12 months? A: "), 
                 self.get_tokens_yn()),
-                "conv2": (lambda row: (f"{self.make_backstory2(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? P2:"), 
+                "qa2": (lambda row: (f"{self.mb_qa(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? A:"), 
                 self.get_tokens_yn()),
-                "conv3": (lambda row: (f"{self.make_backstory2(row)}\n In the past 12 months, have you shot or stabbed someone? P2:"), 
+                "qa3": (lambda row: (f"{self.mb_qa(row)}\n In the past 12 months, have you shot or stabbed someone? A:"), 
                 self.get_tokens_yn()),
-                "conv4": (lambda row: (f"{self.make_backstory2(row)}\n In the past year, has someone been shot or stabbed by you? P2:"), 
+                "qa4": (lambda row: (f"{self.mb_qa(row)}\n In the past year, has someone been shot or stabbed by you? A:"), 
                 self.get_tokens_yn()),
-                "conv5": (lambda row: (f"{self.make_backstory2(row)}\n Have you shot or stabbed at least one person in the past year? P2:"), 
+                "qa5": (lambda row: (f"{self.mb_qa(row)}\n Have you shot or stabbed at least one person in the past year? A:"), 
+                self.get_tokens_yn()),
+                
+                "conv1": (lambda row: (f"{self.mb_qa(row)}\n Have you shot or stabbed someone in the past 12 months? P2:"), 
+                self.get_tokens_yn()),
+                "conv2": (lambda row: (f"{self.mb_qa(row)}\n Is it true that you have shot or stabbed someone in the past 12 months? P2:"), 
+                self.get_tokens_yn()),
+                "conv3": (lambda row: (f"{self.mb_qa(row)}\n In the past 12 months, have you shot or stabbed someone? P2:"), 
+                self.get_tokens_yn()),
+                "conv4": (lambda row: (f"{self.mb_qa(row)}\n In the past year, has someone been shot or stabbed by you? P2:"), 
+                self.get_tokens_yn()),
+                "conv5": (lambda row: (f"{self.mb_qa(row)}\n Have you shot or stabbed at least one person in the past year? P2:"), 
                 self.get_tokens_yn()),
 
-                "anskey1": (lambda row: (f"{self.make_backstory4(row)}\n Have you shot or stabbed someone in the past 12 months? {self.make_backstory4_answerkey(row)}"), 
+                "anskey1": (lambda row: (f"{self.mb_ans_key(row)}\n Have you shot or stabbed someone in the past 12 months? {self.ans_key_answers(row)}"), 
                 self.get_tokens_yn()),
 
-                "survey1": (lambda row: (f"{self.make_backstory_survey(row)}\n In the past 12 months, have you shot or stabbed someone? (Yes, No) Answer {self.get_answer_num}: "), 
+                "survey1": (lambda row: (f"{self.mb_survey(row)}\n In the past 12 months, have you shot or stabbed someone? (Yes, No) Answer {self.get_answer_num(row)}: "), 
                 self.get_tokens_yn()),
+
+                "mult1": (lambda row: (f"{self.mb_mult(row)}\n In the past 12 months, have you shot or stabbed someone?\n {self.get_mult_yn()}\nCorrect Answer: "), 
+                self.get_tokens_mult()),
 
 
                 
