@@ -1,4 +1,4 @@
-from lmsampler_baseclass import LMSamplerBaseClass
+from .lmsampler_baseclass import LMSamplerBaseClass
 import requests
 
 # TODO store elsewhere

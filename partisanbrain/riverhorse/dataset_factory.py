@@ -61,8 +61,10 @@ class DatasetFactory:
                     out_fname=os.path.join(data_dir, "ds.pkl"),
                 )
                 print(f"Created dataset for {dv_colname}")
-            except:
+            except Exception as e:
                 print(f"Failed to create dataset for {dv_colname}")
+                print(e)
+
 
     def sample_templates(self, df, dvs=None):
         if dvs is None:

@@ -1,4 +1,4 @@
-from lmsampler_baseclass import LMSamplerBaseClass
+from .lmsampler_baseclass import LMSamplerBaseClass
 
 import torch
 from transformers import GPTNeoForCausalLM, GPT2Tokenizer
