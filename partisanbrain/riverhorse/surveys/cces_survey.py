@@ -283,9 +283,9 @@ class CcesSurvey(Survey):
 
     def get_dv_questions(self):
         return {
-            "co2_emissions": "Give the Environmental Protection Agency power to regulate Carbon Dioxide emissions",
-            "renewable_fuels": "Require that each state use a minimum amount of renewable fuels (wind, solar, and hydroelectric) in the generation of electricity even if electricity prices increase a little",
-            "clean_air": "Strengthen the Environmental Protection Agency enforcement of the Clean Air Act and Clean Water Act even if it costs U.S. jobs",
+            "co2_emissions": "Give the Environmental Protection Agency power to regulate Carbon Dioxide emissions.",
+            "renewable_fuels": "Require that each state use a minimum amount of renewable fuels (wind, solar, and hydroelectric) in the generation of electricity even if electricity prices increase a little.",
+            "clean_air": "Strengthen the Environmental Protection Agency enforcement of the Clean Air Act and Clean Water Act even if it costs U.S. jobs.",
             "crime_victim": "Over the past year have you been the victim of a crime?",
             "police_feel": "Do the police make you feel...",
             "body_cameras": "Require police officers to wear body cameras that record all of their activities while on duty.",
