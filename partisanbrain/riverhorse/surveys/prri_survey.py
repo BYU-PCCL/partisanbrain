@@ -52,6 +52,7 @@ class PrriSurvey(Survey):
         #Renaming Demographic Columns
         mod_df = df.rename(columns=demo)
 
+        breakpoint()
         # Adding extra information to the columns
         mod_df['party'] = self.combine('party','PARTYLN', mod_df)
         
