@@ -217,7 +217,7 @@ class CcesSurvey(Survey):
         return mod_df
 
     def download_data(self):
-        directory = "survey_data/cces/"
+        directory = "riverhorse/survey_data/cces_survey/"
         filename = "CES20_Common_OUTPUT_vv.csv"
         filepath = os.path.join(directory, filename)
         if os.path.exists(filepath):

@@ -1,3 +1,5 @@
+'''@author: Kyle Rogers'''
+
 from ..survey import Survey
 from ..constants import DEMOGRAPHIC_COLNAMES
 
@@ -10,8 +12,8 @@ SURVEY_URL = "https://electionstudies.org/anes_timeseries_2020_csv_20210719/"
 
 class AnesSurvey(Survey):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, force_recreate=False):
+        super().__init__(force_recreate=force_recreate)
 
     def download_data(self):
         if not os.path.exists("survey_data/anes_survey/raw.csv"):
@@ -49,34 +51,34 @@ class AnesSurvey(Survey):
 
         # Rename DV columns.
         # note: econ0, intl_affairs0, intl_affairs1 have an alternate question and corresponding code.
-        mod_df = mod_df.rename(columns={"V201321" : "climate0",
-                                        "V201401" : "climate1",
-                                        "V201309" : "crime0",
-                                        "V201130" : "econ0",
-                                        "V201235" : "econ1",
-                                        "V201300" : "econ2",
-                                        "V201318" : "econ3",
-                                        "V201324" : "econ4",
-                                        "V201325" : "econ5",
-                                        "V201594" : "econ6",
-                                        "V201312" : "econ7",
-                                        "V201416" : "gender0",
-                                        "V201133" : "intl_affairs0",
-                                        "V201139" : "intl_affairs1",
-                                        "V201350" : "intl_affairs2",
-                                        "V201619" : "mental_hlth0",
-                                        "V201620" : "physical_hlth0",
-                                        "V201006" : "politics0",
-                                        "V201223" : "politics1",
-                                        "V201234" : "politics2"})
+        mod_df = mod_df.rename(columns={"V201321" : "protecting_environment_spending",
+                                        "V201401" : "rising_temp_action",
+                                        "V201309" : "dealing_with_crime_spending",
+                                        "V201130" : "trump_handling_economy",
+                                        "V201235" : "govt_waste_money",
+                                        "V201300" : "social_security_spending",
+                                        "V201318" : "aid_poor_spending",
+                                        "V201324" : "state_of_economy",
+                                        "V201325" : "economy_change",
+                                        "V201594" : "worry_financial_situation",
+                                        "V201312" : "welfare_spending",
+                                        "V201416" : "gender_view",
+                                        "V201133" : "trump_handling_relations",
+                                        "V201139" : "trump_hanlding_immigration",
+                                        "V201350" : "willing_military_force",
+                                        "V201619" : "restless_sleep",
+                                        "V201620" : "have_health_insurance",
+                                        "V201006" : "attn_to_politics",
+                                        "V201223" : "feel_voting_is_duty",
+                                        "V201234" : "govt_run_by_who"})
 
         # Drop all columns that are not DV questions or demographic columns.
-        column_lst = DEMOGRAPHIC_COLNAMES + ["climate0", "climate1", "crime0",
-                                             "econ0", "econ1", "econ2", "econ3",
-                                             "econ4", "econ5", "econ6", "econ7",
-                                             "gender0", "intl_affairs0", "intl_affairs1",
-                                             "intl_affairs2", "mental_hlth0", "physical_hlth0",
-                                             "politics0", "politics1", "politics2"]
+        column_lst = DEMOGRAPHIC_COLNAMES + ["protecting_environment_spending", "rising_temp_action", "dealing_with_crime_spending",
+                                             "trump_handling_economy", "govt_waste_money", "social_security_spending", "aid_poor_spending",
+                                             "state_of_economy", "economy_change", "worry_financial_situation", "welfare_spending",
+                                             "gender_view", "trump_handling_relations", "trump_hanlding_immigration",
+                                             "willing_military_force", "restless_sleep", "have_health_insurance",
+                                             "attn_to_politics", "feel_voting_is_duty", "govt_run_by_who"]
         mod_df = mod_df[column_lst]
 
         # Clean data by renaming codes to natural langauge responses using codebook.
@@ -154,55 +156,55 @@ class AnesSurvey(Survey):
         }
         
         answers_dict = {
-            "climate0" : {
+            "protecting_environment_spending" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Increased",
                 2 : "Decreased",
                 3 : "Kept the same",
             },
-            "climate1" : {
+            "rising_temp_action" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Should be doing more",
                 2 : "Should be doing less",
                 3 : "Is currently doing the right amount",
             },
-            "crime0" : {
+            "dealing_with_crime_spending" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Increased",
                 2 : "Decreased",
                 3 : "Kept the same",
             },
-            "econ0" : {
+            "trump_handling_economy" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Approve",
                 2 : "Disapprove",
             },
-            "econ1" : {
+            "govt_waste_money" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Waste a lot",
                 2 : "Waste some",
                 3 : "Don\'t waste very much",
             },
-            "econ2" : {
+            "social_security_spending" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Increased",
                 2 : "Decreased",
                 3 : "Kept the same", 
             },
-            "econ3" : {
+            "aid_poor_spending" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Increased",
                 2 : "Decreased",
                 3 : "Kept the same", 
             },
-            "econ4" : {
+            "state_of_economy" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Very good",
@@ -211,14 +213,14 @@ class AnesSurvey(Survey):
                 4 : "Bad",
                 5 : "Very bad",
             },
-            "econ5" : {
+            "economy_change" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Gotten better",
                 2 : "Stayed about the same",
                 3 : "Gotten worse",
             },
-            "econ6" : {
+            "worry_financial_situation" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Extremely worried",
@@ -227,33 +229,33 @@ class AnesSurvey(Survey):
                 4 : "A little worried",
                 5 : "Not at all worried",
             },
-            "econ7" : {
+            "welfare_spending" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Increased",
                 2 : "Decreased",
                 3 : "Kept the same",
             },
-            "gender0" : {
+            "gender_view" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Gay and lesbian couples should be allowed to legally marry",
                 2 : "Gay and lesbian couples should be allowed to form civil unions but not legally marry",
                 3 : "There should be no legal recognition of gay or lesbian couples\' relationship",
             },
-            "intl_affairs0" : {
+            "trump_handling_relations" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Approve",
                 2 : "Disapprove",
             },
-            "intl_affairs1" : {
+            "trump_hanlding_immigration" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Approve",
                 2 : "Disapprove",
             },
-            "intl_affairs2" : {
+            "willing_military_force" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Extremely willing",
@@ -262,7 +264,7 @@ class AnesSurvey(Survey):
                 4 : "A little willing",
                 5 : "Not at all willing",
             },
-            "mental_hlth0" : {
+            "restless_sleep" : {
                 -9 : "Refused",
                 -5 : "Interview breakoff (sufficient parital IW)",
                 1 : "All the time",
@@ -271,26 +273,26 @@ class AnesSurvey(Survey):
                 4 : "Rarely",
                 5 : "Never",
             },
-            "physical_hlth0" : {
+            "have_health_insurance" : {
                 -9 : "Refused",
                 -5 : "Interview breakoff (sufficient parital IW)",
                 1 : "Yes",
                 2 : "No",
             },
-            "politics0" : {
+            "attn_to_politics" : {
                 -9 : "Refused",
                 1 : "Very much interested",
                 2 : "Somewhat interested",
                 3 : "Not much interested",    
             },
-            "politics1" : {
+            "feel_voting_is_duty" : {
                 -9 : "Refused",
                 -1 : "Inapplicable",
                 1 : "Very strongly",
                 2 : "Moderately strongly",
                 3 : "A little strongly",
             },
-            "politics2" : {
+            "govt_run_by_who" : {
                 -9 : "Refused",
                 -8 : "Don\'t know",
                 1 : "Run by a few big interests",
@@ -312,26 +314,26 @@ class AnesSurvey(Survey):
 
     def get_dv_questions(self):
         return {
-            "climate0" : "What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?",
-            "climate1" : "Do you think the federal government should be doing more about rising temperatures, should be doing less, or is it currently doing the right amount?",
-            "crime0" : "What about dealing with crime? Should federal spending on dealing with crime be increased, decreased, or kept the same?",
-            "econ0" : "Do you approve or disapprove of the way Donald Trump is handling the economy?",
-            "econ1" : "Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or don\'t waste very much of it?",
-            "econ2" : "What about Social Security? Should federal spending on Social Security be increased, decreased, or kept the same?",
-            "econ3" : "What about aid to the poor? Should federal spending on aid to the poor be increased, decreased, or kept the same?",
-            "econ4" : "What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?",
-            "econ5" : "Now thinking about the economy in the country as a whole, would you say that over the past year the nation\'s economy has gotten better, stayed about the same, or gotten worse?",
-            "econ6" : "So far as you and your family are concerned, how worried are you about your current financial situation?",
-            "econ7" : "What about welfare programs? Should federal spending on welfare programs be increased, decreased, or kept the same?",
-            "gender0" : "Which comes closest to your view? You can just tell me the number of your choice.",
-            "intl_affairs0" : "Do you approve or disapprove of the way Donald Trump is handling relations with foreign countries?",
-            "intl_affairs1" : "Do you approve or disapprove of the way Donald Trump is handling immigration?",
-            "intl_affairs2" : "How willing should the United States be to use military force to solve international problems?",
-            "mental_hlth0" : "In the past week, how often has your sleep been restless?",
-            "physical_hlth0" : "Do you presently have any kind of health insurance?",
-            "politics0" : "Some people don\'t pay much attention to political campaigns. How about you? Would you say that you have been very much interested, somewhat interested or not much interested in the political campaigns so far this year?",
-            "politics1" : "How strongly do you feel that voting is a duty?",
-            "politics2" : "Would you say the government is pretty much run by a few big interests looking out for themselves or that it is run for the benefit of all the people?"
+            "protecting_environment_spending" : "What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?",
+            "rising_temp_action" : "Do you think the federal government should be doing more about rising temperatures, should be doing less, or is it currently doing the right amount?",
+            "dealing_with_crime_spending" : "What about dealing with crime? Should federal spending on dealing with crime be increased, decreased, or kept the same?",
+            "trump_handling_economy" : "Do you approve or disapprove of the way Donald Trump is handling the economy?",
+            "govt_waste_money" : "Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or don\'t waste very much of it?",
+            "social_security_spending" : "What about Social Security? Should federal spending on Social Security be increased, decreased, or kept the same?",
+            "aid_poor_spending" : "What about aid to the poor? Should federal spending on aid to the poor be increased, decreased, or kept the same?",
+            "state_of_economy" : "What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?",
+            "economy_change" : "Now thinking about the economy in the country as a whole, would you say that over the past year the nation\'s economy has gotten better, stayed about the same, or gotten worse?",
+            "worry_financial_situation" : "So far as you and your family are concerned, how worried are you about your current financial situation?",
+            "welfare_spending" : "What about welfare programs? Should federal spending on welfare programs be increased, decreased, or kept the same?",
+            "gender_view" : "Which comes closest to your view? You can just tell me the number of your choice.",
+            "trump_handling_relations" : "Do you approve or disapprove of the way Donald Trump is handling relations with foreign countries?",
+            "trump_hanlding_immigration" : "Do you approve or disapprove of the way Donald Trump is handling immigration?",
+            "willing_military_force" : "How willing should the United States be to use military force to solve international problems?",
+            "restless_sleep" : "In the past week, how often has your sleep been restless?",
+            "have_health_insurance" : "Do you presently have any kind of health insurance?",
+            "attn_to_politics" : "Some people don\'t pay much attention to political campaigns. How about you? Would you say that you have been very much interested, somewhat interested or not much interested in the political campaigns so far this year?",
+            "feel_voting_is_duty" : "How strongly do you feel that voting is a duty?",
+            "govt_run_by_who" : "Would you say the government is pretty much run by a few big interests looking out for themselves or that it is run for the benefit of all the people?"
         }
 
 
