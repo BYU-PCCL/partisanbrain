@@ -6,8 +6,7 @@ import os
 class SimpleDataset(Dataset):
     def __init__(self, templates, df, sample_seed=0, n=None, out_fname=None):
         self.simple_dataset_templates = templates
-        super().__init__(sample_seed=sample_seed, n=n,
-                         in_fname=df, out_fname=out_fname)
+        super().__init__(sample_seed=sample_seed, n=n, in_fname=df, out_fname=out_fname)
 
     def _modify_raw_data(self, df):
         return df.copy()
@@ -34,6 +33,10 @@ class DatasetFactory:
 
         survey_name = survey_obj.get_survey_name()[: -len("Survey")].lower()
 
+        # TODO for Chris, uncomment this line below and pic whichever dv you want to look at
+        # self.sample_templates(df, dvs="whites_understand_blacks")
+
+        # TODO for Chris, comment this for loop if you run the line above
         # For each DV colname, make a dataset object
         for dv_colname in self.dv_colnames:
             sub_df = df.copy()[self.present_dems + [dv_colname]]
@@ -52,6 +55,22 @@ class DatasetFactory:
                 n=n,
                 out_fname=os.path.join(data_dir, "ds.pkl"),
             )
+
+    def sample_templates(self, df, dvs=None):
+        if dvs is None:
+            dvs = self.dv_colnames
+        elif not isinstance(dvs, list):
+            dvs = [dvs]
+
+        templates = self.get_templates()
+
+        for dv in dvs:
+            sub_df = df[self.present_dems + [dv]]
+            sub_df = sub_df.dropna()
+            for type, (template, tokens) in templates[dv].items():
+                row = sub_df.sample().iloc[0]
+                print(type, template(row), sep="\n", end="\n\n")
+                input()
 
     def modify_data(self, df):
         """
