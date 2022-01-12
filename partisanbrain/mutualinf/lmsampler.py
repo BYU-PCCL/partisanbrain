@@ -1,10 +1,26 @@
-from lmsampler_baseclass import LMSamplerBaseClass
-from lm_gpt3 import LM_GPT3
-from lm_gpt2 import LM_GPT2
-from lm_gptj import LM_GPTJ
-from lm_gptneo import LM_GPTNEO
-from lm_bert import LM_BERT
-from lm_jurassic import LM_JURASSIC
+# from lmsampler_baseclass import LMSamplerBaseClass
+# from lm_gpt3 import LM_GPT3
+# from lm_gpt2 import LM_GPT2
+# from lm_gptj import LM_GPTJ
+# from lm_gptneo import LM_GPTNEO
+# from lm_bert import LM_BERT
+# from lm_jurassic import LM_JURASSIC
+
+from .lmsampler_baseclass import LMSamplerBaseClass
+from .lm_gpt3 import LM_GPT3
+from .lm_gpt2 import LM_GPT2
+from .lm_gptj import LM_GPTJ
+from .lm_gptneo import LM_GPTNEO
+from .lm_bert import LM_BERT
+from .lm_jurassic import LM_JURASSIC
+
+# from . import lmsampler_baseclass
+# from . import lm_gpt3
+# from . import lm_gpt2
+# from . import lm_gptj
+# from . import lm_gptneo
+# from . import lm_bert
+# from . import lm_jurassic
 
 class LMSampler(LMSamplerBaseClass):
     '''
