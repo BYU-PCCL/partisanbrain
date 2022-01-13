@@ -280,11 +280,11 @@ class PrriFactory(DatasetFactory):
     def get_templates(self):
         # voting_frequency_dict = ['always', 'almost always', 'in about half of elections', 'seldom', 'never']
         voting_frequency_dict = {
-            'always': 'always',
-            'almost always': 'almost always',
-            'in about half of elections': 'in about half of elections',
-            'seldom': 'seldom',
-            'never': 'never'
+            'Always': 'always',
+            'Nearly always': 'almost always',
+            'In about half of elections': 'in about half of elections',
+            'Seldom': 'seldom',
+            'Never': 'never'
         }
         return {
         "voting_frequency" : {
