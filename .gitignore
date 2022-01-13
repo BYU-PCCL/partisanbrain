@@ -154,7 +154,9 @@ survey/gss_exploration.ipynb
 *.sav
 *playground.ipynb
 *temp.ipynb
+*Untitled.ipynb
 *Questionnaire.pdf
 *random_data.pdf
 *.pkl
 .vscode
+partisanbrain/riverhorse/dataset_factory.py

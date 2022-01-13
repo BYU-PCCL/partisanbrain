@@ -1,6 +1,7 @@
-from lmsampler_baseclass import LMSamplerBaseClass
+# from lmsampler_baseclass import LMSamplerBaseClass
+from .lmsampler_baseclass import LMSamplerBaseClass
 import openai
-
+from pdb import set_trace as breakpoint
 
 class LM_GPT3(LMSamplerBaseClass):
     def __init__(self, model_name):

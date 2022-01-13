@@ -1,8 +1,15 @@
-from lmsampler_baseclass import LMSamplerBaseClass
+from .lmsampler_baseclass import LMSamplerBaseClass
 import requests
+from pdb import set_trace as breakpoint
+import os
 
 # TODO store elsewhere
-API_KEY = 'XIXZqGyL31k7uMbDSZjQP9KnHzjSjmNl'
+# API_KEY = 'XIXZqGyL31k7uMbDSZjQP9KnHzjSjmNl'
+API_KEY = os.environ.get('API_KEY')
+if not API_KEY:
+    raise Exception('NO API KEY')
+
+
 
 
 class LM_JURASSIC(LMSamplerBaseClass):
@@ -80,6 +87,7 @@ A: Muslim
 
 Q: Is global warming a threat?
 A:'''
+    prompt = "I am 60 years old. I am male. Politically, I am a Republican. Ideologically, I am conservative. I have a bachelor's degree. My total income is between $100,000 and $125,000. I am Catholic. I am white. I am from New Jersey. I am married. I would say that I vote"
     # probs = lm.send_prompt("What is the capital of France?\nThe capital of France is")
     probs = lm.send_prompt(prompt)
     print(probs)
