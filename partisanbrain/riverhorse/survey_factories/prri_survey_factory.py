@@ -57,18 +57,27 @@ ideology_dict = {
 
 # party dictionary
 # 'A Democrat', 'A Republican', 'An Independent', 'Other [SPECIFY]', 'Skipped on web', 'Refused', "Don't know (VOL.)"
-# Politically, I am
+# Politically, I 
 party_dict = {
-    'A Democrat': 'a Democrat',
-    'A Republican': 'a Republican',
-    'An Independent': 'an independent',
-    'Other [SPECIFY]': 'other',
+    'A Democrat': 'am a Democrat',
+    'A Republican': 'am a Republican',
+    'An Independent': 'am an Independent',
+    'Other [SPECIFY]': "don\'t identify as a member of a major party",
     'Skipped on web': np.nan,
     'Refused': np.nan,
     "Don't know (VOL.)": np.nan,
 }
 
-# income dictionary
+party_dict2 = {
+    'A Democrat': 'Democrat',
+    'A Republican': 'Republican',
+    'An Independent': 'Independent',
+    'Other [SPECIFY]': "Other",
+    'Skipped on web': np.nan,
+    'Refused': np.nan,
+    "Don't know (VOL.)": np.nan,
+}
+
 # '$25,000-$29,999', '$150,000-$174,999', '$60,000-$74,999', '$35,000-$39,999', '$175,000-$199,999', '$75,000-$84,999', '$5,000-$9,999', '$40,000-$49,999', '$50,000-$59,999', '$20,000-$24,999', '$10,000-$14,999', '$85,000-$99,999', '$15,000-$19,999', '$100,000-$124,999', '$30,000-$34,999', 'Less than $5,000', '$125,000-$149,999', '$200,000 or more'
 # My annual income is _ a year
 income_dict = {
@@ -147,7 +156,36 @@ region_dict = {
     'DC': 'Washington, D.C.',
     'AK': 'Alaska',
 }
+#'Associate degree', 'Some college, no degree', "Master's degree", 'High school graduate - high school diploma or the equivalent (GED)', "Bachelor's degree", '11th grade', '12th grade - no diploma', 'Professional or doctorate degree', 'Seventh or eighth grade', '10th grade', 'Ninth grade', 'Fifth or sixth grade', 'No formal education', 'First, second, third or fourth grade'
+#I
+educ_dict = {
+    "Associate degree": "have an associate's degree",
+    "Some college, no degree": "did some college",
+    "Master's degree": "have a master's degree",
+    "High school graduate - high school diploma or the equivalent (GED)": "got my high school diploma",
+    "Bachelor's degree": "have a bachelor's degree",
+    "11th grade": "dropped out of high school",
+    "12th grade - no diploma": "dropped out of high school",
+    "Professional or doctorate degree": "went to graduate school",
+    "Seventh or eighth grade": "didn't go to high school",
+    "10th grade": "dropped out of high school",
+    "Ninth grade": "dropped out of high school",
+    "Fifth or sixth grade": "didn't go to high school",
+    "No formal education": "didn't go to high school",
+    "First, second, third or fourth grade": "didn't go to high school"
+}
 
+#'Republican', 'Democrat', 'Other, please specify','Skipped on web', 'Refused'
+#I lean
+lean_dict = {
+            np.nan: '',
+            'Republican': ", but I lean Republican",
+            'Democrat': ", but I lean Democrat",
+            'Other, please specify': '',
+            'Skipped on web': '',
+            'Refused': '',
+            "Don't know (VOL.)": '',
+            }
 
 
 class PrriFactory(DatasetFactory):
@@ -165,9 +203,9 @@ class PrriFactory(DatasetFactory):
         df['age'] = df['age'].apply(lambda x: int(x))
 
         # use dictionary to map race_ethnicity to race_processed
-        df['race_processed'] = df['race_ethnicity'].replace(race_dict)
+        df['race_ethnicity_processed'] = df['race_ethnicity'].replace(race_dict)
         # marriage
-        df['marriage_processed'] = df['marital_status'].replace(marriage_dict)
+        df['marital_status_processed'] = df['marital_status'].replace(marriage_dict)
         # ideology
         df['ideology_processed'] = df['ideology'].replace(ideology_dict)
         # party
@@ -176,42 +214,59 @@ class PrriFactory(DatasetFactory):
         df['income_processed'] = df['income'].replace(income_dict)
         # region
         df['region_processed'] = df['region'].replace(region_dict)
+        #education
+        df['education_processed'] = df['education'].replace(educ_dict)
+        #lean
+        df['leaning_processed'] = df['leaning'].replace(lean_dict)
+        #religion
+        df['religion_processed'] = df['religion'].replace(religion_dict)
+
+        #TODO: Rename the values in the DV columns for good templating, like so:
+        # 'Always', 'Nearly always', 'In about half of elections', 'Seldom', 'Skipped on web', 'Never'
+        voting_dict = {
+            "Always": "always",
+            "Nearly always": "nearly always",
+            "In about half of elections": "in about half of elections",
+            "Seldom": "seldom",
+            "Skipped on web": np.nan,
+            "Never": "never"
+        }
+        df['voting_frequency'] = df['voting_frequency'].replace(voting_dict)
+        
+
+        to_drop = [col for col in df.columns if col.endswith('_processed')]
+        #Restrict this list to columns already in df
+        df.dropna(subset=to_drop, inplace=True)
         return df
 
     def make_backstory1(self, row):
-        party_lambda = lambda row: "don\'t identify as a member of a major party" if "None" in (row['party']) else "identify as a member of the " + row['party']
-        # create a generic backstory using values in the demographics
-        return (f"I am {row['age']} years old. I am {row['gender'].lower()}. "
-                f"I {party_lambda(row)}. "
-                f"My education is {row['education'].lower()}. I am {row['ideology'].lower()}. "
-                f"My total income is {row['income']}. "
-                f"My religion is described as {row['religion']}. "
-                f"I am {row['race_ethnicity']}. I am from the {row['region']}. "
-                f"I am {row['marital_status'].lower()}. "
-                )
+        backstory_list = []
+        # party_lambda = lambda party, leaning: f"I lean {don\'t identify as a member of a major party" if "None" in (row['party']) else "identify as a member of the " + row['party']
     
-    def make_backstory1_shot(self):
-        return "I am 21 years old. I am female. I identify as a member of the Democratic party. \
-                My education is some college but no degree. My total income is $40,000. \
-                My religion is described as not religious. I am white, not-hispanic. I am from the West. \
-                I am never married."
-
+        backstory_list.append(f"I am {row['age']} years old.")
+        backstory_list.append(f"I am {row['gender'].lower()}.")
+        backstory_list.append(f"Politically, I {row['party_processed']}{row['leaning_processed']}.")
+        backstory_list.append(f"Ideologically, I am {row['ideology_processed'].lower()}.")
+        backstory_list.append(f"I {row['education_processed'].lower()}.")
+        backstory_list.append(f"My total income is {row['income_processed']}.")
+        backstory_list.append(f"I am {row['religion_processed']}.")
+        backstory_list.append(f"I am {row['race_ethnicity_processed']}.")
+        backstory_list.append(f"I live in {row['region_processed']}.")
+        backstory_list.append(f"I {row['marital_status_processed'].lower()}.")
+        # create a generic backstory using values in the demographics
+        return " ".join(backstory_list)
+    
     def make_backstory2(self, row):
-        return (f"Age: {row['age']}, Gender: {row['gender']}, Political Affiliation: {row['party']}"
-                            f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']},"
-                            f"Race/Ethnicity: {row['race_ethnicity']}, Region: {row['region']}, Marital Status: {row['marital_status']}")
-
-    def make_backstory2_shot(self):
-        return "Age: 21, Gender: Female, Political Affiliation: Democratic Party, Education: Some college but no degree, \
-                Ideology: Extremely liberal, Income: $40,000, Religion: Not religious, Race/Ethnicity: Black, non-Hispanic, \
-                Region: Northeast, Marital Status: Never married"
+        return (f"Age: {row['age']}, Gender: {row['gender']}, Political Affiliation: {party_dict2[row['party']]}, "
+                            f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']}, "
+                            f"Race/Ethnicity: {row['race_ethnicity']}, State: {row['region_processed']}, Marital Status: {row['marital_status']}")
 
     def make_backstory3(self, row):
         return (f"Q: What is your age?\nA: {row['age']}\n\nQ: What is your gender?\nA: {row['gender']}\n\n"
                             f"Q: What is your political affiliation?\nA: {row['party']}\n\nQ: What is your education?\nA: {row['education']}"
                             f"Q: What is your ideology?\nA: {row['ideology']}\n\nQ: What is your income?\nA: {row['income']}\n\n"
                             f"Q: What is your religion?\nA: {row['religion']}\n\n"
-                            f"Q: What is your race/ethnicity?\nA: {row['race_ethnicity']}\n\nQ: What region of the country are your from?\nA: {row['region']}"
+                            f"Q: What is your race/ethnicity?\nA: {row['race_ethnicity']}\n\nQ: What state do you live in?\nA: {row['region_processed']}\n\n"
                             f"Q: What is your marital status?\nA: {row['marital_status']}")
 
     def make_backstory4(self, row):
@@ -233,9 +288,15 @@ class PrriFactory(DatasetFactory):
         }
         return {
         "voting_frequency" : {
-            "finish_sentence" : (lambda row: (f"{self.make_backstory1(row)}\n\n"
-                f"When asked how often I would say that I vote between the "
-                f"options of always, nearly always, in about half of elections, seldom, or never,\n\n"
+            "finish_sentence" : (lambda row: (f"{self.make_backstory1(row)} "
+                f"If asked how often I vote ("
+                f"always, nearly always, in about half of elections, seldom, or never), "
+                f"I would say that I vote"), voting_frequency_dict),
+
+            "finish_sentence_test5shot" : (lambda row:  self.get_shots('voting_frequency', 'finish_sentence', n=5, sep='.\n\n') + (
+                f"\n\n{self.make_backstory1(row)} "
+                f"If asked how often I vote ("
+                f"always, nearly always, in about half of elections, seldom, or never), "
                 f"I would say that I vote"), voting_frequency_dict),
 
             "delimiter_qa" : (lambda row: (f"{self.make_backstory1(row)}\n\n"
@@ -243,50 +304,43 @@ class PrriFactory(DatasetFactory):
                 f"in about half of elections, seldom, or never?\n\n"
                 f"A: I would say that I vote"), voting_frequency_dict),
 
-            "0_shot_task_context_question" : (lambda row: (f"TASK: Consider the below demographic "
-                f"information and answer the following question.\n\n"
-                f"CONTEXT: {self.make_backstory2(row)}\n\n"
+            "context_question" : (lambda row: (f"TASK: Consider the below demographic "
+                f"information and answer the following question:\n"
+                f"CONTEXT: {self.make_backstory2(row)}\n"
                 f"QUESTION: Would you say that you vote always, nearly always, in about half of elections, "
-                f"seldom, or never?\n\n"
+                f"seldom, or never?\n"
                 f"ANSWER:"), voting_frequency_dict),
 
-            "1_shot_task_context_question" : (lambda row: (f"TASK: Consider the below demographic "
-                "information and answer the following question.\n\n"
-                f"CONTEXT: {self.make_backstory2_shot()}\n\n"
-                f"QUESTION: How often would you say that you vote?\n\n"
-                f"ANSWER: Always\n\n"
-                f"TASK: Consider the below demographic information and answer the following question.\n\n"
+            "task_context_question_1_shot" : (lambda row: 
+                self.get_shots('voting_frequency', '0_shot_task_context_question', n=1, sep='.\n\n') + 
+                (f"\n\nTASK: Consider the below demographic information and answer the following question.\n\n"
                 f"CONTEXT: {self.make_backstory2(row)}\n\n"
                 f"QUESTION: Would you say that you vote always, nearly always, in about half of elections, "
-                f"seldom, or never?\n\n"
+                f"seldom, or never?\n"
                 f"ANSWER:"), voting_frequency_dict),
 
-            "explicit_instructions" : (lambda row: (f"The PRRI is a nationally representative survey of voters"
-                f" in American Elections. Below are examples of respondents answering various questions. "
-                f"Please complete what you would guess the right answers to those questions to be.\n\n"
+            "explicit_instructions" : (lambda row: (f"PRRI (Public Religion Research Institute) is a nonprofit, nonpartisan organization dedicated to conducting independent research at the intersection of religion, culture, and public policy. "
+                f"Below are a respondent's answers to various questions in a PRRI survey.\n\n"
                 f"{self.make_backstory3(row)}\n\n"
-                f"Q: How often would you say that you vote?\n"
+                f"Q: How often would you say that you vote (always, nearly always, in about half of elections, "
+                f"seldom, or never)?\n"
                 f"A:"), voting_frequency_dict),
 
             "implicit_instructions" : (lambda row: (f"P1: {self.make_backstory1(row)}\n"
-                f"P2: When asked how often you vote, between the options of always, "
-                f"nearly always, in about half of elections, seldom, or never,\n"
+                f"P2: Between the options of always, "
+                f"nearly always, in about half of elections, seldom, or never, how often do you vote?\n"
                 f"P1: I would say that I vote"), voting_frequency_dict),
 
-            "enumerated_response" : (lambda row: (f"{self.make_backstory1(row)} Between voting always," 
+            "enumerated_response" : (lambda row: (f"{self.make_backstory1(row)} Between the options of always, " 
                 f"nearly always, in about half of elections, seldom, or never, I would say that I vote"), voting_frequency_dict),
                 
-            "non_enumerated_response" : (lambda row: (f"{self.make_backstory1(row)} I would say that I vote"), voting_frequency_dict),
 
-            "0_shot_first_person_backstory" : (lambda row: (f"{self.make_backstory1(row)} When asked how often I vote, "
-                f"I would say that I vote"), voting_frequency_dict),
-
-            "1_shot_first_person_backstory" : (lambda row: (f"{self.make_backstory1_shot()} I would say that I vote always.\n\n"
-                f"{self.make_backstory1(row)} Between the options of always, almost always, in about half of elections,"
+            "enumerated_response_5shot" : (lambda row: self.get_shots('voting_frequency', 'enumerated_response', n=5, sep='.\n\n') + (
+                f"\n\n{self.make_backstory1(row)} Between the options of always, almost always, in about half of elections,"
                 f" seldom, or never, "
                 f"I would say that I vote"), voting_frequency_dict),
 
-            "0_shot_chapter_quiz" : (lambda row: (f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTION:\n"
+            "quiz" : (lambda row: (f"QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTION:\n"
                 f"According to the above backstory, how often would this person be likely to vote?\n"
                 f"A) Always\n"
                 f"B) Almost always\n"
@@ -294,15 +348,8 @@ class PrriFactory(DatasetFactory):
                 f"D) Seldom\n"
                 f"ANSWER:"), voting_frequency_dict),
                 
-            "1_shot_chapter_quiz" : (lambda row: (f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1_shot()}\n\nQUESTION:\n"
-                f"According to the above backstory, how often would this person be likely to vote?\n"
-                f"A) Always\n"
-                f"B) Almost always\n"
-                f"C) In about half of elections\n"
-                f"D) Seldom\n"
-                f"ANSWER:\n"
-                f"A"
-                f"\n\nBACKSTORY:\n{self.make_backstory1_shot()}\n\nQUESTION:\n"
+            "quiz_1shot" : (lambda row: self.get_shots('voting_frequency', 'quiz', n=1, sep='.\n\n') + (
+                f"QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTION:\n"
                 f"According to the above backstory, how often would this person be likely to vote?\n"
                 f"A) Always\n"
                 f"B) Almost always\n"
@@ -311,47 +358,28 @@ class PrriFactory(DatasetFactory):
                 f"ANSWER:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
                 'In about half of elections' : ['C', 'In'], 'Seldom':['D','Seldom']}),
 
-            "0_shot_survey_response" : (lambda row: (f"{self.make_backstory4(row)}\n\nQuestion 11: Do you vote always, "
+            "survey_response" :  (lambda row: (f"SURVEY_RESPONSE\n\n{self.make_backstory4(row)}\n\nQuestion 11: Do you vote always, "
                 f"almost always, in about half of elections, seldom, or never?\nAnswer 11:"), voting_frequency_dict),
 
-            "1_shot_survey_response" : (lambda row: (f"{self.make_backstory4(row)}\n\nQuestion 11: Do you have the "
-                f"ability to vote?\n"
-                f"Answer 11: Yes\n\nQuestion 12: Do you vote always, almost always, in about half of elections, "
-                f"seldom, or never?\nAnswer 12:"), voting_frequency_dict),
+            "survey_response_3shot" : (lambda row: self.get_shots('voting_frequency', 'survey_response', n=3, sep='.\n\n') + (
+                f"SURVEY_RESPONSE\n\n{self.make_backstory4(row)}\n\nQuestion 11: Do you vote always, almost always, in about half of elections, "
+                f"seldom, or never?\nAnswer 11:"), voting_frequency_dict),
 
-            "0_shot_heavy_delimited" : (lambda row: (f"Given the backstory and question, "
+            "heavy_delimited" : (lambda row: (f"Given the backstory and question, "
                 f"please answer the question appropriately.\n\n"
                 f"\'\'\'Backstory -- {self.make_backstory1(row)}\'\'\', \'\'\'Would you say that you vote always, "
                 f"almost always, in about half of elections, seldom, or never?\'\'\n\n"
                 f" -> \'\'\'"), voting_frequency_dict),
 
-            "1_shot_heavy_delimited" : (lambda row: (f"Given the backstory and question, "
+            "heavy_delimited_1shot" : (lambda row: self.get_shots('voting_frequency', 'heavy_delimited', n=1, sep='.\n\n') + (
+                f"Given the backstory and question, "
                 f"please answer the question appropriately.\n\n"
-                f"\'\'\'Backstory -- {self.make_backstory1_shot()}\'\'\', \'\'\'Do you consider voting to be "
-                f"important to you?\'\'\n\n"
-                f" -> \'\'\'Yes\'\'\'\n\n"
                 f"\'\'\'Backstory -- {self.make_backstory1(row)}\'\'\', \'\'\'Do you vote always, almost always,"
                 f" in about half of elections, seldom, or never?\'\'\n\n"
                 f" -> \'\'\'"), voting_frequency_dict),
 
-            "0_shot_multiple_choice" : (lambda row: (f"Background info: {self.make_backstory2(row)}\n\n"
-                f"Question 1: Do you vote always, almost always, in about half of elections, seldom, or never?\n"
-                f"A: Always\n"
-                f"B: Almost Always\n"
-                f"C) In about half of elections\n"
-                f"D) Seldom\n"
-                f"ANSWER:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
-                'In about half of elections' : ['C', 'In'], 'Seldom':['D','Seldom']}),
-                
-            "1_shot_multiple_choice" : (lambda row: (f"Background info: {self.make_backstory1_shot()}\n\n"
-                f"Question 1: How often do you vote?\n"
-                f"A: Always\n"
-                f"B: Almost Always\n"
-                f"C) In about half of elections\n"
-                f"D) Seldom\n"
-                f"Answer: \nA\n"
-                f"Background info: {self.make_backstory1(row)}\n\n"
-                f"Question 1: How often do you vote?\n"
+            "multiple_choice" : (lambda row: (f"Demographic profile of a voter: {self.make_backstory2(row)}\n\n"
+                f"Question: How often does this voter vote?\n"
                 f"A: Always\n"
                 f"B: Almost Always\n"
                 f"C) In about half of elections\n"
@@ -359,19 +387,35 @@ class PrriFactory(DatasetFactory):
                 f"Answer:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
                 'In about half of elections' : ['C', 'In'], 'Seldom':['D','Seldom']}),
                 
-            "0_shot_direct_mapping" : (lambda row: (f"{self.make_backstory1(row)}\n\n"
-                f"Question 1: Do you vote always, almost always, in about half of elections, seldom, or never?\n"
-                f"Answer 1 (always, almost always, in about half of elections, seldom, never):"), voting_frequency_dict),
+            "multiple_choice_2shot" : (lambda row: self.get_shots('voting_frequency', 'multiple_choice', n=2, sep='.\n\n') + (
+                f"\n\nDemographic profile of a voter: {self.make_backstory2(row)}\n\n"
+                f"Question: How often does this voter vote?\n"
+                f"A: Always\n"
+                f"B: Almost Always\n"
+                f"C) In about half of elections\n"
+                f"D) Seldom\n"
+                f"Answer:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
+                'In about half of elections' : ['C', 'In'], 'Seldom':['D','Seldom']}),
                 
-            "1_shot_direct_mapping" : (lambda row: (f"{self.make_backstory1_shot()}\n\n"
-                f"Question 1: Do you consider voting important to you?\n"
-                f"Answer 1: Yes"
-                f"{self.make_backstory1(row)}\n\n"                                                      
-                f"Question 2: Do you vote always, almost always, in about half of elections, seldom, or never?\n"
-                f"Answer 2 (always, almost always, in about half of elections, seldom, never):"), voting_frequency_dict),
+            "introspect" : (lambda row: (f"{self.make_backstory1(row)}\n\n"
+                f"Question: Do I vote always, almost always, in about half of elections, seldom, or never?\n"
+                f"Answer (always, almost always, in about half of elections, seldom, never): I vote"), voting_frequency_dict),
+                
+            "introspect_2shot" : (lambda row: self.get_shots('voting_frequency', 'introspect', n=2, sep='.\n\n') + (
+                f"{self.make_backstory1(row)}\n"                                                      
+                f"Question: Do I vote always, almost always, in about half of elections, seldom, or never?\n"
+                f"Answer (always, almost always, in about half of elections, seldom, never): I vote"), voting_frequency_dict),
 
-            }
+            "introspect_mq" : (lambda row: (f"Question 1: Who am I?\n"
+                f"Answer 1: {self.make_backstory1(row)}\n\n"
+                f"Question 2: Do I consider voting important?\n"
+                f"Answer 2 (yes, no): Yes\n\n"
+                f"Question 3: How often do I vote?\n"
+                f"Answer 3 (always, almost always, in about half of elections, seldom, never): I vote"), voting_frequency_dict),
+            },
+
         }
 
 if __name__ == "__main__":
-    factory = PrriFactory(PrriSurvey())
+    factory = PrriFactory(PrriSurvey(), n=10)
+    factory.sample_templates(factory.survey_obj.df, dvs = 'voting_frequency'.split())
