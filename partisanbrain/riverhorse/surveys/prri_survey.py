@@ -12,7 +12,6 @@ class PrriSurvey(Survey):
         super().__init__()
 
     def download_data(self):
-        print("download")
         if not os.path.exists(SURVEY_DATA_PATH / "prri_survey/raw.csv"):
             # download the data
             fsav = requests.get("https://osf.io/x6gnf/download")
@@ -45,7 +44,7 @@ class PrriSurvey(Survey):
             "RACETHNICITY": "race_ethnicity",
             "EDUC": "education", 
             "I_MARITAL": "marital_status",
-            "INCOME": "income",
+            "S": "income",
             "STATE": "region"
         }
 
@@ -97,7 +96,6 @@ class PrriSurvey(Survey):
         cols = list(dvs.values()) + list(demo.values())
         mod_df = mod_df[cols]
 
-        print("hello")
 
         # More processing here to get the data super nice and clean
         # like changing responses to exactly match what is in the
@@ -134,5 +132,4 @@ if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
     # recent code from GitHub. See surveys/example.py for more
     # information on making your subclass.
-    print("Entered file")
     s = PrriSurvey()
