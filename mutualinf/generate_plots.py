@@ -1028,12 +1028,64 @@ def get_transfer_mutual_information(df):
         transfer_dict[dataset] = df_transfer
     return transfer_dict
 
+def make_baseline_plots(df):
+    datasets = get_datasets(df)
+    # shape of subplot grid
+    grid_shape = (2, 4)
+    # make figure
+    fig, axs = plt.subplots(
+        nrows=grid_shape[0],
+        ncols=grid_shape[1],
+        figsize=(grid_shape[1] * 2.5, grid_shape[0] * 2.5),
+    )
+    for i, dataset in enumerate(datasets):
+        ax_row, ax_col = i//grid_shape[1], i%grid_shape[1]
+        # data = df.loc[dataset, 'gpt3-davinci']
+        # data = df.loc[dataset, '175B (GPT-3)']
+        data = df.loc[dataset, 'GPT-3: 175B']
+        columns = data.columns
+        cols = ['baseline', 'mi', 'full_mi']
+        colors = ['C0', 'C1', 'C2']
+        for col, color in zip(cols, colors):
+            runs = data[col]
+            N = runs.index
+            means = np.array([np.mean(runs[n]) for n in N])
+            stds = np.array([np.std(runs[n]) for n in N])
+            # if col == 'full_mi', make dashed line
+            if col == 'full_mi':
+                linestyle = '--'
+            else:
+                linestyle = '-'
+                
+            # plot the mean
+            axs[ax_row, ax_col].plot(N, means, color=color, label=col, linestyle=linestyle)
+            # fill the error bar += std
+            # if col != 'full_mi':
+            if col != 'full_mi':
+                axs[ax_row, ax_col].fill_between(N, means - stds, means + stds, color=color, alpha=0.2)
+        axs[ax_row, ax_col].set_title(dataset)
+        # log scale
+        axs[ax_row, ax_col].set_xscale('log')
+        # set x-labels to be N
+        axs[ax_row, ax_col].set_xticks(N)
+        axs[ax_row, ax_col].set_xticklabels(N)
+        # legend
+        axs[ax_row, ax_col].legend(loc='lower right')
+
+                
+    plt.suptitle('Baseline')
+    plt.tight_layout()
+    plt.savefig('plots/baseline.pdf', bbox_inches='tight', pad_inches=0)
+    plt.close()
 
 
 def generate_all():
     '''
     Generate all plots.
     '''
+    baseline_df = get_data('data/baseline_data.pkl')
+    make_baseline_plots(baseline_df)
+
     df = get_data()
     make_big_scatter(df)
     make_davinci_scatter(df)
@@ -1048,11 +1100,12 @@ def generate_all():
     combined_corr_conc_heatmap(df)
     make_ensembling_kde_plot()
 
+
 if __name__ == '__main__':
     df = get_data()
     # make_big_scatter(get_data())
-    # generate_all()
+    generate_all()
     # make_average_transfer_heatmap(get_data())
-    make_ensembling_kde_plot()
+    # make_ensembling_kde_plot()
     # generate_all()
     # make_grouped_box_whisker(get_data(), orientation='v')
