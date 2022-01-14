@@ -44,7 +44,7 @@ class PrriSurvey(Survey):
             "RACETHNICITY": "race_ethnicity",
             "EDUC": "education", 
             "I_MARITAL": "marital_status",
-            "S": "income",
+            "INCOME": "income",
             "STATE": "region"
         }
 
