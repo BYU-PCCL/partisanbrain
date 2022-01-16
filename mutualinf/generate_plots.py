@@ -52,7 +52,7 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
     sub_dim = 2.5
     fig, axes = plt.subplots(nrows=n_rows,
                              ncols=n_cols,
-                             figsize=(n_cols*sub_dim, n_rows*sub_dim))
+                             figsize=(n_cols*sub_dim, n_rows*(sub_dim-0.7)))
 
     # For each dataset in ds_names add a plot to the grid
     for i, ds_name in enumerate(["squad", "lambada",
@@ -108,7 +108,7 @@ def make_ensembling_kde_plot(save_fname="plots/ensembling_kde_plot.pdf"):
             label.set_fontsize(FS_1)
 
     fig.add_subplot(111, frameon=False)
-    fig.suptitle("Accuracy by Ensembling Protocol on GPT-3 175B", fontsize=FS_3)
+    fig.suptitle("Accuracy by Ensembling Protocol on GPT-3 175B", fontsize=FS_3, y=0.95)
     plt.tick_params(labelcolor="none",
                     which="both",
                     top=False,
