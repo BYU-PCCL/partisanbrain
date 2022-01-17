@@ -124,8 +124,8 @@ class DatasetFactory:
                     prompt_tok_list.append((prompt,tokens))
                     f.write(prompt)
                 f.write("\n\n==============================\n\n")
-                f.write("\n\nBAD TEMPLATES: These failed playgrounding\n\n==============================\n\n")
                 bad_prompts = self.playground(prompt_tok_list)
+                f.write(f"\n\nBAD TEMPLATES (N={len(bad_prompts)}): These failed playgrounding\n\n==============================\n\n")
                 formatted_bad_prompts = "\n\n==============================\n\n".join(bad_prompts)
                 f.write(f"The following prompts were rejected: {formatted_bad_prompts}")
 

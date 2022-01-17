@@ -367,7 +367,8 @@ class PrriFactory(DatasetFactory):
                 f"B) Almost always\n"
                 f"C) In about half of elections\n"
                 f"D) Seldom\n"
-                f"ANSWER:"), voting_frequency_dict),
+                f"ANSWER:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
+                'In about half of elections' : ['C', 'In'], 'Seldom':['D','Seldom']}),
                 
             "quiz_1shot" : (lambda row: self.get_shots('voting_frequency', 'quiz', n=1, sep='.\n\n') + (
                 f"QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTION:\n"
@@ -401,8 +402,8 @@ class PrriFactory(DatasetFactory):
 
             "multiple_choice" : (lambda row: (f"Demographic profile of a voter: {self.make_backstory2(row)}\n\n"
                 f"Question: How often does this voter vote?\n"
-                f"A: Always\n"
-                f"B: Almost Always\n"
+                f"A) Always\n"
+                f"B) Almost Always\n"
                 f"C) In about half of elections\n"
                 f"D) Seldom\n"
                 f"Answer:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
@@ -411,8 +412,8 @@ class PrriFactory(DatasetFactory):
             "multiple_choice_2shot" : (lambda row: self.get_shots('voting_frequency', 'multiple_choice', n=2, sep='.\n\n') + (
                 f"\n\nDemographic profile of a voter: {self.make_backstory2(row)}\n\n"
                 f"Question: How often does this voter vote?\n"
-                f"A: Always\n"
-                f"B: Almost Always\n"
+                f"A) Always\n"
+                f"B) Almost Always\n"
                 f"C) In about half of elections\n"
                 f"D) Seldom\n"
                 f"Answer:"), {'Always' : ['A', 'Always'], 'Almost always' : ['B', 'Almost'], 
