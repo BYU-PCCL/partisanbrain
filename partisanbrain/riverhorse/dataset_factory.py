@@ -1,6 +1,6 @@
 from ..mutualinf.dataset import Dataset
 from . import constants as k
-from pdb import set_trace as breakpoint
+from pdb import set_trace as bp
 import pandas as pd
 import os
 import requests
@@ -114,12 +114,21 @@ class DatasetFactory:
             with open(os.path.join(filled_templates_dir, 'filled_templates.txt'), "w") as f:
                 sub_df = df[self.present_dems + [dv]]
                 sub_df = sub_df.dropna()
+                prompt_tok_list = []
                 for type, (template, tokens) in templates[dv].items():
+                    f.write("\n\n==============================\n\n")
                     row = sub_df.sample().iloc[0]
                     f.write(type)
                     f.write("\n\n")
-                    f.write(template(row))
-                    f.write("\n\n==============================\n\n")
+                    prompt = template(row)
+                    prompt_tok_list.append((prompt,tokens))
+                    f.write(prompt)
+                f.write("\n\n==============================\n\n")
+                bad_prompts = self.playground(prompt_tok_list)
+                bp()
+                formatted_bad_prompts = "\n\n".join(bad_prompts)
+                f.write(f"The following prompts were rejected: {formatted_bad_prompts}")
+
 
     def _substitute(self, token):
         """This just converts Jurassic's output to normal text."""
@@ -127,38 +136,39 @@ class DatasetFactory:
 
     def _expected_response_token_equality(self, expected_response, token):
         """Returns whether an expected response corresponds to the output token."""
-        token = token.lower()
+        token = token.strip().lower()
         expected_response = expected_response.lower()
         return token.startswith(expected_response) or expected_response.startswith(
             token
         )
 
-    def _get_prob_mass(self, expected_response, tokens):
+    def _get_prob_mass(self, expected_response, token_logprob_pairs):
         """Returns the probability mass associated with an expected_response."""
-        total_prob = 0
-        for token, prob in tokens:
-            token = token.strip()
+        total_logprob = 0
+        for token, logprob in token_logprob_pairs:
             if self._expected_response_token_equality(expected_response, token):
-                total_prob += prob
-        return total_prob
+                total_logprob += logprob
+        return total_logprob
 
-    def _is_enough_prob_mass(self, expected_responses, tokens, thresh):
+    def _is_enough_prob_mass(self, expected_responses, token_logprob_pairs, thresh):
         """Returns whether a survey response has at least thresh probability mass associated with it."""
         total_prob = 0
-        for value in expected_responses:
-            total_prob += self._get_prob_mass(value, tokens)
+        for expected_response in expected_responses:
+            total_prob += self._get_prob_mass(expected_response, token_logprob_pairs)
         return total_prob >= thresh
 
-    def _is_survey_response_top_k(self, expected_responses, tokens, k=7):
-        """Returns whether or not a survey response is found in the output tokens."""
+    def _any_expected_response_top_k(self, expected_responses, token_logprob_pairs, k=7):
+        """Returns whether or not any of the expected responses are "equal" to 
+        any of the top k logprob tokens."""
 
+        top_k_tokens = [token for token, _ in token_logprob_pairs[:k]]
         are_expected_responses_top_k = [
             any(
                 map(
                     lambda token: self._expected_response_token_equality(
                         expected_response, token
                     ),
-                    tokens[:k],
+                    top_k_tokens,
                 )
             )
             for expected_response in expected_responses
@@ -185,8 +195,8 @@ class DatasetFactory:
 
     def playground(
         self,
-        api_token,
         prompts,
+        api_token=None,
         thresh=0.001,
         min_survey_responses=2,
         min_tokens=5,
@@ -194,13 +204,20 @@ class DatasetFactory:
     ):
         """
         This playgrounds the input prompts and returns which did not pass the playgrounding steps.
+        TODO: Add a way to cache finished prompts and only re-run the ones you need.
+
+        Args: 
+            prompts[list]: List of tuples (prompt[str], token_dict[dict])
+            api_token[str]: The AI21 Lab API token 
         """
 
+        if api_token is None:
+            api_token = os.getenv('AI21_API_KEY')
         bad_prompts = []
         for prompt, token_dict in prompts:
             response = requests.post(
                 "https://api.ai21.com/studio/v1/j1-jumbo/complete",
-                headers={f"Authorization": "Bearer {api_token}"},
+                headers={"Authorization": f"Bearer {api_token}"},
                 json={
                     "prompt": prompt,
                     "numResults": 1,
@@ -208,48 +225,59 @@ class DatasetFactory:
                     "topKReturn": 64,
                 },
             )
-            tokens = response.json()["completions"][0]["data"]["tokens"][0]["topTokens"]
-            tokens = [
-                (self._substitute(d["token"]), np.exp(d["logprob"])) for d in tokens
+            token_logprob_pairs = response.json()["completions"][0]["data"]["tokens"][0]["topTokens"]
+            token_logprob_pairs = [
+                (self._substitute(d["token"]), np.exp(d["logprob"])) for d in token_logprob_pairs
             ]
 
             results = []
 
+            # For every single survey response
             for survey_response, expected_responses in token_dict.items():
                 if not isinstance(expected_responses, list):
                     expected_responses = [expected_responses]
 
+                # Record whether
+
+                # (1) all the expected responses have enough collective probability mass associated with them
                 is_enough_prob_mass = self._is_enough_prob_mass(
-                    expected_responses, tokens, thresh
+                    expected_responses, token_logprob_pairs, thresh
                 )
-                is_survey_response_top_k = self._is_survey_response_top_k(
-                    expected_responses, tokens, k=top_k
+                # and
+
+                # (2) any of the expected responses are in the top k tokens
+                is_survey_response_top_k = self._any_expected_response_top_k(
+                    expected_responses, token_logprob_pairs, k=top_k
                 )
 
+                # and save the result for every survey response
                 results.append(
                     (survey_response, is_enough_prob_mass, is_survey_response_top_k)
                 )
 
             # Get any possible response
-            all_expected_responses = sum(
-                [expected_responses for expected_responses in token_dict.values()], []
-            )
+            all_expected_responses = []
+            for expected_responses in token_dict.values():
+                if not isinstance(expected_responses, list):
+                    expected_responses = [expected_responses]
+                all_expected_responses += expected_responses
 
             # All survey responses need a bit of probability mass
             has_enough_prob_mass = all(map(lambda result: result[1], results))
-            # At least 2 of possible survey responses are in top 7
-            has_enough_top_k = (
+            # At least l=min_survey_responses of possible survey responses are in top k tokens
+            enough_survey_responses_in_top_k = (
                 sum(map(lambda result: result[2], results)) >= min_survey_responses
             )
-            # 5 of top 7 tokens are in response set
-            has_enough_tokens = self._has_enough_tokens(
-                all_expected_responses, tokens, min_tokens=min_tokens, k=top_k
+            # At least of top 7 tokens are in response set
+            enough_top_k_tokens_in_expected_responses = self._has_enough_tokens(
+                all_expected_responses, [k for k,_ in token_logprob_pairs], min_tokens=min_tokens, k=top_k
             )
 
             # This is where we decide if a prompt is good or bad
-            if not all([has_enough_prob_mass, has_enough_top_k, has_enough_tokens]):
-                bad_prompts += prompt
-
+            if not all([has_enough_prob_mass, 
+                        enough_survey_responses_in_top_k, 
+                        enough_top_k_tokens_in_expected_responses]):
+                bad_prompts.append(prompt)
         return bad_prompts
 
     def modify_data(self, df):

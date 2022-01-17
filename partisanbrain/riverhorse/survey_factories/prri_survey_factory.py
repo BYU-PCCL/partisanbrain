@@ -78,6 +78,30 @@ party_dict2 = {
     "Don't know (VOL.)": np.nan,
 }
 
+#'Republican', 'Democrat', 'Other, please specify','Skipped on web', 'Refused'
+#I lean
+lean_dict = {
+            np.nan: '',
+            'Republican': ", but I lean Republican",
+            'Democrat': ", but I lean Democrat",
+            'Other, please specify': '',
+            'Skipped on web': '',
+            'Refused': '',
+            "Don't know (VOL.)": '',
+            }
+
+#'Republican', 'Democrat', 'Other, please specify','Skipped on web', 'Refused'
+#I lean
+lean_dict2 = {
+            np.nan: '',
+            'Republican': ", leaning Republican",
+            'Democrat': ", leaning Democrat",
+            'Other, please specify': '',
+            'Skipped on web': '',
+            'Refused': '',
+            "Don't know (VOL.)": '',
+            }
+
 # '$25,000-$29,999', '$150,000-$174,999', '$60,000-$74,999', '$35,000-$39,999', '$175,000-$199,999', '$75,000-$84,999', '$5,000-$9,999', '$40,000-$49,999', '$50,000-$59,999', '$20,000-$24,999', '$10,000-$14,999', '$85,000-$99,999', '$15,000-$19,999', '$100,000-$124,999', '$30,000-$34,999', 'Less than $5,000', '$125,000-$149,999', '$200,000 or more'
 # My annual income is _ a year
 income_dict = {
@@ -175,18 +199,15 @@ educ_dict = {
     "First, second, third or fourth grade": "didn't go to high school"
 }
 
-#'Republican', 'Democrat', 'Other, please specify','Skipped on web', 'Refused'
-#I lean
-lean_dict = {
-            np.nan: '',
-            'Republican': ", but I lean Republican",
-            'Democrat': ", but I lean Democrat",
-            'Other, please specify': '',
-            'Skipped on web': '',
-            'Refused': '',
-            "Don't know (VOL.)": '',
-            }
 
+voting_dict = {
+    "Always": "always",
+    "Nearly always": "nearly always",
+    "In about half of elections": "in about half of elections",
+    "Seldom": "seldom",
+    "Skipped on web": np.nan,
+    "Never": "never"
+}
 
 class PrriFactory(DatasetFactory):
 
@@ -197,7 +218,7 @@ class PrriFactory(DatasetFactory):
 
     def modify_data(self, df):
         # party is list. remove first element of list and make the 'party' column, and make the second element of list 'leaning' column
-        df['leaning'] = df['party'].apply(lambda x: x[1])
+        df['party_leaning'] = df['party'].apply(lambda x: x[1])
         df['party'] = df['party'].apply(lambda x: x[0])
         # change age to int
         df['age'] = df['age'].apply(lambda x: int(x))
@@ -210,33 +231,33 @@ class PrriFactory(DatasetFactory):
         df['ideology_processed'] = df['ideology'].replace(ideology_dict)
         # party
         df['party_processed'] = df['party'].replace(party_dict)
+        #lean
+        df['party_leaning_processed'] = df['party_leaning'].replace(lean_dict)
+        # party
+        df['party_processed2'] = df['party'].replace(party_dict2)
+        #lean
+        df['party_leaning_processed2'] = df['party_leaning'].replace(lean_dict2)
         # income
         df['income_processed'] = df['income'].replace(income_dict)
         # region
         df['region_processed'] = df['region'].replace(region_dict)
         #education
         df['education_processed'] = df['education'].replace(educ_dict)
-        #lean
-        df['leaning_processed'] = df['leaning'].replace(lean_dict)
         #religion
         df['religion_processed'] = df['religion'].replace(religion_dict)
 
-        #TODO: Rename the values in the DV columns for good templating, like so:
-        # 'Always', 'Nearly always', 'In about half of elections', 'Seldom', 'Skipped on web', 'Never'
-        voting_dict = {
-            "Always": "always",
-            "Nearly always": "nearly always",
-            "In about half of elections": "in about half of elections",
-            "Seldom": "seldom",
-            "Skipped on web": np.nan,
-            "Never": "never"
-        }
-        df['voting_frequency'] = df['voting_frequency'].replace(voting_dict)
+        df['voting_frequency_processed'] = df['voting_frequency'].replace(voting_dict)
         
 
         to_drop = [col for col in df.columns if col.endswith('_processed')]
         #Restrict this list to columns already in df
         df.dropna(subset=to_drop, inplace=True)
+
+
+        #TODO: Check that all the demographic columns have the right values.
+        # To do this, you would compare the values of the dictionaries minus np.nan to the values in the dataframe,
+        # if they are different, then you have a problem.
+
         return df
 
     def make_backstory1(self, row):
@@ -245,7 +266,7 @@ class PrriFactory(DatasetFactory):
     
         backstory_list.append(f"I am {row['age']} years old.")
         backstory_list.append(f"I am {row['gender'].lower()}.")
-        backstory_list.append(f"Politically, I {row['party_processed']}{row['leaning_processed']}.")
+        backstory_list.append(f"Politically, I {row['party_processed']}{row['party_leaning_processed']}.")
         backstory_list.append(f"Ideologically, I am {row['ideology_processed'].lower()}.")
         backstory_list.append(f"I {row['education_processed'].lower()}.")
         backstory_list.append(f"My total income is {row['income_processed']}.")
@@ -257,13 +278,13 @@ class PrriFactory(DatasetFactory):
         return " ".join(backstory_list)
     
     def make_backstory2(self, row):
-        return (f"Age: {row['age']}, Gender: {row['gender']}, Political Affiliation: {party_dict2[row['party']]}, "
+        return (f"Age: {row['age']}, Gender: {row['gender']}, Political Affiliation: {row['party_processed2'] + row['party_leaning_processed2']}, "
                             f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']}, "
                             f"Race/Ethnicity: {row['race_ethnicity']}, State: {row['region_processed']}, Marital Status: {row['marital_status']}")
 
     def make_backstory3(self, row):
         return (f"Q: What is your age?\nA: {row['age']}\n\nQ: What is your gender?\nA: {row['gender']}\n\n"
-                            f"Q: What is your political affiliation?\nA: {row['party']}\n\nQ: What is your education?\nA: {row['education']}"
+                            f"Q: What is your political affiliation?\nA: {row['party_processed2'] + row['party_leaning_processed2']}\n\nQ: What is your education?\nA: {row['education']}"
                             f"Q: What is your ideology?\nA: {row['ideology']}\n\nQ: What is your income?\nA: {row['income']}\n\n"
                             f"Q: What is your religion?\nA: {row['religion']}\n\n"
                             f"Q: What is your race/ethnicity?\nA: {row['race_ethnicity']}\n\nQ: What state do you live in?\nA: {row['region_processed']}\n\n"
@@ -271,7 +292,7 @@ class PrriFactory(DatasetFactory):
 
     def make_backstory4(self, row):
         return (f"Question 1: What is your age?\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\nAnswer 2: {row['gender']}\n\n"
-                            f"Question 3: What is your political affiliation?\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\nAnswer 4: {row['education']}"
+                            f"Question 3: What is your political affiliation?\nAnswer 3: {row['party_processed2'] + row['party_leaning_processed2']}\n\nQuestion 4: What is your education?\nAnswer 4: {row['education']}"
                             f"Question 5: What is your ideology?\nAnswer 5: {row['ideology']}\n\nQuestion 6: What is your income?\nAnswer 6: {row['income']}\n\n"
                             f"Question 7: What is your religion?\nAnswer 7: {row['religion']}\n\n"
                             f"Question 8: What is your race/ethnicity?\nAnswer 8: {row['race_ethnicity']}\n\nQuestion 9: What region of the country are your from?\nAnswer 9: {row['region']}"
@@ -293,7 +314,7 @@ class PrriFactory(DatasetFactory):
                 f"always, nearly always, in about half of elections, seldom, or never), "
                 f"I would say that I vote"), voting_frequency_dict),
 
-            "finish_sentence_test5shot" : (lambda row:  self.get_shots('voting_frequency', 'finish_sentence', n=5, sep='.\n\n') + (
+            "finish_sentence_test_5shot" : (lambda row:  self.get_shots('voting_frequency', 'finish_sentence', n=5, sep='.\n\n') + (
                 f"\n\n{self.make_backstory1(row)} "
                 f"If asked how often I vote ("
                 f"always, nearly always, in about half of elections, seldom, or never), "
@@ -311,8 +332,8 @@ class PrriFactory(DatasetFactory):
                 f"seldom, or never?\n"
                 f"ANSWER:"), voting_frequency_dict),
 
-            "task_context_question_1_shot" : (lambda row: 
-                self.get_shots('voting_frequency', '0_shot_task_context_question', n=1, sep='.\n\n') + 
+            "context_question_1shot" : (lambda row: 
+                self.get_shots('voting_frequency', 'context_question', n=1, sep='.\n\n') + 
                 (f"\n\nTASK: Consider the below demographic information and answer the following question.\n\n"
                 f"CONTEXT: {self.make_backstory2(row)}\n\n"
                 f"QUESTION: Would you say that you vote always, nearly always, in about half of elections, "

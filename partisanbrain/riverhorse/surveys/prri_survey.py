@@ -1,15 +1,19 @@
 ''''Code by: MK and Sophie'''
 
-from ..survey import Survey
 import os
-import pandas as pd
 import requests
+import pandas as pd
+import numpy as np
+from ..survey import Survey
 from ..constants import SURVEY_DATA_PATH
+from pdb import set_trace as bp
+
 
 class PrriSurvey(Survey):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # bp()
 
     def download_data(self):
         if not os.path.exists(SURVEY_DATA_PATH / "prri_survey/raw.csv"):
@@ -51,14 +55,11 @@ class PrriSurvey(Survey):
         #Renaming Demographic Columns
         mod_df = df.rename(columns=demo)
 
-        # breakpoint()
-        # Adding extra information to the columns
-        mod_df['party'] = self.combine('party','PARTYLN', mod_df)
-        
-        #Cleaning
         demo_cols = list(demo.values())
         mod_df = mod_df.dropna(subset=demo_cols)
 
+        # Add party leaning
+        mod_df['party'] = self.combine('party','PARTYLN', mod_df)
         # Drop all rows from df that have a null
         # value for the demographic columns that are
         # present *in this data* (not all 10 will
@@ -132,4 +133,5 @@ if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
     # recent code from GitHub. See surveys/example.py for more
     # information on making your subclass.
-    s = PrriSurvey()
+    surv = PrriSurvey(force_recreate=True)
+    bp()
