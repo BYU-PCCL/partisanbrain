@@ -598,6 +598,39 @@ def make_davinci_scatter(df, save_path='plots/davinci_scatter.pdf'):
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
+def make_davinci_scatter2(df, save_path='plots/davinci_scatter2.pdf'):
+    '''
+    Make scatter plots for each dataset for 'gpt3-davinci'.
+    '''
+    datasets = get_datasets(df)
+    # make a 4x2 scatter plot
+    # dims = (2, 4)
+    dims = (4, 2)
+    subplot_height, subplot_width = 2.2, 1.5
+    fig, ax = plt.subplots(dims[0], dims[1], figsize=(dims[1]*subplot_height, dims[0]*subplot_width))
+    for i, dataset in enumerate(datasets):
+        ax_row, ax_col = i//dims[1], i%dims[1]
+        # data = df.loc[dataset, 'gpt3-davinci']
+        # data = df.loc[dataset, '175B (GPT-3)']
+        data = df.loc[dataset, 'GPT-3: 175B']
+        scatter_plot(data, ax[ax_row, ax_col])
+        ax[ax_row, ax_col].set_title(dataset)
+    # for first column, add 'accuracy' as the ylabel
+    for i in range(dims[0]):
+        ax[i, 0].set_ylabel('Accuracy')
+    plt.suptitle('Mutual Information vs Accuracy for each Dataset with GPT-3')
+    # for bottom row, add 'Mutual Information (nats)' as the xlabel
+    # for i in range(dims[1]):
+    #     ax[-1, i].set_xlabel('Mutual Information (nats)')
+    # make xlabel across entire bottom row
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
+    plt.xlabel('Mutual Information (nats)')
+
+    plt.tight_layout()
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
 def heatmap(df, save_path, scale_min=None, scale_max=None, title=None, override_cmap=None, round=2):
     '''
     Generate a heatmap.
@@ -1030,8 +1063,13 @@ def get_transfer_mutual_information(df):
 
 def make_baseline_plots(df):
     datasets = get_datasets(df)
+    original_df = get_data()
     # shape of subplot grid
     grid_shape = (2, 4)
+    # font sizes
+    FS_1 = 12
+    FS_2 = 13
+    FS_3 = 14
     # make figure
     fig, axs = plt.subplots(
         nrows=grid_shape[0],
@@ -1045,7 +1083,13 @@ def make_baseline_plots(df):
         data = df.loc[dataset, 'GPT-3: 175B']
         columns = data.columns
         cols = ['baseline', 'mi', 'full_mi']
-        colors = ['C0', 'C1', 'C2']
+        col_labels = {
+            'baseline': 'N-shot Acc',
+            'mi': 'N-shot MI',
+            'full_mi': 'All-shot MI',
+        }
+        # colors = ['C0', 'C1', 'C2', 'C3']
+        colors = [MAIN_COLOR, RED_1, 'darkred', BLUE_3]
         for col, color in zip(cols, colors):
             runs = data[col]
             N = runs.index
@@ -1054,28 +1098,73 @@ def make_baseline_plots(df):
             # if col == 'full_mi', make dashed line
             if col == 'full_mi':
                 linestyle = '--'
+                alpha = 0.8
             else:
                 linestyle = '-'
+                alpha = 1
                 
             # plot the mean
-            axs[ax_row, ax_col].plot(N, means, color=color, label=col, linestyle=linestyle)
+            axs[ax_row, ax_col].plot(N, means, color=color, label=col_labels[col], linestyle=linestyle, alpha=alpha)
             # fill the error bar += std
             # if col != 'full_mi':
             if col != 'full_mi':
                 axs[ax_row, ax_col].fill_between(N, means - stds, means + stds, color=color, alpha=0.2)
-        axs[ax_row, ax_col].set_title(dataset)
+        # PLOT TOP TEMPLATE ACCURACY
+        # get the top template accuracy
+        top_acc = original_df.loc[dataset, 'GPT-3: 175B'].accuracy.max()
+        axs[ax_row, ax_col].plot(N, top_acc * np.ones(len(N)), color=colors[-1], label='Top Acc', linestyle=':', alpha=1)
+
+        # PLOT AVERAGE ACCURACY
+        # get the average template accuracy
+        avg_acc = original_df.loc[dataset, 'GPT-3: 175B'].accuracy.mean()
+        # plot dashed line
+        axs[ax_row, ax_col].plot(N, avg_acc * np.ones(len(N)), color=colors[-1], label='Avg Acc', linestyle='-.', alpha=1)
+
+
+
+        axs[ax_row, ax_col].set_title(dataset, fontsize=FS_2)
         # log scale
         axs[ax_row, ax_col].set_xscale('log')
         # set x-labels to be N
         axs[ax_row, ax_col].set_xticks(N)
-        axs[ax_row, ax_col].set_xticklabels(N)
+        axs[ax_row, ax_col].set_xticklabels(N, fontsize=FS_1, rotation=45, ha='right')
+        # set y-tick font size
+        axs[ax_row, ax_col].tick_params(labelsize=FS_1)
+        
+        # for label in (plt_ax.get_xticklabels() +
+        #               plt_ax.get_yticklabels()):
+        #     label.set_fontsize(FS_1)
         # legend
-        axs[ax_row, ax_col].legend(loc='lower right')
+        # if first, add legend
+        if ax_row == 0 and ax_col == 1:
+            axs[ax_row, ax_col].legend(loc='lower right')
+        
+        # if wic
+        if ax_row == 1 and ax_col == 3:
+            # make ylim bigger
+            # axs[ax_row, ax_col].set_ylim(0.45, .55)
+            # make yticks slightly smaller
+            axs[ax_row, ax_col].tick_params(labelsize=FS_1-2)
+    
+    # # on bottom row, make x-label N (training examples)
+    # for ax in axs[-1, :]:
+    #     ax.set_xlabel('N')
+    # # on left column, make y-label accuracy
+    # for ax in axs[:, 0]:
+    #     ax.set_ylabel('Accuracy')
 
+    # make x-label centered on bottom
+    plt.subplots_adjust(bottom=0.2)
+    fig.text(0.51, -0.00, 'N (training set size)', ha='center', fontsize=FS_2)
+    # make y-label centered on left
+    plt.subplots_adjust(left=0.2)
+    fig.text(-0.00, 0.5, 'Accuracy', va='center', rotation='vertical', fontsize=FS_2)
                 
-    plt.suptitle('Baseline')
-    plt.tight_layout()
+    plt.suptitle('Few-Shot Accuracy Selection vs. Mutual Information Selection on GPT-3 175B', fontsize=FS_3)
+    fig.tight_layout(h_pad=0.5, w_pad=0)
+    # plt.tight_layout()
     plt.savefig('plots/baseline.pdf', bbox_inches='tight', pad_inches=0)
+    breakpoint()
     plt.close()
 
 
@@ -1103,9 +1192,10 @@ def generate_all():
 
 if __name__ == '__main__':
     df = get_data()
+    # make_davinci_scatter2(df)
     # make_big_scatter(get_data())
-    generate_all()
+    # generate_all()
     # make_average_transfer_heatmap(get_data())
-    # make_ensembling_kde_plot()
+    make_ensembling_kde_plot()
     # generate_all()
     # make_grouped_box_whisker(get_data(), orientation='v')
