@@ -113,7 +113,6 @@ class AnesFactory(DatasetFactory):
             "Inapplicable": np.nan,
             "Other \\{SPECIFY\\}": np.nan,
         }
-        breakpoint()
 
         # Make a processed version of the
         # "age", "gender", "party", "education", "ideology", "income", "religion", "race_ethnicity", "region", "marital_status",
@@ -126,17 +125,104 @@ class AnesFactory(DatasetFactory):
         df["income_processed"] = df["income"].map(income_dict)
         df["religion_processed"] = df["religion"].map(religion_dict)
         df["region_processed"] = df["region"]
-        df["race_ethnicity_processed"] = df["race_ethnicity"].map(race_ethnicity_dict)
-        df["marital_status_processed"] = df["marital_status"].map(marital_status_dict)
+        df["race_ethnicity_processed"] = df["race_ethnicity"].map(
+            race_ethnicity_dict)
+        df["marital_status_processed"] = df["marital_status"].map(
+            marital_status_dict)
 
         df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
 
         processed_cols = [f"{col}_processed" for col in k.DEMOGRAPHIC_COLNAMES]
         df.dropna(subset=processed_cols, inplace=True)
 
-        breakpoint()
-
         return df
+
+    def make_backstory1(self, row):
+        # create a generic backstory using values in the demographics
+        return (
+            f"I am {int(row['age_processed'])} years old. I am {row['gender_processed'].lower()}. "
+            f"Politically speaking, I am {row['party_processed']}. "
+            f"Ideologically, I am {row['ideology_processed'].lower()}. I {row['education_processed'].lower()}. "
+            f"My salary is {row['income_processed']}. "
+            f"{row['religion_processed']}. "
+            f"I am {row['race_ethnicity_processed']}. I am from the {row['region_processed']}. "
+            f"I {row['marital_status_processed']}."
+        )
+
+    def make_backstory2(self, row):
+        return (
+            f"Age: {int(row['age_processed'])}, Gender: {row['gender']}, Political Affiliation: {row['party']}, "
+            f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']}, "
+            f"Race/Ethnicity: {row['race_ethnicity']}, Region: {row['region']}, Marital Status: {row['marital_status']}"
+        )
+
+    def make_backstory3(self, row):
+        return (
+            f"Q: What is your age?\nA: {int(row['age_processed'])}\n\nQ: What is your gender?\nA: {row['gender']}\n\n"
+            f"Q: What is your political affiliation?\nA: {row['party']}\n\nQ: What is your education?\nA: {row['education']}\n\n"
+            f"Q: What is your ideology?\nA: {row['ideology']}\n\nQ: What is your income?\nA: {row['income']}\n\n"
+            f"Q: What is your religion?\nA: {row['religion']}\n\n"
+            f"Q: What is your race/ethnicity?\nA: {row['race_ethnicity']}\n\nQ: What region of the country are you from?\nA: {row['region']}\n\n"
+            f"Q: What is your marital status?\nA: {row['marital_status']}"
+        )
+
+    def make_backstory4(self, row):
+        return (f"Question 1: What is your age?\n\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\n\nAnswer 2: {row['gender']}\n\n"
+                f"Question 3: What is your political affiliation?\n\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\n\nAnswer 4: {row['education']}\n\n"
+                f"Question 5: What is your ideology?\n\nAnswer 5: {row['ideology']}\n\nQuestion 6: What is your income?\n\nAnswer 6: {row['income']}\n\n"
+                f"Question 7: What is your religion?\n\nAnswer 7: {row['religion']}\n\n"
+                f"Question 8: What is your race/ethnicity?\n\nAnswer 8: {row['race_ethnicity']}\n\nQuestion 9: What region of the country are you from?\n\nAnswer 9: {row['region']}\n\n"
+                f"Question 10: What is your marital status?\n\nAnswer 10: {row['marital_status']}"
+                )
+
+    def make_backstory5(self, row):
+        return (
+            f"Person 1: What is your age?\nPerson 2: {row['age']}\n\nPerson 1: What is your gender?\nPerson 2: {row['gender']}\n\n"
+            f"Person 1: What is your political affiliation?\nPerson 2: {row['party']}\n\nPerson 1: What is your education?\nPerson 2: {row['education']}\n\n"
+            f"Person 1: What is your ideology?\nPerson 2: {row['ideology']}\n\nPerson 1: What is your income?\nPerson 2: {row['income']}\n\n"
+            f"Person 1: What is your religion?\nPerson 2: {row['religion']}\n\n"
+            f"Person 1: What is your race/ethnicity?\nPerson 2: {row['race_ethnicity']}\n\nPerson 1: What region of the country are you from?\nPerson 2: {row['region']}\n\n"
+            f"Person 1: What is your marital status?\nPerson 2: {row['marital_status']}"
+        )
+
+    def make_backstory6(self, row):
+        return (
+            f"Q: What is your age? (in years)\n"
+            f"A: {int(row['age_processed'])}\n\n"
+            f"Q: What is your gender? (Male, Female)\nA: {row['gender']}\n\n"
+            f"Q: What is your political affiliation? "
+            f"(Democratic Party, Republican Party, Inapplicable, None or "
+            f"'independent')\nA: {row['party']}\n\n"
+            f"Q: What is your education level? "
+            f"(High school, Professional school, Bachelor's degree, "
+            f"Master's degree, Associate's degree, Some college, "
+            f"Less than high school credential)\nA: {row['education']}\n\n"
+            f"Q: What is your ideology? (Slightly conservative, Liberal, "
+            f"Conservative, Moderate, Slightly liberal, Extremely liberal, "
+            f"Extremely conservative)\nA: {row['ideology']}\n\n"
+            f"Q: What is your income? (Under $9,999, $10,000-14,999, "
+            f"$15,000-19,999, $20,000-24,999, $25,000-29,999, $30,000-34,999, "
+            f"$35,000-39,999, $40,000-44,999, $45,000-49,999, $50,000-59,999, "
+            f"$60,000-64,999, $65,000-69,999, $70,000-74,999, $75,000-79,999, "
+            f"$80,000-89,999, $90,000-99,999, $100,000-109,999, "
+            f"$110,000-124,999, $125,000-149,999, $150,000-174,999, "
+            f"$175,000-249,999, $250,00 or more')\nA: {row['income']}\n\n"
+            f"Q: What is your religion? ('Undifferentiated Protestant, "
+            f"Not religious, Mainline Protestant, Roman Catholic, "
+            f"Other religion, Other Christian, Evangelical Protestant, "
+            f"Jewish')\nA: {row['religion']}\n\n"
+            f"Q: What is your race/ethnicity? ('White, non-Hispanic, Black, "
+            f"non-Hispanic, Asian or Native Hawaiian/other Pacific Islander, "
+            f"non-Hispanic alone, Hispanic, Multiple races, non-Hispanic, "
+            f"Native American/Alaska Native or other race, non-Hispanic "
+            f"alone')\nA: {row['race_ethnicity']}\n\n"
+            f"Q: What region of the country are you from? (Northeast, Midwest, "
+            f"South, West)\nA: {row['region']}\n\n"
+            f"Q: What is your marital status? (Married: spouse present, "
+            f"Never married, Divorced, Married: spouse absent "
+            f"{{VOL - video/phone only}}, Widowed, Separated)"
+            f"\nA: {row['marital_status']}"
+        )
 
     def get_templates(self):
         protecting_environment_spending_dict = None
@@ -167,8 +253,103 @@ class AnesFactory(DatasetFactory):
             "Gay and lesbian couples should be allowed to form civil unions but not legally marry": "somewhat",
             "There should be no legal recognition of gay or lesbian couples' relationship": "not",
         }
+
+        vote_2016_dict = {
+            "Hillary Clinton": ["Hillary", "Clinton"],
+            "Donald Trump": ["Donald", "Trump"]
+        }
+
+        vote_2016_mc_dict = {
+            "Hillary Clinton": ["A", "Hillary", "Clinton"],
+            "Donald Trump": ["B", "Donald", "Trump"]
+        }
         # add token sets as dicts see example (map Kept the same to keep, kept, etc) -- for protecting_environment_spending
+
         return {
+            "vote_2016": {
+                "surveyq_exact": (
+                    lambda row: self.make_backstory4(row) + (
+                        "\n\nQuestion 11: Four years ago, in 2016, Hillary Clinton ran "
+                        "on the Democratic ticket against Donald Trump for the "
+                        "Republicans. Which one did you vote for?\nAnswer 11:"
+                    ),
+                    vote_2016_dict,
+                ),
+                "surveyq_rephrase": (
+                    lambda row: (self.make_backstory4(row) +
+                                 "\n\nQuestion 11: Do you remember the presidential "
+                                 "election of 2016? Did you vote for Hillary Clinton "
+                                 "or Donald Trump?\nAnswer 11:"
+                                 ),
+                    vote_2016_dict,
+                ),
+                "fpbs": (
+                    lambda row: self.make_backstory1(row) + (
+                        " In the 2016 presidential election, I voted for"),
+                    vote_2016_dict,
+                ),
+                "task": (
+                    lambda row: ("TASK: The following is a description of a "
+                                 "voter in the 2016 presidential election. Please read "
+                                 "it and infer who that person voted for.\n\n" +
+                                 self.make_backstory2(
+                                     row) + ", 2016 Presidential Election "
+                                 "Vote:"),
+                    vote_2016_dict,
+                ),
+                "task_3shot": (
+                    lambda row: (
+                        self.get_shots("vote_2016", "task", 3, sep="\n\n") +
+                        "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer who that person voted for.\n\n" +
+                        self.make_backstory2(
+                            row) + " 2016 presidential election "
+                        "vote:"),
+                    vote_2016_dict,
+                ),
+                "anes_description": (
+                    lambda row: ("The American National Election Studies 2020 "
+                                 "Time Series Study (ANES 2020) "
+                                 "is a nationally representative survey of voters in "
+                                 "American Elections. Below are examples of respondents "
+                                 "answering various questions. Please complete what you "
+                                 "would guess the right answers to those questions to be."
+                                 "\n\n" +
+                                 self.make_backstory3(
+                                     row) + "\n\nQ: Who did you "
+                                 "vote for in the 2016 presidential election?\nA:"),
+                    vote_2016_dict,
+                ),
+                "conversation": (
+                    lambda row: self.make_backstory5(
+                        row) + "\n\nPerson 1: Who did "
+                    "you vote for in the 2016 presidential election?\nPerson 2:",
+                    vote_2016_dict,
+                ),
+                "mc": (
+                    lambda row: ("SURVEY_RESPONSE\n\n" + self.make_backstory4(row) +
+                                 "\n\nQuestion 11: Who did "
+                                 "you vote for in the 2016 presidential election?\nA: "
+                                 "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"),
+                    vote_2016_mc_dict,
+                ),
+                "mc_2shot": (
+                    lambda row: self.get_shots("vote_2016", "mc", 2, "\n\n") +
+                    "SURVEY_RESPONSE\n\n" +
+                    self.make_backstory4(row) + ("\n\nQuestion 11: Who did "
+                                                 "you vote for in the 2016 presidential election?\nA: "
+                                                 "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"),
+                    vote_2016_dict,
+                ),
+                "explicit_enumeration": (
+                    lambda row: self.make_backstory6(row) + (
+                        "\n\nQ: Who did you"
+                        f"vote for in the 2016 presidential election? (Donald "
+                        f"Trump, Hillary Clinton)\nA:"),
+                    vote_2016_dict,
+                ),
+            },
             "protecting_environment_spending": {
                 "finish_sentence": (
                     lambda row: (
@@ -2028,190 +2209,190 @@ class AnesFactory(DatasetFactory):
                 ),
             },
             # What about welfare programs? Should federal spending on welfare programs be increased, decreased, or kept the same?
-            # "welfare_spending": {
-            #     "finish_sentence": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)}\n\n"
-            #             f"When asked if federal spending on welfare programs be increased, decreased, or kept the same,\n\n"
-            #             f" I would say federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "delimiter_qa": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)}\n\n"
-            #             f"Q: What about welfare programs? Should federal spending welfare programs be increased, decreased, or kept the same?\n\n"
-            #             f"A: Federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_task_context_question": (
-            #         lambda row: (
-            #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-            #             f"CONTEXT: {self.make_backstory2(row)}\n\n"
-            #             f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
-            #             f"ANSWER:"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_task_context_question": (
-            #         lambda row: (
-            #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-            #             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
-            #             f"QUESTION: Do you like sandwiches?\n\n"
-            #             f"ANSWER: Yes\n\n"
-            #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-            #             f"CONTEXT: {self.make_backstory2(row)}\n\n"
-            #             f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
-            #             f"ANSWER:"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "explicit_instructions": (
-            #         lambda row: (
-            #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-            #             f"{self.make_backstory3(row)}\n\n"
-            #             f"Q: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"A:"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "implicit_instructions": (
-            #         lambda row: (
-            #             f"P1: {self.make_backstory1(row)}\n"
-            #             f"P2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"P1: I think it should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "enumerated_response": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "non_enumerated_response": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)} Federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_first_person_backstory": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_first_person_backstory": (
-            #         lambda row: (
-            #             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-            #             f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_chapter_quiz": (
-            #         lambda row: (
-            #             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
-            #             f"1) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
-            #             f"ANSWERS:\n1)"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_chapter_quiz": (
-            #         lambda row: (
-            #             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
-            #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
-            #             f"2) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
-            #             f"ANSWERS:\n1) Yes\n2)"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_survey_response": (
-            #         lambda row: (
-            #             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 11:"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_survey_response": (
-            #         lambda row: (
-            #             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
-            #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 12:"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_heavy_delimited": (
-            #         lambda row: (
-            #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-            #             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
-            #             f" -> '''"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_heavy_delimited": (
-            #         lambda row: (
-            #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-            #             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
-            #             f" -> '''Yes'''\n\n"
-            #             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
-            #             f" -> '''"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "0_shot_multiple_choice": (
-            #         lambda row: (
-            #             f"Background info: {self.make_backstory2(row)}\n\n"
-            #             f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"A: Increased\n"
-            #             f"B: Decreased\n"
-            #             f"C: Kept the same\n"
-            #             f"Answer 1:"
-            #         ),
-            #         {
-            #             "Increased": ["A", "Increased"],
-            #             "Decreased": ["B", "Decreased"],
-            #             "Kept the same": ["C", "Kept"],
-            #         },
-            #     ),
-            #     "1_shot_multiple_choice": (
-            #         lambda row: (
-            #             f"Background info: {self.make_backstory2(row)}\n\n"
-            #             f"Question 1: Do you want a sandwich?\n"
-            #             f"A: Yes\n"
-            #             f"B: No\n"
-            #             f"C: Indifferent\n"
-            #             f"Answer 1: Yes\n\n"
-            #             f"Question 2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"A: Increased\n"
-            #             f"B: Decreased\n"
-            #             f"C: Kept the same\n"
-            #             f"Answer 2:"
-            #         ),
-            #         {
-            #             "Increased": ["A", "Increased"],
-            #             "Decreased": ["B", "Decreased"],
-            #             "Kept the same": ["C", "Kept"],
-            #         },
-            #     ),
-            #     "0_shot_direct_mapping": (
-            #         lambda row: (
-            #             f"{self.make_backstory1(row)}\n\n"
-            #             f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"Answer 1 (Increased, Decreased, Kept the same):"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            #     "1_shot_direct_mapping": (
-            #         lambda row: (
-            #             f"{self.make_backstory1_shot()}\n\n"
-            #             f"Question 1: Do you want a sandwich?\n"
-            #             f"Answer 1 (Yes, No, Indifferent): Yes"
-            #             f"{self.make_backstory1(row)}\n\n"
-            #             f"Question 2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
-            #             f"Answer 2 (Increased, Decreased, Kept the same):"
-            #         ),
-            #         dealing_with_crime_dict,
-            #     ),
-            # },
+            "welfare_spending": {
+                "finish_sentence": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)}\n\n"
+                        f"When asked if federal spending on welfare programs be increased, decreased, or kept the same,\n\n"
+                        f" I would say federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "delimiter_qa": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)}\n\n"
+                        f"Q: What about welfare programs? Should federal spending welfare programs be increased, decreased, or kept the same?\n\n"
+                        f"A: Federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_task_context_question": (
+                    lambda row: (
+                        f"TASK: Consider the below demographic information and answer the following question.\n\n"
+                        f"CONTEXT: {self.make_backstory2(row)}\n\n"
+                        f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
+                        f"ANSWER:"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_task_context_question": (
+                    lambda row: (
+                        f"TASK: Consider the below demographic information and answer the following question.\n\n"
+                        f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+                        f"QUESTION: Do you like sandwiches?\n\n"
+                        f"ANSWER: Yes\n\n"
+                        f"TASK: Consider the below demographic information and answer the following question.\n\n"
+                        f"CONTEXT: {self.make_backstory2(row)}\n\n"
+                        f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
+                        f"ANSWER:"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "explicit_instructions": (
+                    lambda row: (
+                        f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
+                        f"{self.make_backstory3(row)}\n\n"
+                        f"Q: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"A:"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "implicit_instructions": (
+                    lambda row: (
+                        f"P1: {self.make_backstory1(row)}\n"
+                        f"P2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"P1: I think it should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "enumerated_response": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "non_enumerated_response": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)} Federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_first_person_backstory": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_first_person_backstory": (
+                    lambda row: (
+                        f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
+                        f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_chapter_quiz": (
+                    lambda row: (
+                        f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+                        f"1) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
+                        f"ANSWERS:\n1)"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_chapter_quiz": (
+                    lambda row: (
+                        f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+                        f"1) According to the above backstory, would this person likely want a sandwich?\n"
+                        f"2) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
+                        f"ANSWERS:\n1) Yes\n2)"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_survey_response": (
+                    lambda row: (
+                        f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 11:"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_survey_response": (
+                    lambda row: (
+                        f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+                        f"Answer 11: Yes\n\nQuestion 12: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 12:"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_heavy_delimited": (
+                    lambda row: (
+                        f"Given the backstory and question, please answer the question appropriately.\n\n"
+                        f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
+                        f" -> '''"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_heavy_delimited": (
+                    lambda row: (
+                        f"Given the backstory and question, please answer the question appropriately.\n\n"
+                        f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+                        f" -> '''Yes'''\n\n"
+                        f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
+                        f" -> '''"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "0_shot_multiple_choice": (
+                    lambda row: (
+                        f"Background info: {self.make_backstory2(row)}\n\n"
+                        f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"A: Increased\n"
+                        f"B: Decreased\n"
+                        f"C: Kept the same\n"
+                        f"Answer 1:"
+                    ),
+                    {
+                        "Increased": ["A", "Increased"],
+                        "Decreased": ["B", "Decreased"],
+                        "Kept the same": ["C", "Kept"],
+                    },
+                ),
+                "1_shot_multiple_choice": (
+                    lambda row: (
+                        f"Background info: {self.make_backstory2(row)}\n\n"
+                        f"Question 1: Do you want a sandwich?\n"
+                        f"A: Yes\n"
+                        f"B: No\n"
+                        f"C: Indifferent\n"
+                        f"Answer 1: Yes\n\n"
+                        f"Question 2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"A: Increased\n"
+                        f"B: Decreased\n"
+                        f"C: Kept the same\n"
+                        f"Answer 2:"
+                    ),
+                    {
+                        "Increased": ["A", "Increased"],
+                        "Decreased": ["B", "Decreased"],
+                        "Kept the same": ["C", "Kept"],
+                    },
+                ),
+                "0_shot_direct_mapping": (
+                    lambda row: (
+                        f"{self.make_backstory1(row)}\n\n"
+                        f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"Answer 1 (Increased, Decreased, Kept the same):"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+                "1_shot_direct_mapping": (
+                    lambda row: (
+                        f"{self.make_backstory1_shot()}\n\n"
+                        f"Question 1: Do you want a sandwich?\n"
+                        f"Answer 1 (Yes, No, Indifferent): Yes"
+                        f"{self.make_backstory1(row)}\n\n"
+                        f"Question 2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
+                        f"Answer 2 (Increased, Decreased, Kept the same):"
+                    ),
+                    dealing_with_crime_dict,
+                ),
+            },
             # Which comes closest to your view? You can just tell me the number of your choice.
             "gender_view": {
                 "finish_sentence": (
@@ -2415,48 +2596,13 @@ class AnesFactory(DatasetFactory):
                     gender_view_dict,
                 ),
             },
-            "vote_2016": {},
         }
-
-    def make_backstory1(self, row):
-        # create a generic backstory using values in the demographics
-        return (
-            f"I am {int(row['age_processed'])} years old. I am {row['gender_processed'].lower()}. "
-            f"Politically speaking, I am {row['party_processed']}. "
-            f"Ideologically, I am {row['ideology_processed'].lower()}. I {row['education_processed'].lower()}. "
-            f"My salary is {row['income_processed']}. "
-            f"{row['religion_processed']}."
-            f"I am {row['race_ethnicity_processed']}. I am from the {row['region_processed']}."
-            f"I {row['marital_status_processed']}."
-        )
-
-    def make_backstory2(self, row):
-        return (
-            f"Age: {int(row['age_processed'])}, Gender: {row['gender']}, Political Affiliation: {row['party']}, "
-            f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']}, "
-            f"Race/Ethnicity: {row['race_ethnicity']}, Region: {row['region']}, Marital Status: {row['marital_status']}"
-        )
-
-    def make_backstory3(self, row):
-        return (
-            f"Q: What is your age?\nA: {int(row['age_processed'])}\n\nQ: What is your gender?\nA: {row['gender']}\n\n"
-            f"Q: What is your political affiliation?\nA: {row['party']}\n\nQ: What is your education?\nA: {row['education']}\n\n"
-            f"Q: What is your ideology?\nA: {row['ideology']}\n\nQ: What is your income?\nA: {row['income']}\n\n"
-            f"Q: What is your religion?\nA: {row['religion']}\n\n"
-            f"Q: What is your race/ethnicity?\nA: {row['race_ethnicity']}\n\nQ: What region of the country are your from?\nA: {row['region']}\n\n"
-            f"Q: What is your marital status?\nA: {row['marital_status']}"
-        )
-
-    def make_backstory4(self, row):
-        return (
-            f"Question 1: What is your age?\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\nAnswer 2: {row['gender']}\n\n"
-            f"Question 3: What is your political affiliation?\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\nAnswer 4: {row['education']}\n\n"
-            f"Question 5: What is your ideology?\nAnswer 5: {row['ideology']}\n\nQuestion 6: What is your income?\nAnswer 6: {row['income']}\n\n"
-            f"Question 7: What is your religion?\nAnswer 7: {row['religion']}\n\n"
-            f"Question 8: What is your race/ethnicity?\nAnswer 8: {row['race_ethnicity']}\n\nQuestion 9: What region of the country are your from?\nAnswer 9: {row['region']}\n\n"
-            f"Question 10: What is your marital status?\nAnswer 10: {row['marital_status']}"
-        )
 
 
 if __name__ == "__main__":
     factory = AnesFactory(AnesSurvey(force_recreate=True))
+    factory.sample_templates(factory.survey_obj.df, dvs=[
+                             'vote_2016'], playground=True)
+
+
+# OLD KYLE TEMPLATES
