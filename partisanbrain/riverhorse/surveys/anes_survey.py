@@ -36,7 +36,8 @@ class AnesSurvey(Survey):
                 f"{SURVEY_DATA_PATH}/anes_survey/raw.csv",
             )
 
-        return pd.read_csv(survey_data_csv_path)
+        df = pd.read_csv(survey_data_csv_path)
+        return df
 
     def modify_data(self, df):
         # Rename demographic columns.
@@ -44,7 +45,9 @@ class AnesSurvey(Survey):
         mod_df = df.rename(
             columns={
                 "V201507x": "age",
-                "V202637": "gender",
+                # Bad example of gender
+                # "V201004": "gender",
+                "V201600": "gender",
                 "V201018": "party",
                 "V201510": "education",
                 "V201200": "ideology",

@@ -1,6 +1,6 @@
 from ..mutualinf.dataset import Dataset
 from . import constants as k
-from pdb import set_trace as bp
+from pdb import set_trace as breakpoint
 import pickle
 import pandas as pd
 import os
@@ -51,14 +51,14 @@ class DatasetFactory:
         # TODO for Chris, comment this for loop if you run the line above
         # For each DV colname, make a dataset object
         # for dv_colname in self.dv_colnames:
-        for dv_colname in ['vote_2016']:
+        for dv_colname in ["vote_2016"]:
             try:
                 sub_df = df.copy()[self.present_dems + [dv_colname]]
-                sub_df['ground_truth'] = sub_df[dv_colname]
+                sub_df["ground_truth"] = sub_df[dv_colname]
                 # sub_df = sub_df.rename(columns={dv_colname: "ground_truth"})
                 data_dir = f"{k.DATA_PATH}/{survey_name}/{dv_colname}"
                 shotsfname = os.path.join(data_dir, "shots.pkl")
-                #data_dir = f"data/{survey_name}/{dv_colname}"
+                # data_dir = f"data/{survey_name}/{dv_colname}"
 
                 if not os.path.exists(data_dir):
                     os.makedirs(data_dir)
@@ -67,12 +67,16 @@ class DatasetFactory:
                 # to not corrupt the test set
 
                 sub_df = sub_df.dropna(
-                    subset=["ground_truth", f"{dv_colname}_processed"])
+                    subset=["ground_truth", f"{dv_colname}_processed"]
+                )
                 shot_df = sub_df.sample(n=5, random_state=0)
                 sub_df.drop(shot_df.index, inplace=True)
                 SimpleDataset(
-                    templates={key: val for key, val in templates[dv_colname].items(
-                    ) if not key.endswith("shot")},
+                    templates={
+                        key: val
+                        for key, val in templates[dv_colname].items()
+                        if not key.endswith("shot")
+                    },
                     df=shot_df,
                     n=None,
                     out_fname=shotsfname,
@@ -89,7 +93,9 @@ class DatasetFactory:
                 print(f"Failed to create dataset for {dv_colname}")
                 print(e)
 
-    def get_shots(self, dv_colname, template_name, n, sep, dv_colname_suffix="_processed"):
+    def get_shots(
+        self, dv_colname, template_name, n, sep, dv_colname_suffix="_processed"
+    ):
         # Load the pickle in data_dir called ds.pkl"
         survey_name = self.survey_name
         data_dir = f"{k.DATA_PATH}/{survey_name}/{dv_colname}"
@@ -97,9 +103,10 @@ class DatasetFactory:
         shotsdf = pd.read_pickle(shotsfname)
         shotsdf = shotsdf[shotsdf.template_name == template_name]
         # Add the prompt and ground truth columns
-        shotsdf['shots'] = shotsdf.prompt + " " + \
-            shotsdf[dv_colname + dv_colname_suffix]
-        return sep.join(shotsdf.shots.sample(n=n, random_state=0).tolist() + [''])
+        shotsdf["shots"] = (
+            shotsdf.prompt + " " + shotsdf[dv_colname + dv_colname_suffix]
+        )
+        return sep.join(shotsdf.shots.sample(n=n, random_state=0).tolist() + [""])
 
     def sample_templates(self, df, dvs=None, force_overwrite=False, playground=False):
         if dvs is None:
@@ -114,7 +121,11 @@ class DatasetFactory:
 
             if not os.path.exists(filled_templates_dir):
                 os.makedirs(filled_templates_dir)
-            with open(os.path.join(filled_templates_dir, 'filled_templates.txt'), "w", encoding='utf8') as f:
+            with open(
+                os.path.join(filled_templates_dir, "filled_templates.txt"),
+                "w",
+                encoding="utf8",
+            ) as f:
                 sub_df = df[self.present_dems + [dv]]
                 sub_df = sub_df.dropna()
                 type_prompt_tokens_list = []
@@ -124,35 +135,47 @@ class DatasetFactory:
                     f.write(template_name)
                     f.write("\n\n")
                     prompt = template(row)
-                    type_prompt_tokens_list.append(
-                        (template_name, prompt, tokens))
+                    type_prompt_tokens_list.append((template_name, prompt, tokens))
                     f.write(prompt)
                 if playground:
                     f.write("\n\n==============================\n\n")
                     template_condition_dic = self.playground(
-                        type_prompt_tokens_list, dv, force_overwrite=force_overwrite)
-                    bad_templates = [(template, result) for (template, result) in template_condition_dic.items(
-                    ) if result['passed_playgrounding'] == False]
+                        type_prompt_tokens_list, dv, force_overwrite=force_overwrite
+                    )
+                    bad_templates = [
+                        (template, result)
+                        for (template, result) in template_condition_dic.items()
+                        if result["passed_playgrounding"] == False
+                    ]
                     f.write(
-                        f"\n\nBAD TEMPLATES (N={len(bad_templates)}): These failed playgrounding\n\n==============================\n\n")
+                        f"\n\nBAD TEMPLATES (N={len(bad_templates)}): These failed playgrounding\n\n==============================\n\n"
+                    )
                     for template, results in bad_templates:
                         f.write(f"Template={template}:\n\n")
                         # Print 'prompt', 'top_k_token_logprob_pairs', 'has_enough_prob_mass', 'enough_survey_responses_in_top_k', 'enough_top_k_tokens_in_expected_responses', 'passed_playgrounding', 'top_token_survey_response'
                         f.write(f"Prompt = {results['prompt']}\n")
                         split_top_k_token_logprob_pairs = [
-                            f"{token}, {prob}" for token, prob in results['top_k_token_logprob_pairs']]
-                        split_top_k_token_logprob_pairs_str = '\n'.join(
-                            split_top_k_token_logprob_pairs)
+                            f"{token}, {prob}"
+                            for token, prob in results["top_k_token_logprob_pairs"]
+                        ]
+                        split_top_k_token_logprob_pairs_str = "\n".join(
+                            split_top_k_token_logprob_pairs
+                        )
                         f.write(
-                            f"Top K Token Logprob Pairs = {split_top_k_token_logprob_pairs_str}\n")
+                            f"Top K Token Logprob Pairs = {split_top_k_token_logprob_pairs_str}\n"
+                        )
                         f.write(
-                            f"Has Enough Prob Mass = {results['has_enough_prob_mass']}\n")
+                            f"Has Enough Prob Mass = {results['has_enough_prob_mass']}\n"
+                        )
                         f.write(
-                            f"Enough Survey Responses in Top K = {results['enough_survey_responses_in_top_k']}\n")
+                            f"Enough Survey Responses in Top K = {results['enough_survey_responses_in_top_k']}\n"
+                        )
                         f.write(
-                            f"Enough Top K Tokens in Expected Responses = {results['enough_top_k_tokens_in_expected_responses']}\n")
+                            f"Enough Top K Tokens in Expected Responses = {results['enough_top_k_tokens_in_expected_responses']}\n"
+                        )
                         f.write(
-                            f"Top Token Survey Response = {results['top_token_survey_response']}\n")
+                            f"Top Token Survey Response = {results['top_token_survey_response']}\n"
+                        )
                         f.write("\n\n==============================\n\n")
 
     def _substitute(self, token):
@@ -179,12 +202,13 @@ class DatasetFactory:
         """Returns whether a survey response has at least thresh probability mass associated with it."""
         total_prob = 0
         for expected_response in expected_responses:
-            total_prob += self._get_prob_mass(expected_response,
-                                              token_logprob_pairs)
+            total_prob += self._get_prob_mass(expected_response, token_logprob_pairs)
         return total_prob >= thresh
 
-    def _any_expected_response_top_k(self, expected_responses, token_logprob_pairs, top_k=7):
-        """Returns whether or not any of the expected responses are "equal" to 
+    def _any_expected_response_top_k(
+        self, expected_responses, token_logprob_pairs, top_k=7
+    ):
+        """Returns whether or not any of the expected responses are "equal" to
         any of the top k logprob tokens."""
 
         top_k_tokens = [token for token, _ in token_logprob_pairs[:top_k]]
@@ -236,32 +260,40 @@ class DatasetFactory:
         TODO: Add a way to cache finished prompts and only re-run the ones you need.
 
 
-        Args: 
+        Args:
             type_prompt_tokens_list[list]: List of tuples (prompt[str], token_dict[dict])
-            api_token[str]: The AI21 Lab API token 
+            api_token[str]: The AI21 Lab API token
             force_overwrite[bool]: Whether or not to overwrite the cached prompts
         """
 
         if api_token is None:
-            api_token = os.getenv('AI21_API_KEY')
+            api_token = os.getenv("AI21_API_KEY")
 
         condition_dic = {}
         filled_templates_dir = f"{k.FILLED_TEMPLATES_PATH}/{self.survey_name}/{dv}"
-        playgrounded_templates_path = f"{filled_templates_dir}/playgrounded_templates.pkl"
-        if os.path.exists(playgrounded_templates_path) and not force_overwrite:
-            with open(playgrounded_templates_path, "rb") as f:
-                condition_dic = pickle.load(f)
+        playgrounded_templates_path = (
+            f"{filled_templates_dir}/playgrounded_templates.pkl"
+        )
+        try:
+            if os.path.exists(playgrounded_templates_path) and not force_overwrite:
+                with open(playgrounded_templates_path, "rb") as f:
+                    condition_dic = pickle.load(f)
+        except Exception as e:
+            pass
 
         with open(f"{filled_templates_dir}/playgrounded_templates.pkl", "wb") as f:
             for template_name, prompt, token_dict in type_prompt_tokens_list:
                 if template_name in condition_dic and force_overwrite is False:
                     print(
-                        "Skipping {template_name} because it is already playgrounded.")
+                        "Skipping {template_name} because it is already playgrounded."
+                    )
                     continue
 
                 if debug:
-                    print('Debugging, so reusing one response from cache.')
-                    with open(f"{filled_templates_dir}/place_holder_response.pkl", "rb") as g:
+                    print("Debugging, so reusing one response from cache.")
+                    with open(
+                        f"{filled_templates_dir}/place_holder_response.pkl", "rb"
+                    ) as g:
                         response = pickle.load(g)
                 else:
                     response = requests.post(
@@ -274,11 +306,16 @@ class DatasetFactory:
                             "topKReturn": 64,
                         },
                     )
+                    if response.status_code != 200:
+                        print(f"Error: {response.status_code}: {response.reason}")
+                        return
 
-                token_logprob_pairs = response.json(
-                )["completions"][0]["data"]["tokens"][0]["topTokens"]
+                token_logprob_pairs = response.json()["completions"][0]["data"][
+                    "tokens"
+                ][0]["topTokens"]
                 token_logprob_pairs = [
-                    (self._substitute(d["token"]), np.exp(d["logprob"])) for d in token_logprob_pairs
+                    (self._substitute(d["token"]), np.exp(d["logprob"]))
+                    for d in token_logprob_pairs
                 ]
 
                 results = []
@@ -308,8 +345,12 @@ class DatasetFactory:
 
                     # and save the result for every survey response
                     results.append(
-                        (survey_response, is_enough_prob_mass,
-                         is_expected_response_top_k, is_expected_response_top_1)
+                        (
+                            survey_response,
+                            is_enough_prob_mass,
+                            is_expected_response_top_k,
+                            is_expected_response_top_1,
+                        )
                     )
 
                 # Get any possible response
@@ -320,27 +361,31 @@ class DatasetFactory:
                     all_expected_responses += expected_responses
 
                 # All survey responses need a bit of probability mass
-                has_enough_prob_mass = all(
-                    map(lambda result: result[1], results))
+                has_enough_prob_mass = all(map(lambda result: result[1], results))
                 # At least l=min_survey_responses of possible survey responses are in top k tokens
                 enough_survey_responses_in_top_k = (
-                    sum(map(lambda result: result[2],
-                        results)) >= min_survey_responses
+                    sum(map(lambda result: result[2], results)) >= min_survey_responses
                 )
 
                 # Any survey response is top token
-                top_token_survey_response = any(
-                    map(lambda result: result[3], results))
+                top_token_survey_response = any(map(lambda result: result[3], results))
 
                 # At least min_tokens of top 7 tokens are in response set
                 enough_top_k_tokens_in_expected_responses = self._has_enough_tokens(
-                    all_expected_responses, [token for token, _ in token_logprob_pairs], min_tokens=min_tokens, top_k=top_k
+                    all_expected_responses,
+                    [token for token, _ in token_logprob_pairs],
+                    min_tokens=min_tokens,
+                    top_k=top_k,
                 )
 
                 # This is where we decide if a prompt is good or bad
-                passed_playgrounding = all([has_enough_prob_mass,
-                                            enough_survey_responses_in_top_k,
-                                            enough_top_k_tokens_in_expected_responses])
+                passed_playgrounding = all(
+                    [
+                        has_enough_prob_mass,
+                        enough_survey_responses_in_top_k,
+                        enough_top_k_tokens_in_expected_responses,
+                    ]
+                )
                 condition_dic[template_name] = {
                     "prompt": prompt,
                     "top_k_token_logprob_pairs": token_logprob_pairs[:top_k],

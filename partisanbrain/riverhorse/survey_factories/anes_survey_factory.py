@@ -16,7 +16,10 @@ class AnesFactory(DatasetFactory):
 
         # 'Inapplicable', 'Democratic party', "None or 'independent'", 'Republican party'
         party_dict = {
-            "Inapplicable": "an independent",
+            # "Inapplicable": "an independent",
+            # For now we'll just drop inapplicables, but we don't want to do
+            # that long term
+            "Inapplicable": np.nan,
             "Democratic party": "a Democrat",
             "Republican party": "a Republican",
             "None or 'independent'": "an independent",
@@ -125,15 +128,15 @@ class AnesFactory(DatasetFactory):
         df["income_processed"] = df["income"].map(income_dict)
         df["religion_processed"] = df["religion"].map(religion_dict)
         df["region_processed"] = df["region"]
-        df["race_ethnicity_processed"] = df["race_ethnicity"].map(
-            race_ethnicity_dict)
-        df["marital_status_processed"] = df["marital_status"].map(
-            marital_status_dict)
+        df["race_ethnicity_processed"] = df["race_ethnicity"].map(race_ethnicity_dict)
+        df["marital_status_processed"] = df["marital_status"].map(marital_status_dict)
 
         df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
 
+        # Only drop invalid demographics, as we'll drop invalid DV values later
         processed_cols = [f"{col}_processed" for col in k.DEMOGRAPHIC_COLNAMES]
         df.dropna(subset=processed_cols, inplace=True)
+        breakpoint()
 
         return df
 
@@ -167,13 +170,14 @@ class AnesFactory(DatasetFactory):
         )
 
     def make_backstory4(self, row):
-        return (f"Question 1: What is your age?\n\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\n\nAnswer 2: {row['gender']}\n\n"
-                f"Question 3: What is your political affiliation?\n\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\n\nAnswer 4: {row['education']}\n\n"
-                f"Question 5: What is your ideology?\n\nAnswer 5: {row['ideology']}\n\nQuestion 6: What is your income?\n\nAnswer 6: {row['income']}\n\n"
-                f"Question 7: What is your religion?\n\nAnswer 7: {row['religion']}\n\n"
-                f"Question 8: What is your race/ethnicity?\n\nAnswer 8: {row['race_ethnicity']}\n\nQuestion 9: What region of the country are you from?\n\nAnswer 9: {row['region']}\n\n"
-                f"Question 10: What is your marital status?\n\nAnswer 10: {row['marital_status']}"
-                )
+        return (
+            f"Question 1: What is your age?\n\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\n\nAnswer 2: {row['gender']}\n\n"
+            f"Question 3: What is your political affiliation?\n\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\n\nAnswer 4: {row['education']}\n\n"
+            f"Question 5: What is your ideology?\n\nAnswer 5: {row['ideology']}\n\nQuestion 6: What is your income?\n\nAnswer 6: {row['income']}\n\n"
+            f"Question 7: What is your religion?\n\nAnswer 7: {row['religion']}\n\n"
+            f"Question 8: What is your race/ethnicity?\n\nAnswer 8: {row['race_ethnicity']}\n\nQuestion 9: What region of the country are you from?\n\nAnswer 9: {row['region']}\n\n"
+            f"Question 10: What is your marital status?\n\nAnswer 10: {row['marital_status']}"
+        )
 
     def make_backstory5(self, row):
         return (
@@ -256,19 +260,20 @@ class AnesFactory(DatasetFactory):
 
         vote_2016_dict = {
             "Hillary Clinton": ["Hillary", "Clinton"],
-            "Donald Trump": ["Donald", "Trump"]
+            "Donald Trump": ["Donald", "Trump"],
         }
 
         vote_2016_mc_dict = {
             "Hillary Clinton": ["A", "Hillary", "Clinton"],
-            "Donald Trump": ["B", "Donald", "Trump"]
+            "Donald Trump": ["B", "Donald", "Trump"],
         }
         # add token sets as dicts see example (map Kept the same to keep, kept, etc) -- for protecting_environment_spending
 
         return {
             "vote_2016": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row) + (
+                    lambda row: self.make_backstory4(row)
+                    + (
                         "\n\nQuestion 11: Four years ago, in 2016, Hillary Clinton ran "
                         "on the Democratic ticket against Donald Trump for the "
                         "Republicans. Which one did you vote for?\nAnswer 11:"
@@ -276,77 +281,88 @@ class AnesFactory(DatasetFactory):
                     vote_2016_dict,
                 ),
                 "surveyq_rephrase": (
-                    lambda row: (self.make_backstory4(row) +
-                                 "\n\nQuestion 11: Do you remember the presidential "
-                                 "election of 2016? Did you vote for Hillary Clinton "
-                                 "or Donald Trump?\nAnswer 11:"
-                                 ),
+                    lambda row: (
+                        self.make_backstory4(row)
+                        + "\n\nQuestion 11: Do you remember the presidential "
+                        "election of 2016? Did you vote for Hillary Clinton "
+                        "or Donald Trump?\nAnswer 11:"
+                    ),
                     vote_2016_dict,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row) + (
-                        " In the 2016 presidential election, I voted for"),
+                    lambda row: self.make_backstory1(row)
+                    + (" In the 2016 presidential election, I voted for"),
                     vote_2016_dict,
                 ),
                 "task": (
-                    lambda row: ("TASK: The following is a description of a "
-                                 "voter in the 2016 presidential election. Please read "
-                                 "it and infer who that person voted for.\n\n" +
-                                 self.make_backstory2(
-                                     row) + ", 2016 Presidential Election "
-                                 "Vote:"),
+                    lambda row: (
+                        "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer who that person voted for.\n\n"
+                        + self.make_backstory2(row)
+                        + ", 2016 Presidential Election "
+                        "Vote:"
+                    ),
                     vote_2016_dict,
                 ),
                 "task_3shot": (
                     lambda row: (
-                        self.get_shots("vote_2016", "task", 3, sep="\n\n") +
-                        "TASK: The following is a description of a "
+                        self.get_shots("vote_2016", "task", 3, sep="\n\n")
+                        + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
-                        "it and infer who that person voted for.\n\n" +
-                        self.make_backstory2(
-                            row) + " 2016 presidential election "
-                        "vote:"),
+                        "it and infer who that person voted for.\n\n"
+                        + self.make_backstory2(row)
+                        + " 2016 presidential election "
+                        "vote:"
+                    ),
                     vote_2016_dict,
                 ),
                 "anes_description": (
-                    lambda row: ("The American National Election Studies 2020 "
-                                 "Time Series Study (ANES 2020) "
-                                 "is a nationally representative survey of voters in "
-                                 "American Elections. Below are examples of respondents "
-                                 "answering various questions. Please complete what you "
-                                 "would guess the right answers to those questions to be."
-                                 "\n\n" +
-                                 self.make_backstory3(
-                                     row) + "\n\nQ: Who did you "
-                                 "vote for in the 2016 presidential election?\nA:"),
+                    lambda row: (
+                        "The American National Election Studies 2020 "
+                        "Time Series Study (ANES 2020) "
+                        "is a nationally representative survey of voters in "
+                        "American Elections. Below are examples of respondents "
+                        "answering various questions. Please complete what you "
+                        "would guess the right answers to those questions to be."
+                        "\n\n" + self.make_backstory3(row) + "\n\nQ: Who did you "
+                        "vote for in the 2016 presidential election?\nA:"
+                    ),
                     vote_2016_dict,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(
-                        row) + "\n\nPerson 1: Who did "
+                    lambda row: self.make_backstory5(row) + "\n\nPerson 1: Who did "
                     "you vote for in the 2016 presidential election?\nPerson 2:",
                     vote_2016_dict,
                 ),
                 "mc": (
-                    lambda row: ("SURVEY_RESPONSE\n\n" + self.make_backstory4(row) +
-                                 "\n\nQuestion 11: Who did "
-                                 "you vote for in the 2016 presidential election?\nA: "
-                                 "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"),
+                    lambda row: (
+                        "SURVEY_RESPONSE\n\n"
+                        + self.make_backstory4(row)
+                        + "\n\nQuestion 11: Who did "
+                        "you vote for in the 2016 presidential election?\nA: "
+                        "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"
+                    ),
                     vote_2016_mc_dict,
                 ),
                 "mc_2shot": (
-                    lambda row: self.get_shots("vote_2016", "mc", 2, "\n\n") +
-                    "SURVEY_RESPONSE\n\n" +
-                    self.make_backstory4(row) + ("\n\nQuestion 11: Who did "
-                                                 "you vote for in the 2016 presidential election?\nA: "
-                                                 "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"),
+                    lambda row: self.get_shots("vote_2016", "mc", 2, "\n\n")
+                    + "SURVEY_RESPONSE\n\n"
+                    + self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Who did "
+                        "you vote for in the 2016 presidential election?\nA: "
+                        "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"
+                    ),
                     vote_2016_dict,
                 ),
                 "explicit_enumeration": (
-                    lambda row: self.make_backstory6(row) + (
+                    lambda row: self.make_backstory6(row)
+                    + (
                         "\n\nQ: Who did you"
                         f"vote for in the 2016 presidential election? (Donald "
-                        f"Trump, Hillary Clinton)\nA:"),
+                        f"Trump, Hillary Clinton)\nA:"
+                    ),
                     vote_2016_dict,
                 ),
             },
@@ -2601,8 +2617,7 @@ class AnesFactory(DatasetFactory):
 
 if __name__ == "__main__":
     factory = AnesFactory(AnesSurvey(force_recreate=True))
-    factory.sample_templates(factory.survey_obj.df, dvs=[
-                             'vote_2016'], playground=True)
+    factory.sample_templates(factory.survey_obj.df, dvs=["vote_2016"], playground=True)
 
 
 # OLD KYLE TEMPLATES
