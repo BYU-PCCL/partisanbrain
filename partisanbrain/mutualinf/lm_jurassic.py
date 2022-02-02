@@ -5,9 +5,9 @@ import os
 
 # TODO store elsewhere
 # API_KEY = 'XIXZqGyL31k7uMbDSZjQP9KnHzjSjmNl'
-API_KEY = os.environ.get('API_KEY')
+API_KEY = os.environ.get('AI21_API_KEY')
 if not API_KEY:
-    raise Exception('NO API KEY')
+    raise Exception('NO API KEY. PLEASE ENTER UNDER "export AI21_API_KEY=????"')
 
 
 
