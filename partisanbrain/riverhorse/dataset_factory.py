@@ -50,8 +50,8 @@ class DatasetFactory:
 
         # TODO for Chris, comment this for loop if you run the line above
         # For each DV colname, make a dataset object
-        # for dv_colname in self.dv_colnames:
-        for dv_colname in ["vote_2016"]:
+        # for dv_colname in ["vote_2016"]:
+        for dv_colname in self.dv_colnames:
             try:
                 sub_df = df.copy()[self.present_dems + [dv_colname]]
                 sub_df["ground_truth"] = sub_df[dv_colname]
@@ -69,7 +69,7 @@ class DatasetFactory:
                 sub_df = sub_df.dropna(
                     subset=["ground_truth", f"{dv_colname}_processed"]
                 )
-                shot_df = sub_df.sample(n=5, random_state=0)
+                shot_df = sub_df.sample(n=10, random_state=0)
                 sub_df.drop(shot_df.index, inplace=True)
                 SimpleDataset(
                     templates={
