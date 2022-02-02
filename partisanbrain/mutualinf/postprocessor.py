@@ -40,7 +40,7 @@ def collapse_token_sets(d, token_sets, matching_strategy='startswith'):
         token_sets (dict:str->list, list): Dictionary of token sets, where keys are categories and
             values are lists of tokens. If token_sets is a list, it is assumed that the keys are
             the lists of tokens.
-        matching_strategy (str): Strategy for matching tokens. Can be 'startswith' or 'exact'.
+        matching_strategy (str): Strategy for matching tokens. Can be 'startswith', 'bidirectional-startswith', or 'exact'.
     Returns:
         new_d (dict): Dictionary of probabilities after collapsing.
     '''
@@ -62,6 +62,9 @@ def collapse_token_sets(d, token_sets, matching_strategy='startswith'):
             for t in tokens:
                 if matching_strategy == 'startswith':
                     if t.lower().strip().startswith(token):
+                        match = True
+                elif matching_strategy == 'bidirectional-startswith':
+                    if t.lower().strip().startswith(token) or token.lower().strip().startswith(t):
                         match = True
                 elif matching_strategy == 'exact':
                     if token == t:
@@ -106,7 +109,7 @@ class Postprocessor:
     def __init__(self, results_fname, save_fname, matching_strategy=None):
         '''
         Instantiates a Postprocessor object.
-        matching_strategy (str): Strategy for matching tokens. Can be 'startswith', 'exact', or None.
+        matching_strategy (str): Strategy for matching tokens. Can be 'startswith', 'bidirectional-startswith', 'exact', or None.
         '''
 
         # Read in dataframe specified by results_fname
@@ -137,7 +140,7 @@ class Postprocessor:
         self.df = self.df.dropna(subset=['resp'])
 
         if matching_strategy:
-            if matching_strategy not in ['startswith', 'exact']:
+            if matching_strategy not in ['startswith', 'bidirectional-startswith', 'exact']:
                 msg = f"{matching_strategy} is not a valid matching strategy"
                 raise RuntimeError(msg)
             self.df['matching_strategy'] = matching_strategy
@@ -324,13 +327,21 @@ def process_all():
     process(files_to_process)
 
 if __name__ == '__main__':
-    import argparse
-    import os
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, help='file with results to use')
-    # get dataset arg
-    args = parser.parse_args()
-    input_fname = args.input
+    # import argparse
+    # import os
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--input', type=str, help='file with results to use')
+    # # get dataset arg
+    # args = parser.parse_args()
+    # input_fname = args.input
+    import sys
+    input_fname = sys.argv[1]
+    # matching strategy is second if there
+    if len(sys.argv) > 2:
+        matching_strategy = sys.argv[2]
+        print(f'Matching strategy: {matching_strategy}')
+    else:
+        matching_strategy = None
 
     if input_fname == 'all':
         process_all()
@@ -339,4 +350,4 @@ if __name__ == '__main__':
         save_fname = input_fname.replace('.pkl', '_processed.pkl')
 
         # process
-        Postprocessor(input_fname, save_fname)
+        Postprocessor(input_fname, save_fname, matching_strategy)
