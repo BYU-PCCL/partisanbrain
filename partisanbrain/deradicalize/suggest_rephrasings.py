@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import openai
 
-openai.api_key = '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'
 
 # First import the data
 
@@ -107,8 +106,12 @@ for theory, spec in rephrasing_specs.items():
             + "\n".join(running_convo)
             + f"\n\nNow the {party} wants to say '{message}'.\n\n{spec(party, opp_party)}\n\nHere is the rephrasing:"
         )
-        response = 
-        rephrasings = 
+        response = openai.Completion.create(engine='davinci',
+                                            prompt=prompt,
+                                            max_tokens=100,
+                                            logprobs=100)
+        breakpoint()
+        rephrasings =
 
     print(prompt)
     breakpoint()
