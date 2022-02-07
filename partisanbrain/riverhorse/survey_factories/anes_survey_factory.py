@@ -156,7 +156,7 @@ class AnesFactory(DatasetFactory):
         # process dvs
         df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
         df["social_security_spending_processed"] = df["social_security_spending"].map(social_security_dict)
-        df["protecting_environment_spending"] = df["protecting_environment_spending"].map(protecting_envornment_spending_dict)
+        df["protecting_environment_spending"] = df["protecting_environment_spending"].map(protecting_environment_spending_dict)
 
         # Only drop invalid demographics, as we'll drop invalid DV values later
         processed_cols = [f"{col}_processed" for col in k.DEMOGRAPHIC_COLNAMES]
@@ -302,7 +302,7 @@ class AnesFactory(DatasetFactory):
             'kept the same': ['kept the same'],
         }
 
-        protecting_environment_security_mc_tokens = {
+        protecting_environment_mc_tokens = {
             'increased': ['A', 'increased'],
             'decreased': ['B', 'decreased'],
             'kept the same': ['C', 'kept the same'],
@@ -554,7 +554,7 @@ class AnesFactory(DatasetFactory):
                         + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
-                    protecting_environment_tokensci",
+                    protecting_environment_tokens,
                 ),
                 "anes_description": (
                     lambda row: (
@@ -567,12 +567,12 @@ class AnesFactory(DatasetFactory):
                         "\n\n" + self.make_backstory3(row) + "\n\nQ: Should federal spending "
                         "on protecting the environment be increased, decreased, or kept the same?\nA:"
                     ),
-                    protecting_environment_tokensci",
+                    protecting_environment_tokens,
                 ),
                 "conversation": (
                     lambda row: self.make_backstory5(row) + "\n\nPerson 1: Should federal spending "
                     "on protecting the environment be increased, decreased, or kept the same?\nPerson 2:",
-                    protecting_environment_tokensci",
+                    protecting_environment_tokens,
                 ),
                 "mc": (
                     lambda row: (
