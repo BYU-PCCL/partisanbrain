@@ -118,12 +118,26 @@ class AnesFactory(DatasetFactory):
         }
 
         social_security_dict = {
-            'Increased': 'increased',
-            'Decreased': 'decreased',
-            'Kept the same': 'kept the same',
+            'Increased': 'Increased',
+            'Decreased': 'Decreased',
+            'Kept the same': 'Kept the same',
             'Refused': np.nan,
             'Don\'t know': np.nan,
         }
+
+        # -9: "Refused",
+        # -8: "Don't know",
+        # 1: "Increased",
+        # 2: "Decreased",
+        # 3: "Kept the same",
+        protecting_environment_spending_dict = {
+            'Increased': 'Increased',
+            'Decreased': 'Decreased',
+            'Kept the same': 'Kept the same',
+            'Refused': np.nan,
+            'Don\'t know': np.nan,
+        }
+
 
         # Make a processed version of the
         # "age", "gender", "party", "education", "ideology", "income", "religion", "race_ethnicity", "region", "marital_status",
@@ -142,6 +156,7 @@ class AnesFactory(DatasetFactory):
         # process dvs
         df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
         df["social_security_spending_processed"] = df["social_security_spending"].map(social_security_dict)
+        df["protecting_environment_spending"] = df["protecting_environment_spending"].map(protecting_envornment_spending_dict)
 
         # Only drop invalid demographics, as we'll drop invalid DV values later
         processed_cols = [f"{col}_processed" for col in k.DEMOGRAPHIC_COLNAMES]
@@ -275,6 +290,19 @@ class AnesFactory(DatasetFactory):
         }
 
         social_security_mc_tokens = {
+            'increased': ['A', 'increased'],
+            'decreased': ['B', 'decreased'],
+            'kept the same': ['C', 'kept the same'],
+        }
+
+        # protecting the environment
+        protecting_environment_tokens = {
+            'increased': ['increased'],
+            'decreased': ['decreased'],
+            'kept the same': ['kept the same'],
+        }
+
+        protecting_environment_security_mc_tokens = {
             'increased': ['A', 'increased'],
             'decreased': ['B', 'decreased'],
             'kept the same': ['C', 'kept the same'],
@@ -483,14 +511,101 @@ class AnesFactory(DatasetFactory):
                     ),
                     social_security_mc_tokens,
                 ),
-                # "explicit_enumeration": (
-                #     lambda row: self.make_backstory6(row)
-                #     + (
-                #         "\n\nQ: Should federal spending "
-                #         f"on Social Security be increased, decreased, or kept the same? (Increased, Decreased, Kept the same)\nA:"
-                #     ),
-                #     social_security_tokens,
-                # ),
+            },
+            # What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?
+            "protecting_environment_spending": {
+                "surveyq_exact": (
+                    lambda row: self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: What about protecting the environment? "
+                        "Should federal spending on protecting the enivironment be increased, decreased, or kept the same?\nAnswer 11:"
+                    ),
+                    protecting_environment_tokens,
+                ),
+                "surveyq_rephrase": (
+                    lambda row: (
+                        self.make_backstory4(row)
+                        + "\n\nQuestion 11: Do you think federal spending on protecting the environment should be increased, decreased, or kept the same?\nAnswer 11:"
+                    ),
+                    protecting_environment_tokens,
+                ),
+                "fpbs": (
+                    lambda row: self.make_backstory1(row)
+                    + (" If asked if protecting the environment spending should be increased, decreased, or kept the same, I would say that it should be"),
+                    protecting_environment_tokens,
+                ),
+                "task": (
+                    lambda row: (
+                        "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        + self.make_backstory2(row)
+                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                    ),
+                    protecting_environment_tokens,
+                ),
+                "task_3shot": (
+                    lambda row: (
+                        self.get_shots("protecting_environment_spending", "task", 3, "\n\n-----------------------\n\n")
+                        + "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        + self.make_backstory2(row)
+                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                        "vote:"
+                    ),
+                    protecting_environment_tokensci",
+                ),
+                "anes_description": (
+                    lambda row: (
+                        "The American National Election Studies 2020 "
+                        "Time Series Study (ANES 2020) "
+                        "is a nationally representative survey of voters in "
+                        "American Elections. Below are examples of respondents "
+                        "answering various questions. Please complete what you "
+                        "would guess the right answers to those questions to be."
+                        "\n\n" + self.make_backstory3(row) + "\n\nQ: Should federal spending "
+                        "on protecting the environment be increased, decreased, or kept the same?\nA:"
+                    ),
+                    protecting_environment_tokensci",
+                ),
+                "conversation": (
+                    lambda row: self.make_backstory5(row) + "\n\nPerson 1: Should federal spending "
+                    "on protecting the environment be increased, decreased, or kept the same?\nPerson 2:",
+                    protecting_environment_tokensci",
+                ),
+                "mc": (
+                    lambda row: (
+                        "SURVEY_RESPONSE\n\n"
+                        + self.make_backstory4(row)
+                        + "\n\nQuestion 11: Should federal spending "
+                        "on protecting the environment be increased, decreased, or kept the same?"
+                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+                    ),
+                    protecting_environment_mc_tokens,
+                ),
+                "mc_2shot": (
+                    lambda row: self.get_shots("protecting_environment_spending", "mc", 2, "\n\n-----------------------\n\n")
+                    + "SURVEY_RESPONSE\n\n"
+                    + self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Should federal spending "
+                        "on protecting the environment be increased, decreased, or kept the same?"
+                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+                    ),
+                    protecting_environment_mc_tokens,
+                ),
+                "mc_5shot": (
+                    lambda row: self.get_shots("protecting_environment_spending", "mc", 7, "\n\n-----------------------\n\n")
+                    + "SURVEY_RESPONSE\n\n"
+                    + self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Should federal spending "
+                        "on protecting the environment be increased, decreased, or kept the same?"
+                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+                    ),
+                    protecting_environment_mc_tokens,
+                ),
             },
             # "protecting_environment_spending": {
             #     "finish_sentence": (
