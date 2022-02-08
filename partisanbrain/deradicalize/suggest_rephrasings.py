@@ -2,15 +2,19 @@
 import numpy as np
 import pandas as pd
 import openai
+import tqdm
+import os
+
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 # First import the data
 
 path = "data/guncontrol_convos.xlsx"
 df = pd.read_excel(path)
+force_recreate = False
 parties = []
 messages = []
-rephrasings = []
 running_convo = []
 instructions = (
     "The following is an exchange between a Republican and a "
@@ -89,33 +93,43 @@ rephrasing_specs = {
         "listening way?"
     ),
 }
-for theory, spec in rephrasing_specs.items():
-    for ix, row in df.iterrows():
-        party = {"D": "Democrat", "R": "Republican"}[row.Party]
-        opp_party = {"D": "Republican", "R": "Democrat"}[row.Party]
-        message = row.Message
-        parties.append(party)
-        if len(running_convo) >= 5:
-            running_convo = running_convo[1:]
-        running_convo.append(f"{party}: {message}")
+if force_recreate or not os.path.exists("rephrasings.csv"):
+    for theory, spec in tqdm.tqdm(rephrasing_specs.items()):
+        rephrasings = []
+        for ix, row in df.iterrows():
+            party = {"D": "Democrat", "R": "Republican"}[row.Party]
+            opp_party = {"D": "Republican", "R": "Democrat"}[row.Party]
+            message = row.Message
+            parties.append(party)
+            running_convo.append(f"{party}: {message}")
+            if len(running_convo) >= 6:
+                running_convo = running_convo[1:]
 
-        messages.append(message)
-        prompt = (
-            instructions
-            + "\n\n"
-            + "\n".join(running_convo)
-            + f"\n\nNow the {party} wants to say '{message}'.\n\n{spec(party, opp_party)}\n\nHere is the rephrasing:"
-        )
-        response = openai.Completion.create(engine='davinci',
-                                            prompt=prompt,
-                                            max_tokens=100,
-                                            logprobs=100)
-        breakpoint()
-        rephrasings =
+            messages.append(message)
+            prompt = (
+                instructions
+                + "\n\n"
+                + "\n".join(running_convo[:-1])
+                + f"\n\nNow the {party} wants to say '{message}'.\n\n{spec(party, opp_party)}\n\nHere is the rephrasing:"
+            )
+            response = openai.Completion.create(
+                engine="davinci", prompt=prompt, max_tokens=100
+            )
+            rephrasing = response["choices"][0]["text"]
+            rephrasings.append(rephrasing)
+        df[f"{theory}_rephrasing"] = rephrasings
+    df.to_csv("rephrasings.csv")
 
-    print(prompt)
-    breakpoint()
-
-
-breakpoint()
-breakpoint()
+with pd.option_context("max_colwidth", None):
+    df = pd.read_csv("rephrasings.csv")
+    with open("rephrasings.txt", "w") as f:
+        for theory, spec in rephrasing_specs.items():
+            subset = f"Party Message {theory}_rephrasing".split()
+            f.write(
+                df[subset].to_latex(
+                    multirow=True,
+                    longtable=True,
+                    column_format="p{0.05\\textwidth}|p{0.05\\textwidth}|p{0.45\\textwidth}|p{0.45\\textwidth}",
+                )
+            )
+            f.write("%==============================================\n")
