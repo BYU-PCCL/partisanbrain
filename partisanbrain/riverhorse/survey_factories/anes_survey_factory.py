@@ -66,6 +66,7 @@ class AnesFactory(DatasetFactory):
             },
         }
 
+<<<<<<< HEAD
         df["age"] = df["age"].replace(age_dict)
         df["party"] = df["party"].replace(party_dict)
         df["income"] = df["income"].replace(income_dict)
@@ -73,6 +74,48 @@ class AnesFactory(DatasetFactory):
         # process dvs
         for dv in self.dv_colnames:
             df[dv] = df[dv].replace(dv_dict[f"{dv}_dict"])
+=======
+        # -9: "Refused",
+        # -8: "Don't know",
+        # 1: "Should be doing more",
+        # 2: "Should be doing less",
+        # 3: "Is currently doing the right amount",
+        rising_temp_action_dict = {
+            'Should be doing more': 'more',
+            'Should be doing less': 'less',
+            'Is currently doing the right amount': 'the same',
+            'Refused': np.nan,
+            'Don\'t know': np.nan,
+        }
+        rising_temp_mc = {
+            'more': 'A',
+            'less': 'B',
+            'the same': 'C',
+        }
+
+
+        # Make a processed version of the
+        # "age", "gender", "party", "education", "ideology", "income", "religion", "race_ethnicity", "region", "marital_status",
+        # columns
+        df["age_processed"] = df["age"].replace(age_dict)
+        df["gender_processed"] = df["gender"]
+        df["party_processed"] = df["party"].map(party_dict)
+        df["education_processed"] = df["education"].map(education_dict)
+        df["ideology_processed"] = df["ideology"].map(ideology_dict)
+        df["income_processed"] = df["income"].map(income_dict)
+        df["religion_processed"] = df["religion"].map(religion_dict)
+        df["region_processed"] = df["region"]
+        df["race_ethnicity_processed"] = df["race_ethnicity"].map(race_ethnicity_dict)
+        df["marital_status_processed"] = df["marital_status"].map(marital_status_dict)
+
+        # process dvs
+        df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
+        df["social_security_spending_processed"] = df["social_security_spending"].map(social_security_dict)
+        df["protecting_environment_spending_processed"] = df["protecting_environment_spending"].map(protecting_environment_spending_dict)
+        df["rising_temp_action_processed"] = df["rising_temp_action"].map(rising_temp_action_dict)
+        # to mc
+        df["rising_temp_action_mc"] = df['rising_temp_action_processed'].map(rising_temp_mc)
+>>>>>>> 0862d234d499279714dc2f5e3473cefcfd099358
 
         # Only drop invalid demographics, as we'll drop invalid DV values later
         df.dropna(subset=k.DEMOGRAPHIC_COLNAMES, inplace=True)
@@ -403,6 +446,7 @@ class AnesFactory(DatasetFactory):
 
         # protecting the environment
         protecting_environment_tokens = {
+<<<<<<< HEAD
             "increased": ["increased"],
             "decreased": ["decreased"],
             "kept the same": ["kept the same"],
@@ -412,6 +456,17 @@ class AnesFactory(DatasetFactory):
             "increased": ["A", "increased"],
             "decreased": ["B", "decreased"],
             "kept the same": ["C", "kept the same"],
+=======
+            'Increased': ['increased'],
+            'Decreased': ['decreased'],
+            'Kept the same': ['kept the same'],
+        }
+
+        protecting_environment_mc_tokens = {
+            'Increased': ['A', 'increased'],
+            'Decreased': ['B', 'decreased'],
+            'Kept the same': ['C', 'kept the same'],
+>>>>>>> 0862d234d499279714dc2f5e3473cefcfd099358
         }
 
         # Vote 2016
@@ -423,6 +478,18 @@ class AnesFactory(DatasetFactory):
         vote_2016_mc_dict = {
             "Hillary Clinton": ["A", "Hillary", "Clinton"],
             "Donald Trump": ["B", "Donald", "Trump"],
+        }
+
+        # rising_temp_action
+        rising_temp_action_tokens = {
+            'More': ['more'],
+            'Less': ['less'],
+            'The same': ['the same', 'the', 'same', 'about the same']
+        }
+        rising_temp_action_mc_tokens = {
+            'More': ['A', 'more'],
+            'Less': ['B', 'less'],
+            'The same': ['C', 'currently doing the right amount', 'the same', 'the', 'same', 'about the same']
         }
         # add token sets as dicts see example (map Kept the same to keep, kept, etc) -- for protecting_environment_spending
 
@@ -1671,12 +1738,16 @@ class AnesFactory(DatasetFactory):
                     social_security_mc_tokens,
                 ),
                 "mc_5shot": (
+<<<<<<< HEAD
                     lambda row: self.get_shots(
                         "social_security_spending",
                         "mc",
                         7,
                         "\n\n-----------------------\n\n",
                     )
+=======
+                    lambda row: self.get_shots("social_security_spending", "mc", 5, "\n\n-----------------------\n\n")
+>>>>>>> 0862d234d499279714dc2f5e3473cefcfd099358
                     + "SURVEY_RESPONSE\n\n"
                     + self.make_backstory4(row)
                     + (
@@ -1706,18 +1777,22 @@ class AnesFactory(DatasetFactory):
                 ),
                 "fpbs": (
                     lambda row: self.make_backstory1(row)
+<<<<<<< HEAD
                     + (
                         " If asked if protecting the environment spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
+=======
+                    + (" If asked if spending on protecting the environment should be increased, decreased, or kept the same, I would say that it should be"),
+>>>>>>> 0862d234d499279714dc2f5e3473cefcfd099358
                     protecting_environment_tokens,
                 ),
                 "task": (
                     lambda row: (
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
                         + self.make_backstory2(row)
-                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
                     ),
                     protecting_environment_tokens,
                 ),
@@ -1731,9 +1806,9 @@ class AnesFactory(DatasetFactory):
                         )
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
                         + self.make_backstory2(row)
-                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
                         "vote:"
                     ),
                     protecting_environment_tokens,
@@ -1786,12 +1861,16 @@ class AnesFactory(DatasetFactory):
                     protecting_environment_mc_tokens,
                 ),
                 "mc_5shot": (
+<<<<<<< HEAD
                     lambda row: self.get_shots(
                         "protecting_environment_spending",
                         "mc",
                         7,
                         "\n\n-----------------------\n\n",
                     )
+=======
+                    lambda row: self.get_shots("protecting_environment_spending", "mc", 5, "\n\n-----------------------\n\n")
+>>>>>>> 0862d234d499279714dc2f5e3473cefcfd099358
                     + "SURVEY_RESPONSE\n\n"
                     + self.make_backstory4(row)
                     + (
@@ -1802,6 +1881,118 @@ class AnesFactory(DatasetFactory):
                     protecting_environment_mc_tokens,
                 ),
             },
+            "rising_temp_action": {
+                "surveyq_exact": (
+                    lambda row: self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Do you think the federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? "
+                        "\nAnswer 11:"
+                    ),
+                    rising_temp_action_tokens,
+                ),
+                "surveyq_rephrase": (
+                    lambda row: (
+                        self.make_backstory4(row)
+                        + "\n\nQuestion 11: Do you think federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? \nAnswer 11: I think the federal government should be doing"
+                    ),
+                    rising_temp_action_tokens,
+                ),
+                "fpbs": (
+                    lambda row: self.make_backstory1(row)
+                    + (" If asked if the federal government should be doing more, less, or the same about rising temperatures, I would say that it should be doing"),
+                    rising_temp_action_tokens,
+                ),
+                "task": (
+                    lambda row: (
+                        "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
+                        + self.make_backstory2(row)
+                        + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
+                    ),
+                    rising_temp_action_tokens,
+                ),
+                "task_3shot": (
+                    lambda row: (
+                        self.get_shots("rising_temp_action", "task", 3, "\n\n-----------------------\n\n")
+                        + "TASK: The following is a description of a "
+                        "voter in the 2016 presidential election. Please read "
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
+                        + self.make_backstory2(row)
+                        + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
+                        "vote:"
+                    ),
+                    rising_temp_action_tokens,
+                ),
+                "anes_description": (
+                    lambda row: (
+                        "The American National Election Studies 2020 "
+                        "Time Series Study (ANES 2020) "
+                        "is a nationally representative survey of voters in "
+                        "American Elections. Below are examples of respondents "
+                        "answering various questions. Please complete what you "
+                        "would guess the right answers to those questions to be."
+                        "\n\n" + self.make_backstory3(row) + "\n\nQ: Should the federal government "
+                        "be doing more, less, or the same about rising temperatures?\nA:"
+                    ),
+                    rising_temp_action_tokens,
+                ),
+                "conversation1": (
+                    lambda row: self.make_backstory5(row) + "\n\nPerson 1: Should the federal government "
+                    "be doing more, less, or the same about rising temperature?\nPerson 2: The federal government should be doing",
+                    rising_temp_action_tokens,
+                ),
+                "conversation2": (
+                    lambda row: self.make_backstory5(row) + "\n\nPerson 1: Should the federal government "
+                    "be doing the same, more, or less about rising temperature?\nPerson 2: The federal government should be doing",
+                    rising_temp_action_tokens,
+                ),
+                "mc": (
+                    lambda row: (
+                        "SURVEY_RESPONSE\n\n"
+                        + self.make_backstory4(row)
+                        + (
+                            "\n\nQuestion 11: Do you think the federal government should be doing more "
+                            "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+                            "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+                        )
+                    ),
+                    rising_temp_action_mc_tokens,
+                ),
+                "mc_2shot": (
+                    lambda row: self.get_shots("rising_temp_action", "mc", 2, "\n\n-----------------------\n\n", '_mc')
+                    + "SURVEY_RESPONSE\n\n"
+                    + self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Do you think the federal government should be doing more "
+                        "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+                        "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+                    ),
+                    rising_temp_action_mc_tokens,
+                ),
+                "mc_5shot": (
+                    lambda row: self.get_shots("rising_temp_action", "mc", 5, "\n\n-----------------------\n\n", '_mc')
+                    + "SURVEY_RESPONSE\n\n"
+                    + self.make_backstory4(row)
+                    + (
+                        "\n\nQuestion 11: Do you think the federal government should be doing more "
+                        "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+                        "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+                    ),
+                    rising_temp_action_mc_tokens,
+                ),
+            },
+        }
+
+
+if __name__ == "__main__":
+    factory = AnesFactory(AnesSurvey(force_recreate=True), n=500)
+    factory.sample_templates(factory.survey_obj.df, dvs=["vote_2016", "social_security_spending", "protecting_environment_spending", 'rising_temp_action'], playground=True)
+    # factory.sample_templates(factory.survey_obj.df, dvs=["social_security_spending"], playground=True)
+
+
+# OLD KYLE TEMPLATES
+
             # "protecting_environment_spending": {
             #     "finish_sentence": (
             #         lambda row: (
@@ -4048,16 +4239,6 @@ class AnesFactory(DatasetFactory):
             #         gender_view_dict,
             #     ),
             # },
-        }
-
-
-if __name__ == "__main__":
-    factory = AnesFactory(AnesSurvey(force_recreate=True), n=500)
-    factory.sample_templates(
-        factory.survey_obj.df,
-        dvs=["vote_2016", "social_security_spending"],
-        playground=True,
-    )
     # factory.sample_templates(factory.survey_obj.df, dvs=["social_security_spending"], playground=True)
 
 
