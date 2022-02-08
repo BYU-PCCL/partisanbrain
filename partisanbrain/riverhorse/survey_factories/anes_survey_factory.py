@@ -156,7 +156,7 @@ class AnesFactory(DatasetFactory):
         # process dvs
         df["vote_2016_processed"] = df["vote_2016"].map(vote_2016_dict)
         df["social_security_spending_processed"] = df["social_security_spending"].map(social_security_dict)
-        df["protecting_environment_spending"] = df["protecting_environment_spending"].map(protecting_environment_spending_dict)
+        df["protecting_environment_spending_processed"] = df["protecting_environment_spending"].map(protecting_environment_spending_dict)
 
         # Only drop invalid demographics, as we'll drop invalid DV values later
         processed_cols = [f"{col}_processed" for col in k.DEMOGRAPHIC_COLNAMES]
@@ -501,7 +501,7 @@ class AnesFactory(DatasetFactory):
                     social_security_mc_tokens,
                 ),
                 "mc_5shot": (
-                    lambda row: self.get_shots("social_security_spending", "mc", 7, "\n\n-----------------------\n\n")
+                    lambda row: self.get_shots("social_security_spending", "mc", 5, "\n\n-----------------------\n\n")
                     + "SURVEY_RESPONSE\n\n"
                     + self.make_backstory4(row)
                     + (
@@ -531,16 +531,16 @@ class AnesFactory(DatasetFactory):
                 ),
                 "fpbs": (
                     lambda row: self.make_backstory1(row)
-                    + (" If asked if protecting the environment spending should be increased, decreased, or kept the same, I would say that it should be"),
+                    + (" If asked if spending on protecting the environment should be increased, decreased, or kept the same, I would say that it should be"),
                     protecting_environment_tokens,
                 ),
                 "task": (
                     lambda row: (
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
                         + self.make_backstory2(row)
-                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
                     ),
                     protecting_environment_tokens,
                 ),
@@ -549,9 +549,9 @@ class AnesFactory(DatasetFactory):
                         self.get_shots("protecting_environment_spending", "task", 3, "\n\n-----------------------\n\n")
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal protecting the environment spending.\n\n"
+                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
                         + self.make_backstory2(row)
-                        + ", Opinion on protecting the environment spending (increased, decreased, or kept the same):"
+                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
                         "vote:"
                     ),
                     protecting_environment_tokens,
@@ -596,7 +596,7 @@ class AnesFactory(DatasetFactory):
                     protecting_environment_mc_tokens,
                 ),
                 "mc_5shot": (
-                    lambda row: self.get_shots("protecting_environment_spending", "mc", 7, "\n\n-----------------------\n\n")
+                    lambda row: self.get_shots("protecting_environment_spending", "mc", 5, "\n\n-----------------------\n\n")
                     + "SURVEY_RESPONSE\n\n"
                     + self.make_backstory4(row)
                     + (
@@ -2858,7 +2858,7 @@ class AnesFactory(DatasetFactory):
 
 if __name__ == "__main__":
     factory = AnesFactory(AnesSurvey(force_recreate=True), n=500)
-    factory.sample_templates(factory.survey_obj.df, dvs=["vote_2016", "social_security_spending"], playground=True)
+    factory.sample_templates(factory.survey_obj.df, dvs=["vote_2016", "social_security_spending", "protecting_environment_spending"], playground=True)
     # factory.sample_templates(factory.survey_obj.df, dvs=["social_security_spending"], playground=True)
 
 
