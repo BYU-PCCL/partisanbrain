@@ -1,4 +1,4 @@
-"""@author: Kyle Rogers"""
+"""@author: Kyle Rogers, Chris Rytting, Taylor Sorensen"""
 
 from ..survey import Survey
 from ..constants import DEMOGRAPHIC_COLNAMES, SURVEY_DATA_PATH
@@ -77,7 +77,7 @@ class AnesSurvey(Survey):
                 "V201325": "economy_change",
                 "V201594": "worry_financial_situation",
                 # "V201312": "welfare_spending",
-                "V201416": "gender_view",
+                "V201416": "gay_marriage",
                 "V201133": "trump_handling_relations",
                 "V201139": "trump_hanlding_immigration",
                 "V201350": "willing_military_force",
@@ -103,7 +103,7 @@ class AnesSurvey(Survey):
             "economy_change",
             "worry_financial_situation",
             # "welfare_spending",
-            "gender_view",
+            "gay_marriage",
             "trump_handling_relations",
             "trump_hanlding_immigration",
             "willing_military_force",
@@ -297,7 +297,7 @@ class AnesSurvey(Survey):
             #     2: "Decreased",
             #     3: "Kept the same",
             # },
-            "gender_view": {
+            "gay_marriage": {
                 -9: "Refused",
                 -8: "Don't know",
                 1: "Gay and lesbian couples should be allowed to legally marry",
@@ -394,7 +394,7 @@ class AnesSurvey(Survey):
             "economy_change": "Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?",
             "worry_financial_situation": "So far as you and your family are concerned, how worried are you about your current financial situation?",
             # "welfare_spending": "What about welfare programs? Should federal spending on welfare programs be increased, decreased, or kept the same?",
-            "gender_view": "Which comes closest to your view? You can just tell me the number of your choice.",
+            "gay_marriage": "Which comes closest to your view? You can just tell me the number of your choice.",
             "trump_handling_relations": "Do you approve or disapprove of the way Donald Trump is handling relations with foreign countries?",
             "trump_hanlding_immigration": "Do you approve or disapprove of the way Donald Trump is handling immigration?",
             "willing_military_force": "How willing should the United States be to use military force to solve international problems?",

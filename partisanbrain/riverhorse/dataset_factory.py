@@ -67,7 +67,7 @@ class DatasetFactory:
                 # to not corrupt the test set
 
                 sub_df = sub_df.dropna(
-                    subset=["ground_truth", f"{dv_colname}_processed"]
+                    subset=["ground_truth"]
                 )
                 shot_df = sub_df.sample(n=10, random_state=0)
                 sub_df.drop(shot_df.index, inplace=True)
@@ -94,7 +94,7 @@ class DatasetFactory:
                 print(e)
 
     def get_shots(
-        self, dv_colname, template_name, n, sep, dv_colname_suffix="_processed"
+        self, dv_colname, dv_dic, template_name, n, sep, 
     ):
         # Load the pickle in data_dir called ds.pkl"
         survey_name = self.survey_name
@@ -104,7 +104,7 @@ class DatasetFactory:
         shotsdf = shotsdf[shotsdf.template_name == template_name]
         # Add the prompt and ground truth columns
         shotsdf["shots"] = (
-            shotsdf.prompt + " " + shotsdf[dv_colname + dv_colname_suffix]
+            shotsdf.prompt + " " + shotsdf.ground_truth.map(dv_dic)
         )
         return sep.join(shotsdf.shots.sample(n=n, random_state=0).tolist() + [""])
 
