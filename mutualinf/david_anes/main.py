@@ -67,7 +67,6 @@ anesdf['token_sets'] = [tok_sets] * len(anesdf)
 anesdf['ground_truth'] = anesdf[VOTE_COL].map(VOTE_MAP)
 
 
-
 full_results = []
 prompts = []
 for pid in tqdm( range(len(anesdf)) ):
