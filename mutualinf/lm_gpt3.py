@@ -1,5 +1,6 @@
 from lmsampler_baseclass import LMSamplerBaseClass
 import openai
+import time
 
 
 class LM_GPT3(LMSamplerBaseClass):
@@ -22,6 +23,7 @@ class LM_GPT3(LMSamplerBaseClass):
 
 
     def send_prompt(self, prompt, n_probs=100):
+        start_time = time.time()
         response = openai.Completion.create(
             engine=self.engine,
             prompt=prompt,
@@ -31,6 +33,13 @@ class LM_GPT3(LMSamplerBaseClass):
         logprobs = response['choices'][0]['logprobs']['top_logprobs'][0]
         # sort dictionary by values
         sorted_logprobs = dict(sorted(logprobs.items(), key=lambda x: x[1], reverse=True))
+        # TODO - automate this?
+        now = time.time()
+        min_time = .1
+        if now - start_time < min_time:
+            wait_time = min_time - (now - start_time)
+            wait_time = max(wait_time, 0)
+            time.sleep(wait_time)
         return sorted_logprobs
 
     def sample_several(self, prompt, temperature=0, n_tokens=10):
