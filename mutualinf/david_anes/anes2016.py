@@ -6,6 +6,10 @@ OUTPUT_CSV = "./full_results_2016.csv"
 SEP='|'
 ID_COL = "V160001_orig"
 VOTE_COL = "V162062x"
+VOTE_MAP = {
+    1: "clinton",
+    2: "trump",
+}
 K1 = "trump"
 K2 = "clinton"
 
