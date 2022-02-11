@@ -5,6 +5,8 @@ from ..dataset_factory import DatasetFactory
 from ..surveys.anes_survey import AnesSurvey
 from pdb import set_trace as breakpoint
 from .. import constants as k
+from .anes_nan_dicts import dv_nan_dicts, demo_nan_dicts
+from .anes_rephrasing_dicts import demo_rephrasing_dicts, dv_rephrasing_dicts
 
 
 class AnesFactory(DatasetFactory):
@@ -13,66 +15,13 @@ class AnesFactory(DatasetFactory):
 
     def modify_data(self, df):
         """Replace unacceptable values like 'refused' to np.nan"""
-        # Demos
-        age_dict = {-9: np.nan}
-        party_dict = {
-            "Inapplicable": np.nan,
-        }
-        income_dict = {
-            "Refused": np.nan,
-            "Interview breakoff": np.nan,
-        }
 
-        # DVs
-        dv_dict = {
-            "vote_2016_dict": {
-                "Refused": np.nan,
-                "Inapplicable": np.nan,
-                "Other \\{SPECIFY\\}": np.nan,
-            },
-            "gay_marriage_dict": {
-                "Refused": np.nan,
-                "Don't know": np.nan,
-            },
-            "trump_handling_relations_dict": {
-                "Refused": np.nan,
-            },
-            "trump_handling_relations_mc_dict": {
-                "Refused": np.nan,
-            },
-            "trump_hanlding_immigration_dict": {
-                "Refused": np.nan,
-            },
-            "willing_military_force_dict": {
-                "Refused": np.nan,
-            },
-            "restless_sleep_dict": {
-                "Refused": np.nan,
-                "Interview breakoff sufficient parital IW": np.nan,
-            },
-            "have_health_insurance_dict": {
-                "Refused": np.nan,
-                "Interview breakoff sufficient parital IW": np.nan,
-            },
-            "attn_to_politics_dict": {
-                "Refused": np.nan,
-            },
-            "feel_voting_is_duty_dict": {
-                "Refused": np.nan,
-                "Inapplicable": np.nan,
-            },
-            "govt_run_by_who_dict": {
-                "Refused": np.nan,
-            },
-        }
+        # Map bad values to np.nan
+        for demo, demo_nan_dict in demo_nan_dicts.items():
+            df[demo] = df[demo].replace(demo_nan_dict)
 
-        df["age"] = df["age"].replace(age_dict)
-        df["party"] = df["party"].replace(party_dict)
-        df["income"] = df["income"].replace(income_dict)
-
-        # process dvs
-        for dv in self.dv_colnames:
-            df[dv] = df[dv].replace(dv_dict[f"{dv}_dict"])
+        for dv, dv_nan_dict in dv_nan_dicts.items():
+            df[dv] = df[dv].replace(dv_nan_dict)
 
         # Only drop invalid demographics, as we'll drop invalid DV values later
         df.dropna(subset=k.DEMOGRAPHIC_COLNAMES, inplace=True)
@@ -81,305 +30,41 @@ class AnesFactory(DatasetFactory):
 
     def get_templates(self):
         # Demographics
-        party_dict = {
-            "Democratic party": "a Democrat",
-            "Republican party": "a Republican",
-            "None or 'independent'": "an independent",
-        }
-
-        # 'High school graduate - High school diploma or equivalent (e.g: GED)', 'Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)', "Bachelor's degree (e.g. BA, AB, BS)", "Master's degree (e.g. MA, MS, MEng, MEd, MSW, MBA)", 'Associate degree in college - academic', 'Some college but no degree', 'Less than high school credential', 'Associate degree in college - occupational/vocational'
-        education_dict = {
-            "High school graduate - High school diploma or equivalent (e.g: GED)": "graduated from high school",
-            "Professional school degree (e.g. MD, DDS, DVM, LLB, JD)/Doctoral degree (e.g: PHD, EDD)": "went to graduate school",
-            "Bachelor's degree (e.g. BA, AB, BS)": "got a bachelor's degree",
-            "Master's degree (e.g. MA, MS, MEng, MEd, MSW, MBA)": "got a master's degree",
-            "Associate degree in college - academic": "got an associate's degree",
-            "Some college but no degree": "went to some college but didn't graduate",
-            "Less than high school credential": "didn't graduate from high school",
-            "Associate degree in college - occupational/vocational": "got an associate's degree",
-        }
-
-        # 'Slightly conservative', 'Liberal', 'Conservative', 'Moderate; middle of the road', 'Slightly liberal', 'Extremely liberal', 'Extremely conservative'
-        ideology_dict = {
-            "Slightly conservative": "slightly conservative",
-            "Liberal": "liberal",
-            "Conservative": "conservative",
-            "Moderate; middle of the road": "moderate",
-            "Slightly liberal": "slightly liberal",
-            "Extremely liberal": "extremely liberal",
-            "Extremely conservative": "extremely conservative",
-        }
-
-        # -"Refused", -"Interview breakoff", "Under $9,999", "$10,000-14,999", "$15,000-19,999", "$20,000-24,999", "$25,000-29,999", "$30,000-34,999", "$35,000-39,999", "$40,000-44,999", "$45,000-49,999", "$50,000-59,999", "$60,000-64,999", "$65,000-69,999", "$70,000-74,999", "$75,000-79,999", "$80,000-89,999", "$90,000-99,999", "$100,000-109,999", "$110,000-124,999", "$125,000-149,999", "$150,000-174,999", "$175,000-249,999", "$250,00 or more",
-        income_dict = {
-            "Refused": np.nan,
-            "Interview breakoff": np.nan,
-            "Under $9,999": "under $9,999",
-            "$10,000-14,999": "between $10,000-$14,999",
-            "$15,000-19,999": "between $15,000-$19,999",
-            "$20,000-24,999": "between $20,000-$24,999",
-            "$25,000-29,999": "between $25,000-$29,999",
-            "$30,000-34,999": "between $30,000-$34,999",
-            "$35,000-39,999": "between $35,000-$39,999",
-            "$40,000-44,999": "between $40,000-$44,999",
-            "$45,000-49,999": "between $45,000-$49,999",
-            "$50,000-59,999": "between $50,000-$59,999",
-            "$60,000-64,999": "between $60,000-$64,999",
-            "$65,000-69,999": "between $65,000-$69,999",
-            "$70,000-74,999": "between $70,000-$74,999",
-            "$75,000-79,999": "between $75,000-$79,999",
-            "$80,000-89,999": "between $80,000-$89,999",
-            "$90,000-99,999": "between $90,000-$99,999",
-            "$100,000-109,999": "between $100,000-$109,999",
-            "$110,000-124,999": "between $110,000-$124,999",
-            "$125,000-149,999": "between $125,000-$149,999",
-            "$150,000-174,999": "between $150,000-$174,999",
-            "$175,000-249,999": "between $175,000-$249,999",
-            "$250,00 or more": "over $250,000",
-        }
-
-        # 'Undifferentiated Protestant', 'Not religious', 'Mainline Protestant', 'Roman Catholic', 'Other religion', 'Other Christian', 'Evangelical Protestant', 'Jewish'
-        religion_dict = {
-            "Undifferentiated Protestant": "Religiously speaking, I am a Protestant",
-            "Not religious": "I am not religious",
-            "Mainline Protestant": "Religiously speaking, I am a Protestant",
-            "Roman Catholic": "Religiously speaking, I am Roman Catholic",
-            "Other religion": "I am religious and I am not Christian",
-            "Other Christian": "Religiously speaking, I am Christian",
-            "Evangelical Protestant": "Religiously speaking, I am an Evangelical Protestant",
-            "Jewish": "Religiously speaking, I am Jewish",
-        }
-
-        # 'White, non-Hispanic'|'Black, non-Hispanic'|'Asian or Native Hawaiian/other Pacific Islander, non-Hispanic alone'|'Hispanic'|'Multiple races, non-Hispanic'|'Native American/Alaska Native or other race, non-Hispanic alone'
-        race_ethnicity_dict = {
-            "White, non-Hispanic": "white",
-            "Black, non-Hispanic": "Black",
-            "Asian or Native Hawaiian/other Pacific Islander, non-Hispanic alone": "Asian-American/Pacific Islander",
-            "Hispanic": "Hispanic",
-            "Multiple races, non-Hispanic": "multiracial",
-            "Native American/Alaska Native or other race, non-Hispanic alone": "Native American",
-        }
-
-        # 'Married: spouse present', 'Never married', 'Divorced', 'Married: spouse absent {VOL - video/phone only}', 'Widowed', 'Separated'
-        marital_status_dict = {
-            "Married: spouse present": "am married",
-            "Never married": "am single and have never been married",
-            "Divorced": "am divorced",
-            "Married: spouse absent {VOL - video/phone only}": "am married but don't live with my spouse",
-            "Widowed": "am widowed",
-            "Separated": "am separated from my spouse",
-        }
-
-        # DVS
-        gay_marriage_dict = {
-            "Gay and lesbian couples should be allowed to legally marry": "legal marriages",
-            "Gay and lesbian couples should be allowed to form civil unions but not legally marry": "civil unions",
-            "There should be no legal recognition of gay or lesbian couples' relationship": "neither",
-        }
-        gay_marriage_tokens = {
-            "Gay and lesbian couples should be allowed to legally marry": [
-                "legal marriages"
-            ],
-            "Gay and lesbian couples should be allowed to form civil unions but not legally marry": [
-                "civil unions"
-            ],
-            "There should be no legal recognition of gay or lesbian couples' relationship": [
-                "neither"
-            ],
-        }
-        gay_marriage_mc_tokens = {
-            "Gay and lesbian couples should be allowed to legally marry": [
-                "legal marriages",
-                "A",
-            ],
-            "Gay and lesbian couples should be allowed to form civil unions but not legally marry": [
-                "civil unions",
-                "B",
-            ],
-            "There should be no legal recognition of gay or lesbian couples' relationship": [
-                "neither",
-                "C",
-            ],
-        }
-
-        trump_handling_relations_dict = {
-            "Don't know": "don't know",
-            "Approve": "approve",
-            "Disapprove": "disapprove",
-        }
-        trump_handling_relations_mc_dict = {
-            "Don't know": "I don't know",
-            "Approve": "I approve",
-            "Disapprove": "I disapprove",
-        }
-
-        trump_hanlding_immigration_dict = {
-            "Don't know": "",
-            "Approve": "",
-            "Disapprove": "",
-        }
-        willing_military_force_dict = {
-            "Don't know": "",
-            "Extremely willing": "",
-            "Very willing": "",
-            "Moderately willing": "",
-            "A little willing": "",
-            "Not at all willing": "",
-        }
-        restless_sleep_dict = {
-            "All the time": "",
-            "Often": "",
-            "Sometimes": "",
-            "Rarely": "",
-            "Never": "",
-        }
-
-        have_health_insurance_dict = {
-            "Yes": "",
-            "No": "",
-        }
-
-        attn_to_politics_dict = {
-            "Very much interested": "",
-            "Somewhat interested": "",
-            "Not much interested": "",
-        }
-
-        feel_voting_is_duty_dict = {
-            "Very strongly": "",
-            "Moderately strongly": "",
-            "A little strongly": "",
-        }
-
-        govt_run_by_who_dict = {
-            "Don't know": "",
-            "Run by a few big interests": "",
-            "For the benefit of all people": "",
-        }
-
-        vote_2016_dict = {
-            "Donald Trump": "Donald Trump",
-            "Hillary Clinton": "Hillary Clinton",
-        }
-
-        social_security_dict = {
-            "Increased": "Increased",
-            "Decreased": "Decreased",
-            "Kept the same": "Kept the same",
-        }
-
-        protecting_environment_spending_dict = {
-            "Increased": "Increased",
-            "Decreased": "Decreased",
-            "Kept the same": "Kept the same",
-        }
-
-        protecting_environment_spending_dict = None
-        rising_temp_action_dict = {
-            "Should be doing more": "more",
-            "Should be doing less": "less",
-            "Is currently doing the right amount": ["the", "about"],
-        }
-        dealing_with_crime_dict = None
-        trump_handling_economy_dict = {
-            "Approve": "approves",
-            "Disapprove": "disapproves",
-        }
-        govt_waste_money_dict = {
-            "Don't waste very much": ["none", "none of it"],
-            "Waste a lot": ["a", "all", "a lot"],
-            "Waste some": ["some", "some of it"],
-        }
-        worried_financial_situation_dict = {
-            "Moderately worried": ["worried"],
-            "Extremely worried": ["extremely"],
-            "Very worried": ["very"],
-            "A little worried": ["a little"],
-            "Not at all worried": ["not"],
-        }
-        gay_marriage_dict = {
-            "Gay and lesbian couples should be allowed to legally marry": "fully",
-            "Gay and lesbian couples should be allowed to form civil unions but not legally marry": "somewhat",
-            "There should be no legal recognition of gay or lesbian couples' relationship": "not",
-        }
-
-        # Social Security Spending
-        social_security_tokens = {
-            "increased": ["increased"],
-            "decreased": ["decreased"],
-            "kept the same": ["kept the same"],
-        }
-
-        social_security_mc_tokens = {
-            "increased": ["A", "increased"],
-            "decreased": ["B", "decreased"],
-            "kept the same": ["C", "kept the same"],
-        }
-
-        # protecting the environment
-        protecting_environment_tokens = {
-            "Increased": ["increased"],
-            "Decreased": ["decreased"],
-            "Kept the same": ["kept the same"],
-        }
-
-        protecting_environment_mc_tokens = {
-            "Increased": ["A", "increased"],
-            "Decreased": ["B", "decreased"],
-            "Kept the same": ["C", "kept the same"],
-        }
-
-        # Vote 2016
-        vote_2016_dict = {
-            "Hillary Clinton": ["Hillary", "Clinton"],
-            "Donald Trump": ["Donald", "Trump"],
-        }
-
-        vote_2016_mc_dict = {
-            "Hillary Clinton": ["A", "Hillary", "Clinton"],
-            "Donald Trump": ["B", "Donald", "Trump"],
-        }
-
-        # rising_temp_action
-        rising_temp_action_tokens = {
-            "More": ["more"],
-            "Less": ["less"],
-            "The same": ["the same", "the", "same", "about the same"],
-        }
-        rising_temp_action_mc_tokens = {
-            "More": ["A", "more"],
-            "Less": ["B", "less"],
-            "The same": [
-                "C",
-                "currently doing the right amount",
-                "the same",
-                "the",
-                "same",
-                "about the same",
-            ],
-        }
         # add token sets as dicts see example (map Kept the same to keep, kept, etc) -- for protecting_environment_spending
+        party_dict = demo_rephrasing_dicts["party"]
+        education_dict = demo_rephrasing_dicts["education"]
+        ideology_dict = demo_rephrasing_dicts["ideology"]
+        income_dict = demo_rephrasing_dicts["income"]
+        religion_dict = demo_rephrasing_dicts["religion"]
+        race_ethnicity_dict = demo_rephrasing_dicts["race_ethnicity"]
+        marital_status_dict = demo_rephrasing_dicts["marital_status"]
+        rephrasing = dv_rephrasing_dicts
 
-        def make_backstory1(self, row):
+        social_security_tokens = []
+        social_security_mc_tokens = []
+        vote_2016_dict = []
+        vote_2016_mc_dict = []
+
+        def make_backstory1(row):
             # create a generic backstory using values in the demographics
             return (
                 f"I am {int(row['age'])} years old. I am {row['gender'].lower()}. "
-                f"Politically speaking, I am {party_dict(row['party'])}. "
-                f"Ideologically, I am {ideology_dict(row['ideology'])}. I {education_dict(row['education'])}. "
-                f"My salary is {income_dict(row['income'])}. "
-                f"{religion_dict(row['religion'])}. "
-                f"I am {race_ethnicity_dict(row['race_ethnicity'])}. I am from the {row['region']}. "
-                f"I {marital_status_dict(row['marital_status'])}."
+                f"Politically speaking, I am {party_dict[row['party']]}. "
+                f"Ideologically, I am {ideology_dict[row['ideology']]}. I {education_dict[row['education']]}. "
+                f"My salary is {income_dict[row['income']]}. "
+                f"{religion_dict[row['religion']]}. "
+                f"I am {race_ethnicity_dict[row['race_ethnicity']]}. I am from the {row['region']}. "
+                f"I {marital_status_dict[row['marital_status']]}."
             )
 
-        def make_backstory2(self, row):
+        def make_backstory2(row):
             return (
                 f"Age: {int(row['age'])}, Gender: {row['gender']}, Political Affiliation: {row['party']}, "
                 f"Education: {row['education']}, Ideology: {row['ideology']}, Total Income: {row['income']}, Religion: {row['religion']}, "
                 f"Race/Ethnicity: {row['race_ethnicity']}, Region: {row['region']}, Marital Status: {row['marital_status']}"
             )
 
-        def make_backstory3(self, row):
+        def make_backstory3(row):
             return (
                 f"Q: What is your age?\nA: {int(row['age'])}\n\nQ: What is your gender?\nA: {row['gender']}\n\n"
                 f"Q: What is your political affiliation?\nA: {row['party']}\n\nQ: What is your education?\nA: {row['education']}\n\n"
@@ -389,7 +74,7 @@ class AnesFactory(DatasetFactory):
                 f"Q: What is your marital status?\nA: {row['marital_status']}"
             )
 
-        def make_backstory4(self, row):
+        def make_backstory4(row):
             return (
                 f"Question 1: What is your age?\n\nAnswer 1: {row['age']}\n\nQuestion 2: What is your gender?\n\nAnswer 2: {row['gender']}\n\n"
                 f"Question 3: What is your political affiliation?\n\nAnswer 3: {row['party']}\n\nQuestion 4: What is your education?\n\nAnswer 4: {row['education']}\n\n"
@@ -399,7 +84,7 @@ class AnesFactory(DatasetFactory):
                 f"Question 10: What is your marital status?\n\nAnswer 10: {row['marital_status']}"
             )
 
-        def make_backstory5(self, row):
+        def make_backstory5(row):
             return (
                 f"Person 1: What is your age?\nPerson 2: {row['age']}\n\nPerson 1: What is your gender?\nPerson 2: {row['gender']}\n\n"
                 f"Person 1: What is your political affiliation?\nPerson 2: {row['party']}\n\nPerson 1: What is your education?\nPerson 2: {row['education']}\n\n"
@@ -409,7 +94,7 @@ class AnesFactory(DatasetFactory):
                 f"Person 1: What is your marital status?\nPerson 2: {row['marital_status']}"
             )
 
-        def make_backstory6(self, row):
+        def make_backstory6(row):
             return (
                 f"Q: What is your age? (in years)\n"
                 f"A: {int(row['age'])}\n\n"
@@ -453,37 +138,37 @@ class AnesFactory(DatasetFactory):
         return {
             "gay_marriage": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: What is your position on gay "
+                    lambda row: (
+                        make_backstory4(row)
+                        + "\n\nQuestion 11: What is your position on gay "
                         "marriage? Should "
                         "gay and lesbian couples be allowed to enter "
                         "legal marriages, civil unions, "
                         "or neither?\nAnswer 11: Gay and lesbian couples "
                         "should be allowed to enter"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: If asked whether gay people should "
                         "be allowed to get married, do you think they should "
                         "be able to form legal marriages, civil unions, or "
                         "neither?\nAnswer 11: Gay people should be allowed "
                         "to form"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked whether gay people should be allowed to "
                         "enter into either legal marriages, civil unions, "
                         "or neither, I would say they should be able to "
                         "enter into"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "task": (
                     lambda row: (
@@ -491,17 +176,18 @@ class AnesFactory(DatasetFactory):
                         "person living in the United States in 2020."
                         "Please read "
                         "it and infer their opinion on gay marriage.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on gay marriage, and what kind of "
                         "unions gay people should be allowed to enter into "
                         "(legal marriages, civil unions, neither):"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "task_3shot": (
                     lambda row: (
                         self.get_shots(
                             "gay_marriage",
+                            rephrasing["gay_marriage"]["colloquial"]["rephrasings"],
                             "task",
                             3,
                             "\n\n-----------------------\n\n",
@@ -510,12 +196,12 @@ class AnesFactory(DatasetFactory):
                         "person living in the United States in 2020. "
                         "Please read "
                         "it and infer their opinion on gay marriage.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on gay marriage, and what kind of "
                         "unions gay people should be allowed to enter into "
                         "(legal marriages, civil unions, neither):"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "anes_description": (
                     lambda row: (
@@ -527,68 +213,70 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should gay couples be allowed to enter into "
                         "legal marriages or civil unions or neither?\nA:"
                     ),
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Do you think that gay people should "
                     "be allowed to enter into legal marriages, or civil unions, "
                     "or neither?\nPerson 2:",
-                    gay_marriage_tokens,
+                    rephrasing["gay_marriage"]["colloquial"]["tokens"],
                 ),
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should gay people be allowed to "
                         "enter into legal marriages, or civil unions, or "
                         "neither?"
                         "\nA: Legal marriages\nB: Civil unions\nC: Neither\n\nAnswer 11:"
                     ),
-                    gay_marriage_mc_tokens,
+                    rephrasing["gay_marriage"]["mc"]["tokens"],
                 ),
                 "mc_2shot": (
                     lambda row: self.get_shots(
                         "gay_marriage",
+                        rephrasing["gay_marriage"]["mc"]["rephrasings"],
                         "mc",
                         2,
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         +"\n\nQuestion 11: Should gay people be allowed to "
                         "enter into legal marriages, or civil unions, or "
                         "neither?"
                         "\nA: Legal marriages\nB: Civil unions\nC: Neither\n\nAnswer 11:"
                     ),
-                    gay_marriage_mc_tokens,
+                    rephrasing["gay_marriage"]["mc"]["tokens"],
                 ),
                 "mc_5shot": (
                     lambda row: self.get_shots(
                         "gay_marriage",
+                        rephrasing["gay_marriage"]["mc"]["rephrasings"],
                         "mc",
                         5,
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         +"\n\nQuestion 11: Should gay people be allowed to "
                         "enter into legal marriages, or civil unions, or "
                         "neither?"
                         "\nA: Legal marriages\nB: Civil unions\nC: Neither\n\nAnswer 11:"
                     ),
-                    gay_marriage_mc_tokens,
+                    rephrasing["gay_marriage"]["mc"]["tokens"],
                 ),
             },
             "trump_handling_relations": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -597,13 +285,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -614,7 +302,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -630,7 +318,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -645,14 +333,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -660,7 +348,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -675,7 +363,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -691,7 +379,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -702,7 +390,7 @@ class AnesFactory(DatasetFactory):
             },
             "trump_hanlding_immigration": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -711,13 +399,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -728,7 +416,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -744,7 +432,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -759,14 +447,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -774,7 +462,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -789,7 +477,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -805,7 +493,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -816,7 +504,7 @@ class AnesFactory(DatasetFactory):
             },
             "willing_military_force": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -825,13 +513,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -842,7 +530,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -858,7 +546,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -873,14 +561,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -888,7 +576,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -903,7 +591,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -919,7 +607,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -930,7 +618,7 @@ class AnesFactory(DatasetFactory):
             },
             "restless_sleep": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -939,13 +627,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -956,7 +644,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -972,7 +660,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -987,14 +675,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -1002,7 +690,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -1017,7 +705,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1033,7 +721,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1044,7 +732,7 @@ class AnesFactory(DatasetFactory):
             },
             "have_health_insurance": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -1053,13 +741,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -1070,7 +758,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -1086,7 +774,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -1101,14 +789,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -1116,7 +804,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -1131,7 +819,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1147,7 +835,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1158,7 +846,7 @@ class AnesFactory(DatasetFactory):
             },
             "attn_to_politics": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -1167,13 +855,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -1184,7 +872,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -1200,7 +888,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -1215,14 +903,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -1230,7 +918,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -1245,7 +933,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1261,7 +949,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1272,7 +960,7 @@ class AnesFactory(DatasetFactory):
             },
             "feel_voting_is_duty": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -1281,13 +969,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -1298,7 +986,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -1314,7 +1002,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -1329,14 +1017,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -1344,7 +1032,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -1359,7 +1047,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1375,7 +1063,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1386,7 +1074,7 @@ class AnesFactory(DatasetFactory):
             },
             "govt_run_by_who": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: What about Social Security? "
                         "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
@@ -1395,13 +1083,13 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
                     ),
                     social_security_tokens,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (
                         " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
                     ),
@@ -1412,7 +1100,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                     ),
                     social_security_tokens,
@@ -1428,7 +1116,7 @@ class AnesFactory(DatasetFactory):
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
                         "vote:"
                     ),
@@ -1443,14 +1131,14 @@ class AnesFactory(DatasetFactory):
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
                         "\n\n"
-                        + self.make_backstory3(row)
+                        + make_backstory3(row)
                         + "\n\nQ: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?\nA:"
                     ),
                     social_security_tokens,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row)
+                    lambda row: make_backstory5(row)
                     + "\n\nPerson 1: Should federal spending "
                     "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
                     social_security_tokens,
@@ -1458,7 +1146,7 @@ class AnesFactory(DatasetFactory):
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
                         "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
@@ -1473,7 +1161,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1489,7 +1177,7 @@ class AnesFactory(DatasetFactory):
                         "\n\n-----------------------\n\n",
                     )
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Should federal spending "
                         "on Social Security be increased, decreased, or kept the same?"
@@ -1500,7 +1188,7 @@ class AnesFactory(DatasetFactory):
             },
             "vote_2016": {
                 "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
+                    lambda row: make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Four years ago, in 2016, Hillary Clinton ran "
                         "on the Democratic ticket against Donald Trump for the "
@@ -1510,7 +1198,7 @@ class AnesFactory(DatasetFactory):
                 ),
                 "surveyq_rephrase": (
                     lambda row: (
-                        self.make_backstory4(row)
+                        make_backstory4(row)
                         + "\n\nQuestion 11: Do you remember the presidential "
                         "election of 2016? Did you vote for Hillary Clinton "
                         "or Donald Trump?\nAnswer 11:"
@@ -1518,7 +1206,7 @@ class AnesFactory(DatasetFactory):
                     vote_2016_dict,
                 ),
                 "fpbs": (
-                    lambda row: self.make_backstory1(row)
+                    lambda row: make_backstory1(row)
                     + (" In the 2016 presidential election, I voted for"),
                     vote_2016_dict,
                 ),
@@ -1527,7 +1215,7 @@ class AnesFactory(DatasetFactory):
                         "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer who that person voted for.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + ", 2016 Presidential Election "
                         "Vote:"
                     ),
@@ -1535,11 +1223,17 @@ class AnesFactory(DatasetFactory):
                 ),
                 "task_3shot": (
                     lambda row: (
-                        self.get_shots("vote_2016", "task", 3, sep="\n\n")
+                        self.get_shots(
+                            "vote_2016",
+                            "task",
+                            rephrasing["gay_marriage"]["colloquial"]["rephrasings"],
+                            3,
+                            sep="\n\n",
+                        )
                         + "TASK: The following is a description of a "
                         "voter in the 2016 presidential election. Please read "
                         "it and infer who that person voted for.\n\n"
-                        + self.make_backstory2(row)
+                        + make_backstory2(row)
                         + " 2016 presidential election "
                         "vote:"
                     ),
@@ -1553,20 +1247,20 @@ class AnesFactory(DatasetFactory):
                         "American Elections. Below are examples of respondents "
                         "answering various questions. Please complete what you "
                         "would guess the right answers to those questions to be."
-                        "\n\n" + self.make_backstory3(row) + "\n\nQ: Who did you "
+                        "\n\n" + make_backstory3(row) + "\n\nQ: Who did you "
                         "vote for in the 2016 presidential election?\nA:"
                     ),
                     vote_2016_dict,
                 ),
                 "conversation": (
-                    lambda row: self.make_backstory5(row) + "\n\nPerson 1: Who did "
+                    lambda row: make_backstory5(row) + "\n\nPerson 1: Who did "
                     "you vote for in the 2016 presidential election?\nPerson 2:",
                     vote_2016_dict,
                 ),
                 "mc": (
                     lambda row: (
                         "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
+                        + make_backstory4(row)
                         + "\n\nQuestion 11: Who did "
                         "you vote for in the 2016 presidential election?\nA: "
                         "Hillary Clinton\nB: Donald Trump\n\nAnswer 11:"
@@ -1576,7 +1270,7 @@ class AnesFactory(DatasetFactory):
                 "mc_2shot": (
                     lambda row: self.get_shots("vote_2016", "mc", 2, "\n\n")
                     + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
+                    + make_backstory4(row)
                     + (
                         "\n\nQuestion 11: Who did "
                         "you vote for in the 2016 presidential election?\nA: "
@@ -1585,7 +1279,7 @@ class AnesFactory(DatasetFactory):
                     vote_2016_dict,
                 ),
                 "explicit_enumeration": (
-                    lambda row: self.make_backstory6(row)
+                    lambda row: make_backstory6(row)
                     + (
                         "\n\nQ: Who did you"
                         f"vote for in the 2016 presidential election? (Donald "
@@ -1595,359 +1289,359 @@ class AnesFactory(DatasetFactory):
                 ),
             },
             # What about Social Security? Should federal spending on Social Security be increased, decreased, or kept the same?
-            "social_security_spending": {
-                "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: What about Social Security? "
-                        "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
-                    ),
-                    social_security_tokens,
-                ),
-                "surveyq_rephrase": (
-                    lambda row: (
-                        self.make_backstory4(row)
-                        + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
-                    ),
-                    social_security_tokens,
-                ),
-                "fpbs": (
-                    lambda row: self.make_backstory1(row)
-                    + (
-                        " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
-                    ),
-                    social_security_tokens,
-                ),
-                "task": (
-                    lambda row: (
-                        "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
-                    ),
-                    social_security_tokens,
-                ),
-                "task_3shot": (
-                    lambda row: (
-                        self.get_shots(
-                            "social_security_spending",
-                            "task",
-                            3,
-                            "\n\n-----------------------\n\n",
-                        )
-                        + "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal Social Security spending.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
-                        "vote:"
-                    ),
-                    social_security_tokens,
-                ),
-                "anes_description": (
-                    lambda row: (
-                        "The American National Election Studies 2020 "
-                        "Time Series Study (ANES 2020) "
-                        "is a nationally representative survey of voters in "
-                        "American Elections. Below are examples of respondents "
-                        "answering various questions. Please complete what you "
-                        "would guess the right answers to those questions to be."
-                        "\n\n"
-                        + self.make_backstory3(row)
-                        + "\n\nQ: Should federal spending "
-                        "on Social Security be increased, decreased, or kept the same?\nA:"
-                    ),
-                    social_security_tokens,
-                ),
-                "conversation": (
-                    lambda row: self.make_backstory5(row)
-                    + "\n\nPerson 1: Should federal spending "
-                    "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
-                    social_security_tokens,
-                ),
-                "mc": (
-                    lambda row: (
-                        "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
-                        + "\n\nQuestion 11: Should federal spending "
-                        "on Social Security be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    social_security_mc_tokens,
-                ),
-                "mc_2shot": (
-                    lambda row: self.get_shots(
-                        "social_security_spending",
-                        "mc",
-                        2,
-                        "\n\n-----------------------\n\n",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Should federal spending "
-                        "on Social Security be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    social_security_mc_tokens,
-                ),
-                "mc_5shot": (
-                    lambda row: self.get_shots(
-                        "social_security_spending",
-                        "mc",
-                        7,
-                        "\n\n-----------------------\n\n",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Should federal spending "
-                        "on Social Security be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    social_security_mc_tokens,
-                ),
-            },
-            # What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?
-            "protecting_environment_spending": {
-                "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: What about protecting the environment? "
-                        "Should federal spending on protecting the enivironment be increased, decreased, or kept the same?\nAnswer 11:"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "surveyq_rephrase": (
-                    lambda row: (
-                        self.make_backstory4(row)
-                        + "\n\nQuestion 11: Do you think federal spending on protecting the environment should be increased, decreased, or kept the same?\nAnswer 11:"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "fpbs": (
-                    lambda row: self.make_backstory1(row)
-                    + (
-                        " If asked if spending on protecting the environment should be increased, decreased, or kept the same, I would say that it should be"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "task": (
-                    lambda row: (
-                        "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "task_3shot": (
-                    lambda row: (
-                        self.get_shots(
-                            "protecting_environment_spending",
-                            "task",
-                            3,
-                            "\n\n-----------------------\n\n",
-                        )
-                        + "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
-                        "vote:"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "anes_description": (
-                    lambda row: (
-                        "The American National Election Studies 2020 "
-                        "Time Series Study (ANES 2020) "
-                        "is a nationally representative survey of voters in "
-                        "American Elections. Below are examples of respondents "
-                        "answering various questions. Please complete what you "
-                        "would guess the right answers to those questions to be."
-                        "\n\n"
-                        + self.make_backstory3(row)
-                        + "\n\nQ: Should federal spending "
-                        "on protecting the environment be increased, decreased, or kept the same?\nA:"
-                    ),
-                    protecting_environment_tokens,
-                ),
-                "conversation": (
-                    lambda row: self.make_backstory5(row)
-                    + "\n\nPerson 1: Should federal spending "
-                    "on protecting the environment be increased, decreased, or kept the same?\nPerson 2:",
-                    protecting_environment_tokens,
-                ),
-                "mc": (
-                    lambda row: (
-                        "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
-                        + "\n\nQuestion 11: Should federal spending "
-                        "on protecting the environment be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    protecting_environment_mc_tokens,
-                ),
-                "mc_2shot": (
-                    lambda row: self.get_shots(
-                        "protecting_environment_spending",
-                        "mc",
-                        2,
-                        "\n\n-----------------------\n\n",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Should federal spending "
-                        "on protecting the environment be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    protecting_environment_mc_tokens,
-                ),
-                "mc_5shot": (
-                    lambda row: self.get_shots(
-                        "protecting_environment_spending",
-                        "mc",
-                        5,
-                        "\n\n-----------------------\n\n",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Should federal spending "
-                        "on protecting the environment be increased, decreased, or kept the same?"
-                        "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
-                    ),
-                    protecting_environment_mc_tokens,
-                ),
-            },
-            "rising_temp_action": {
-                "surveyq_exact": (
-                    lambda row: self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Do you think the federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? "
-                        "\nAnswer 11:"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "surveyq_rephrase": (
-                    lambda row: (
-                        self.make_backstory4(row)
-                        + "\n\nQuestion 11: Do you think federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? \nAnswer 11: I think the federal government should be doing"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "fpbs": (
-                    lambda row: self.make_backstory1(row)
-                    + (
-                        " If asked if the federal government should be doing more, less, or the same about rising temperatures, I would say that it should be doing"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "task": (
-                    lambda row: (
-                        "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "task_3shot": (
-                    lambda row: (
-                        self.get_shots(
-                            "rising_temp_action",
-                            "task",
-                            3,
-                            "\n\n-----------------------\n\n",
-                        )
-                        + "TASK: The following is a description of a "
-                        "voter in the 2016 presidential election. Please read "
-                        "it and infer their opinion on federal spending on protecting the environment.\n\n"
-                        + self.make_backstory2(row)
-                        + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
-                        "vote:"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "anes_description": (
-                    lambda row: (
-                        "The American National Election Studies 2020 "
-                        "Time Series Study (ANES 2020) "
-                        "is a nationally representative survey of voters in "
-                        "American Elections. Below are examples of respondents "
-                        "answering various questions. Please complete what you "
-                        "would guess the right answers to those questions to be."
-                        "\n\n"
-                        + self.make_backstory3(row)
-                        + "\n\nQ: Should the federal government "
-                        "be doing more, less, or the same about rising temperatures?\nA:"
-                    ),
-                    rising_temp_action_tokens,
-                ),
-                "conversation1": (
-                    lambda row: self.make_backstory5(row)
-                    + "\n\nPerson 1: Should the federal government "
-                    "be doing more, less, or the same about rising temperature?\nPerson 2: The federal government should be doing",
-                    rising_temp_action_tokens,
-                ),
-                "conversation2": (
-                    lambda row: self.make_backstory5(row)
-                    + "\n\nPerson 1: Should the federal government "
-                    "be doing the same, more, or less about rising temperature?\nPerson 2: The federal government should be doing",
-                    rising_temp_action_tokens,
-                ),
-                "mc": (
-                    lambda row: (
-                        "SURVEY_RESPONSE\n\n"
-                        + self.make_backstory4(row)
-                        + (
-                            "\n\nQuestion 11: Do you think the federal government should be doing more "
-                            "about rising temperatures, should be doing less, or is it currently doing the right amount?"
-                            "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
-                        )
-                    ),
-                    rising_temp_action_mc_tokens,
-                ),
-                "mc_2shot": (
-                    lambda row: self.get_shots(
-                        "rising_temp_action",
-                        "mc",
-                        2,
-                        "\n\n-----------------------\n\n",
-                        "_mc",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Do you think the federal government should be doing more "
-                        "about rising temperatures, should be doing less, or is it currently doing the right amount?"
-                        "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
-                    ),
-                    rising_temp_action_mc_tokens,
-                ),
-                "mc_5shot": (
-                    lambda row: self.get_shots(
-                        "rising_temp_action",
-                        "mc",
-                        5,
-                        "\n\n-----------------------\n\n",
-                        "_mc",
-                    )
-                    + "SURVEY_RESPONSE\n\n"
-                    + self.make_backstory4(row)
-                    + (
-                        "\n\nQuestion 11: Do you think the federal government should be doing more "
-                        "about rising temperatures, should be doing less, or is it currently doing the right amount?"
-                        "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
-                    ),
-                    rising_temp_action_mc_tokens,
-                ),
-            },
+            # "social_security_spending": {
+            #     "surveyq_exact": (
+            #         lambda row: make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: What about Social Security? "
+            #             "Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "surveyq_rephrase": (
+            #         lambda row: (
+            #             make_backstory4(row)
+            #             + "\n\nQuestion 11: Do you think federal spending on Social Security should be increased, decreased, or kept the same?\nAnswer 11:"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "fpbs": (
+            #         lambda row: make_backstory1(row)
+            #         + (
+            #             " If asked if social security spending should be increased, decreased, or kept the same, I would say that it should be"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "task": (
+            #         lambda row: (
+            #             "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal Social Security spending.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "task_3shot": (
+            #         lambda row: (
+            #             self.get_shots(
+            #                 "social_security_spending",
+            #                 "task",
+            #                 3,
+            #                 "\n\n-----------------------\n\n",
+            #             )
+            #             + "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal Social Security spending.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on Social Security spending (increased, decreased, or kept the same):"
+            #             "vote:"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "anes_description": (
+            #         lambda row: (
+            #             "The American National Election Studies 2020 "
+            #             "Time Series Study (ANES 2020) "
+            #             "is a nationally representative survey of voters in "
+            #             "American Elections. Below are examples of respondents "
+            #             "answering various questions. Please complete what you "
+            #             "would guess the right answers to those questions to be."
+            #             "\n\n"
+            #             + make_backstory3(row)
+            #             + "\n\nQ: Should federal spending "
+            #             "on Social Security be increased, decreased, or kept the same?\nA:"
+            #         ),
+            #         social_security_tokens,
+            #     ),
+            #     "conversation": (
+            #         lambda row: make_backstory5(row)
+            #         + "\n\nPerson 1: Should federal spending "
+            #         "on Social Security be increased, decreased, or kept the same?\nPerson 2:",
+            #         social_security_tokens,
+            #     ),
+            #     "mc": (
+            #         lambda row: (
+            #             "SURVEY_RESPONSE\n\n"
+            #             + make_backstory4(row)
+            #             + "\n\nQuestion 11: Should federal spending "
+            #             "on Social Security be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         social_security_mc_tokens,
+            #     ),
+            #     "mc_2shot": (
+            #         lambda row: self.get_shots(
+            #             "social_security_spending",
+            #             "mc",
+            #             2,
+            #             "\n\n-----------------------\n\n",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Should federal spending "
+            #             "on Social Security be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         social_security_mc_tokens,
+            #     ),
+            #     "mc_5shot": (
+            #         lambda row: self.get_shots(
+            #             "social_security_spending",
+            #             "mc",
+            #             7,
+            #             "\n\n-----------------------\n\n",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Should federal spending "
+            #             "on Social Security be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         social_security_mc_tokens,
+            #     ),
+            # },
+            # # What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?
+            # "protecting_environment_spending": {
+            #     "surveyq_exact": (
+            #         lambda row: make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: What about protecting the environment? "
+            #             "Should federal spending on protecting the enivironment be increased, decreased, or kept the same?\nAnswer 11:"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "surveyq_rephrase": (
+            #         lambda row: (
+            #             make_backstory4(row)
+            #             + "\n\nQuestion 11: Do you think federal spending on protecting the environment should be increased, decreased, or kept the same?\nAnswer 11:"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "fpbs": (
+            #         lambda row: make_backstory1(row)
+            #         + (
+            #             " If asked if spending on protecting the environment should be increased, decreased, or kept the same, I would say that it should be"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "task": (
+            #         lambda row: (
+            #             "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal spending on protecting the environment.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "task_3shot": (
+            #         lambda row: (
+            #             self.get_shots(
+            #                 "protecting_environment_spending",
+            #                 "task",
+            #                 3,
+            #                 "\n\n-----------------------\n\n",
+            #             )
+            #             + "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal spending on protecting the environment.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on spending on protecting the environment (increased, decreased, or kept the same):"
+            #             "vote:"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "anes_description": (
+            #         lambda row: (
+            #             "The American National Election Studies 2020 "
+            #             "Time Series Study (ANES 2020) "
+            #             "is a nationally representative survey of voters in "
+            #             "American Elections. Below are examples of respondents "
+            #             "answering various questions. Please complete what you "
+            #             "would guess the right answers to those questions to be."
+            #             "\n\n"
+            #             + make_backstory3(row)
+            #             + "\n\nQ: Should federal spending "
+            #             "on protecting the environment be increased, decreased, or kept the same?\nA:"
+            #         ),
+            #         protecting_environment_tokens,
+            #     ),
+            #     "conversation": (
+            #         lambda row: make_backstory5(row)
+            #         + "\n\nPerson 1: Should federal spending "
+            #         "on protecting the environment be increased, decreased, or kept the same?\nPerson 2:",
+            #         protecting_environment_tokens,
+            #     ),
+            #     "mc": (
+            #         lambda row: (
+            #             "SURVEY_RESPONSE\n\n"
+            #             + make_backstory4(row)
+            #             + "\n\nQuestion 11: Should federal spending "
+            #             "on protecting the environment be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         protecting_environment_mc_tokens,
+            #     ),
+            #     "mc_2shot": (
+            #         lambda row: self.get_shots(
+            #             "protecting_environment_spending",
+            #             "mc",
+            #             2,
+            #             "\n\n-----------------------\n\n",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Should federal spending "
+            #             "on protecting the environment be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         protecting_environment_mc_tokens,
+            #     ),
+            #     "mc_5shot": (
+            #         lambda row: self.get_shots(
+            #             "protecting_environment_spending",
+            #             "mc",
+            #             5,
+            #             "\n\n-----------------------\n\n",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Should federal spending "
+            #             "on protecting the environment be increased, decreased, or kept the same?"
+            #             "\nA: Increased\nB: Decreased\nC: Kept the same\n\nAnswer 11:"
+            #         ),
+            #         protecting_environment_mc_tokens,
+            #     ),
+            # },
+            # "rising_temp_action": {
+            #     "surveyq_exact": (
+            #         lambda row: make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Do you think the federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? "
+            #             "\nAnswer 11:"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "surveyq_rephrase": (
+            #         lambda row: (
+            #             make_backstory4(row)
+            #             + "\n\nQuestion 11: Do you think federal government should be doing more about rising temperatures, should be doing less, or should be doing the same? \nAnswer 11: I think the federal government should be doing"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "fpbs": (
+            #         lambda row: make_backstory1(row)
+            #         + (
+            #             " If asked if the federal government should be doing more, less, or the same about rising temperatures, I would say that it should be doing"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "task": (
+            #         lambda row: (
+            #             "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal spending on protecting the environment.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "task_3shot": (
+            #         lambda row: (
+            #             self.get_shots(
+            #                 "rising_temp_action",
+            #                 "task",
+            #                 3,
+            #                 "\n\n-----------------------\n\n",
+            #             )
+            #             + "TASK: The following is a description of a "
+            #             "voter in the 2016 presidential election. Please read "
+            #             "it and infer their opinion on federal spending on protecting the environment.\n\n"
+            #             + make_backstory2(row)
+            #             + ", Opinion on spending on federal government action about rising temperatures (more, less, or the same):"
+            #             "vote:"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "anes_description": (
+            #         lambda row: (
+            #             "The American National Election Studies 2020 "
+            #             "Time Series Study (ANES 2020) "
+            #             "is a nationally representative survey of voters in "
+            #             "American Elections. Below are examples of respondents "
+            #             "answering various questions. Please complete what you "
+            #             "would guess the right answers to those questions to be."
+            #             "\n\n"
+            #             + make_backstory3(row)
+            #             + "\n\nQ: Should the federal government "
+            #             "be doing more, less, or the same about rising temperatures?\nA:"
+            #         ),
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "conversation1": (
+            #         lambda row: make_backstory5(row)
+            #         + "\n\nPerson 1: Should the federal government "
+            #         "be doing more, less, or the same about rising temperature?\nPerson 2: The federal government should be doing",
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "conversation2": (
+            #         lambda row: make_backstory5(row)
+            #         + "\n\nPerson 1: Should the federal government "
+            #         "be doing the same, more, or less about rising temperature?\nPerson 2: The federal government should be doing",
+            #         rising_temp_action_tokens,
+            #     ),
+            #     "mc": (
+            #         lambda row: (
+            #             "SURVEY_RESPONSE\n\n"
+            #             + make_backstory4(row)
+            #             + (
+            #                 "\n\nQuestion 11: Do you think the federal government should be doing more "
+            #                 "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+            #                 "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+            #             )
+            #         ),
+            #         rising_temp_action_mc_tokens,
+            #     ),
+            #     "mc_2shot": (
+            #         lambda row: self.get_shots(
+            #             "rising_temp_action",
+            #             "mc",
+            #             2,
+            #             "\n\n-----------------------\n\n",
+            #             "_mc",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Do you think the federal government should be doing more "
+            #             "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+            #             "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+            #         ),
+            #         rising_temp_action_mc_tokens,
+            #     ),
+            #     "mc_5shot": (
+            #         lambda row: self.get_shots(
+            #             "rising_temp_action",
+            #             "mc",
+            #             5,
+            #             "\n\n-----------------------\n\n",
+            #             "_mc",
+            #         )
+            #         + "SURVEY_RESPONSE\n\n"
+            #         + make_backstory4(row)
+            #         + (
+            #             "\n\nQuestion 11: Do you think the federal government should be doing more "
+            #             "about rising temperatures, should be doing less, or is it currently doing the right amount?"
+            #             "\nA: More\nB: Less\nC: Currently doing the right amount\n\nAnswer 11:"
+            #         ),
+            #         rising_temp_action_mc_tokens,
+            #     ),
+            # },
         }
 
 
@@ -1956,10 +1650,11 @@ if __name__ == "__main__":
     factory.sample_templates(
         factory.survey_obj.df,
         dvs=[
-            "vote_2016",
-            "social_security_spending",
-            "protecting_environment_spending",
-            "rising_temp_action",
+            # "vote_2016",
+            "gay_marriage",
+            # "social_security_spending",
+            # "protecting_environment_spending",
+            # "rising_temp_action",
         ],
         playground=True,
     )
@@ -1971,7 +1666,7 @@ if __name__ == "__main__":
 # "protecting_environment_spending": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if federal spending on protecting the environment should be increased, decreased or stay the same,\n\n"
 #             f" I would say federal spending on protecting the environment should be"
 #         ),
@@ -1979,7 +1674,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about protecting the environment? Should federal spending on protecting the environment be increased, decreased, or kept the same?\n\n"
 #             f"A: Federal spending on protecting the environment should be"
 #         ),
@@ -1988,7 +1683,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -1997,11 +1692,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you consider environment protection to be important to you?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2010,7 +1705,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n"
 #             f"A:"
 #         ),
@@ -2018,7 +1713,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should federal spending on protecting the environment should be increased, decreased or stay the same?\n"
 #             f"P1: I think it should be"
 #         ),
@@ -2026,32 +1721,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on protecting the environment should be"
+#             f"{make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on protecting the environment should be"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Federal spending on protecting the environment should be"
+#             f"{make_backstory1(row)} Federal spending on protecting the environment should be"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think federal spending on protecting the environment should be"
+#             f"{make_backstory1(row)} I think federal spending on protecting the environment should be"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think environmental protection is important.\n\n"
-#             f"{self.make_backstory1(row)} I think federal spending on protecting the environment should be"
+#             f"{make_backstory1_shot()} I think environmental protection is important.\n\n"
+#             f"{make_backstory1(row)} I think federal spending on protecting the environment should be"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want federal spending on protecting the environment to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -2059,7 +1754,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely support green reforms?\n"
 #             f"2) According to the above backstory, would this person want federal spending on protecting the environment to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -2068,13 +1763,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on protecting the environment be increased, decreased, or kept the same?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should federal spending on protecting the environment be increased, decreased, or kept the same?\nAnswer 11:"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you consider environment protection to be important to you?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you consider environment protection to be important to you?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on protecting the environment be increased, decreased, or kept the same?\nAnswer 12:"
 #         ),
 #         protecting_environment_spending_dict,
@@ -2082,7 +1777,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on protecting the environment be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on protecting the environment be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         protecting_environment_spending_dict,
@@ -2090,16 +1785,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you consider environment protection to be important to you?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you consider environment protection to be important to you?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on protecting the environment be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on protecting the environment be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         protecting_environment_spending_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n"
 #             f"A: Increased\n"
 #             f"B: Decreased\n"
@@ -2114,7 +1809,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you consider environment protection to be important to you?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -2134,7 +1829,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n"
 #             f"Answer 1 (Increased, Decreased, Kept the same):"
 #         ),
@@ -2142,10 +1837,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you consider environment protection to be important to you?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -2156,7 +1851,7 @@ if __name__ == "__main__":
 # "rising_temp_action": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked should the federal government be doing more, less, or the same about rising temperatures,\n\n"
 #             f" I would say federal government should be doing"
 #         ),
@@ -2164,7 +1859,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: Do you think the federal government should be doing more about rising temperatures, should be doing less, or should be doing the same?\n\n"
 #             f"A: The federal government should be doing"
 #         ),
@@ -2173,7 +1868,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should the federal government be doing more, less, or the same about rising temperatures?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2182,11 +1877,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you consider global warming to be important to you?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should the federal government be doing more, less, or the same about rising temperatures?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2195,7 +1890,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should the federal government be doing more, less, or the same about rising temperatures?\n"
 #             f"A: It should be doing"
 #         ),
@@ -2203,7 +1898,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should the federal government be doing more, less, or the same about rising temperatures?\n"
 #             f"P1: I think it should be doing"
 #         ),
@@ -2211,32 +1906,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between more, less, or the same, regarding rising temperatures the federal government should be doing"
+#             f"{make_backstory1(row)} Between more, less, or the same, regarding rising temperatures the federal government should be doing"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding rising temperatures the federal government should be doing"
+#             f"{make_backstory1(row)} Regarding rising temperatures the federal government should be doing"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding rising temperatures, I think the federal government should be doing"
+#             f"{make_backstory1(row)} Regarding rising temperatures, I think the federal government should be doing"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think global warming is an important issue.\n\n"
-#             f"{self.make_backstory1(row)} Regarding rising temperatures, I think the federal government should be doing"
+#             f"{make_backstory1_shot()} I think global warming is an important issue.\n\n"
+#             f"{make_backstory1(row)} Regarding rising temperatures, I think the federal government should be doing"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want the federal government to do more, less, or the same about rising temperatures?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -2244,7 +1939,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely think gloabal warming is important?\n"
 #             f"2) According to the above backstory, would this person want the federal government to do more, less, or the same about rising temperatures?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -2253,13 +1948,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should the federal government to do more, less, or the same about rising temperatures?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should the federal government to do more, less, or the same about rising temperatures?\nAnswer 11:"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you think global warming is important?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you think global warming is important?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should the federal government to do more, less, or the same about rising temperatures?\nAnswer 12:"
 #         ),
 #         rising_temp_action_dict,
@@ -2267,7 +1962,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should the federal government to do more, less, or the same about rising temperatures?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should the federal government to do more, less, or the same about rising temperatures?''\n\n"
 #             f" -> '''It should do"
 #         ),
 #         rising_temp_action_dict,
@@ -2275,16 +1970,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you consider global warming to be important?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you consider global warming to be important?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should the federal government to do more, less, or the same about rising temperatures?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should the federal government to do more, less, or the same about rising temperatures?''\n\n"
 #             f" -> '''It should do"
 #         ),
 #         rising_temp_action_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should the federal government to do more, less, or the same about rising temperatures?\n"
 #             f"A: More\n"
 #             f"B: Less\n"
@@ -2299,7 +1994,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you consider global warming to be important?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -2319,7 +2014,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should the federal government to do more, less, or the same about rising temperatures?\n"
 #             f"Answer 1 (More, Less, The same):"
 #         ),
@@ -2327,10 +2022,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you consider environment protection to be important to you?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on protecting the environment be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -2341,7 +2036,7 @@ if __name__ == "__main__":
 # "dealing_with_crime_spending": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if federal spending on dealing with crime should be increased, decreased or stay the same,\n\n"
 #             f" I would say federal spending on dealing with crime should be"
 #         ),
@@ -2349,7 +2044,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about dealing with crime? Should federal spending on dealing with crime be increased, decreased, or kept the same?\n\n"
 #             f"A: Federal spending on dealing with crime should be"
 #         ),
@@ -2358,7 +2053,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2367,11 +2062,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you consider public safety to be important to you?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2380,7 +2075,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n"
 #             f"A:"
 #         ),
@@ -2388,7 +2083,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n"
 #             f"P1: I think it should be"
 #         ),
@@ -2396,32 +2091,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on dealing with crime should be"
+#             f"{make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on dealing with crime should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Federal spending on dealing with crime should be"
+#             f"{make_backstory1(row)} Federal spending on dealing with crime should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think federal spending on dealing with crime should be"
+#             f"{make_backstory1(row)} I think federal spending on dealing with crime should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think public safety is important.\n\n"
-#             f"{self.make_backstory1(row)} I think federal spending on dealing with crime should be"
+#             f"{make_backstory1_shot()} I think public safety is important.\n\n"
+#             f"{make_backstory1(row)} I think federal spending on dealing with crime should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want federal spending on dealing with crime to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -2429,7 +2124,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person want federal spending on dealing with crime to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -2438,13 +2133,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on dealing with crime be increased, decreased, or kept the same?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should federal spending on dealing with crime be increased, decreased, or kept the same?\nAnswer 11:"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on dealing with crime be increased, decreased, or kept the same?\nAnswer 12:"
 #         ),
 #         dealing_with_crime_dict,
@@ -2452,7 +2147,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on dealing with crime be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on dealing with crime be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
@@ -2460,16 +2155,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on dealing with crime be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on dealing with crime be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n"
 #             f"A: Increased\n"
 #             f"B: Decreased\n"
@@ -2484,7 +2179,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -2504,7 +2199,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n"
 #             f"Answer 1 (Increased, Decreased, Kept the same):"
 #         ),
@@ -2512,10 +2207,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on dealing with crime be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -2526,7 +2221,7 @@ if __name__ == "__main__":
 # "trump_handling_economy": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if I approve or disapprove of the way Donald Trump is handling the economy,\n\n"
 #             f" I would say I"
 #         ),
@@ -2534,7 +2229,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: Do you approve or disapprove of the way Donald Trump is handling the economy?\n\n"
 #             f"A: I"
 #         ),
@@ -2543,7 +2238,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Does this person approve or disapprove of the way Donald Trump is handling the economy?\n\n"
 #             f"ANSWER: This person"
 #         ),
@@ -2552,11 +2247,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you want a sandwich?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Does this person approve or disapprove of the way Donald Trump is handling the economy?\n\n"
 #             f"ANSWER: This person"
 #         ),
@@ -2565,7 +2260,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Does this person approve or disapprove of the way Donald Trump is handling the economy?\n"
 #             f"A: This person"
 #         ),
@@ -2573,7 +2268,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Do you approve or disapprove of the way Donald Trump is handling the economy?\n"
 #             f"P1: I"
 #         ),
@@ -2581,32 +2276,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding the way Donald Trump is handling the economy, between approve or disapprove, I"
+#             f"{make_backstory1(row)} Regarding the way Donald Trump is handling the economy, between approve or disapprove, I"
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f'{self.make_backstory1(row)} If someone asked me "Do you approve or disapprove of the way Donald Trump is handling the economy?", I would say "I'
+#             f'{make_backstory1(row)} If someone asked me "Do you approve or disapprove of the way Donald Trump is handling the economy?", I would say "I'
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} My friend asked if I approve or disapprove of the way Donald Trump is handling the economy, I said I"
+#             f"{make_backstory1(row)} My friend asked if I approve or disapprove of the way Donald Trump is handling the economy, I said I"
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} My friend asked if I approve or disapprove of the way Donald Trump is handling the economy, I said I"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} My friend asked if I approve or disapprove of the way Donald Trump is handling the economy, I said I"
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, regarding the way Donald Trump is handling the economy, would this person approve or disapprove?\n\n"
 #             f"ANSWERS:\n1) This person would"
 #         ),
@@ -2614,7 +2309,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, According to the above backstory, regarding the way Donald Trump is handling the economy, would this person approve or disapprove?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -2623,13 +2318,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you approve or disapprove of the way Donald Trump is handling the economy?\nAnswer 11: I"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you approve or disapprove of the way Donald Trump is handling the economy?\nAnswer 11: I"
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Do you approve or disapprove of the way Donald Trump is handling the economy?\nAnswer 12: I"
 #         ),
 #         trump_handling_economy_dict,
@@ -2637,7 +2332,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Do you approve or disapprove of the way Donald Trump is handling the economy?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Do you approve or disapprove of the way Donald Trump is handling the economy?''\n\n"
 #             f" -> '''I"
 #         ),
 #         trump_handling_economy_dict,
@@ -2645,16 +2340,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Do you approve or disapprove of the way Donald Trump is handling the economy?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Do you approve or disapprove of the way Donald Trump is handling the economy?''\n\n"
 #             f" -> '''I"
 #         ),
 #         trump_handling_economy_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you approve or disapprove of the way Donald Trump is handling the economy?\n"
 #             f"A: Approve\n"
 #             f"B: Disapprove\n"
@@ -2664,7 +2359,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -2678,7 +2373,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Do you approve or disapprove of the way Donald Trump is handling the economy?\n"
 #             f"Answer 1 (Approve, Disapprove):"
 #         ),
@@ -2686,10 +2381,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Do you approve or disapprove of the way Donald Trump is handling the economy?\n"
 #             f"Answer 2 (Approve, Disapprove):"
 #         ),
@@ -2700,7 +2395,7 @@ if __name__ == "__main__":
 # "govt_waste_money": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if people in government waste a lot of the money we pay in taxes, waste some of it, or none of it,\n\n"
 #             f" I would say people in the government waste"
 #         ),
@@ -2708,7 +2403,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n\n"
 #             f"A: I think people in government waste"
 #         ),
@@ -2717,7 +2412,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Do people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n\n"
 #             f"ANSWER: People in government waste"
 #         ),
@@ -2726,11 +2421,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Do people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n\n"
 #             f"ANSWER: People in government waste"
 #         ),
@@ -2739,7 +2434,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Do people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"A: People in government waste"
 #         ),
@@ -2747,7 +2442,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Do people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"P1: I think people in government waste"
 #         ),
@@ -2755,32 +2450,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between a lot, some, or none, people in government waste"
+#             f"{make_backstory1(row)} Between a lot, some, or none, people in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding tax money, people in government waste"
+#             f"{make_backstory1(row)} Regarding tax money, people in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding tax money, I think people in government waste"
+#             f"{make_backstory1(row)} Regarding tax money, I think people in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} Regarding tax money, I think people in government waste"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} Regarding tax money, I think people in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person feel that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n\n"
 #             f"ANSWERS:\n1) This person would say they waste"
 #         ),
@@ -2788,7 +2483,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person feel that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n\n"
 #             f"ANSWERS:\n1) Yes\n2) This person would say they waste"
@@ -2797,14 +2492,14 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"Answer 11: People in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"Answer 12: People in government waste"
 #         ),
@@ -2813,7 +2508,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?''\n\n"
 #             f" -> '''People in government waste"
 #         ),
 #         govt_waste_money_dict,
@@ -2821,16 +2516,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?''\n\n"
 #             f" -> '''People in government waste"
 #         ),
 #         govt_waste_money_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"A: A lot\n"
 #             f"B: Some\n"
@@ -2845,7 +2540,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -2865,7 +2560,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Do people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"Answer 1 (A lot, Some, None):"
 #         ),
@@ -2873,10 +2568,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Do you think that people in government waste a lot of the money we pay in taxes, waste some of it, or none of it?\n"
 #             f"Answer 2 (A lot, Some, None):"
 #         ),
@@ -2887,7 +2582,7 @@ if __name__ == "__main__":
 # "social_security_spending": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if federal spending on Social Security be increased, decreased, or kept the same,\n\n"
 #             f" I would say federal spending on Social Security should be"
 #         ),
@@ -2895,7 +2590,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about Social Security? Should federal spending on Social Security be increased, decreased, or kept the same?\n\n"
 #             f"A: Federal spending on Social Security should be"
 #         ),
@@ -2904,7 +2599,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on Social Security be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2913,11 +2608,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on Social Security be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -2926,7 +2621,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should federal spending on Social Security be increased, decreased, or kept the same?\n"
 #             f"A:"
 #         ),
@@ -2934,7 +2629,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should federal spending on Social Security be increased, decreased, or kept the same?\n"
 #             f"P1: I think it should be"
 #         ),
@@ -2942,32 +2637,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on Social Security should be"
+#             f"{make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on Social Security should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Federal spending on Social Security should be"
+#             f"{make_backstory1(row)} Federal spending on Social Security should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think federal spending on Social Security should be"
+#             f"{make_backstory1(row)} I think federal spending on Social Security should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} I think federal spending on Social Security should be"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} I think federal spending on Social Security should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want federal spending on Social Security to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -2975,7 +2670,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person want federal spending on Social Security to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -2984,13 +2679,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 11:"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on Social Security be increased, decreased, or kept the same?\nAnswer 12:"
 #         ),
 #         dealing_with_crime_dict,
@@ -2998,7 +2693,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on Social Security be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on Social Security be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
@@ -3006,16 +2701,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on Social Security be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on Social Security be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should federal spending on Social Security be increased, decreased, or kept the same?\n"
 #             f"A: Increased\n"
 #             f"B: Decreased\n"
@@ -3030,7 +2725,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3050,7 +2745,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should federal spending on Social Security be increased, decreased, or kept the same?\n"
 #             f"Answer 1 (Increased, Decreased, Kept the same):"
 #         ),
@@ -3058,10 +2753,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on Social Security be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -3072,7 +2767,7 @@ if __name__ == "__main__":
 # "aid_poor_spending": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if federal spending on aid to the poor be increased, decreased, or kept the same,\n\n"
 #             f" I would say federal spending on aid to the poor should be"
 #         ),
@@ -3080,7 +2775,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about aid to the poor? Should federal spending on aid to the poor be increased, decreased, or kept the same?\n\n"
 #             f"A: Federal spending on aid to the poor should be"
 #         ),
@@ -3089,7 +2784,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -3098,11 +2793,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -3111,7 +2806,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n"
 #             f"A:"
 #         ),
@@ -3119,7 +2814,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n"
 #             f"P1: I think it should be"
 #         ),
@@ -3127,32 +2822,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on aid to the poor should be"
+#             f"{make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on aid to the poor should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Federal spending on aid to the poor should be"
+#             f"{make_backstory1(row)} Federal spending on aid to the poor should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think federal spending on aid to the poor should be"
+#             f"{make_backstory1(row)} I think federal spending on aid to the poor should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} I think federal spending on aid to the poor should be"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} I think federal spending on aid to the poor should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want federal spending on aid to the poor to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -3160,7 +2855,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person want federal spending on aid to the poor to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -3169,13 +2864,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on aid to the poor be increased, decreased, or kept the same?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should federal spending on aid to the poor be increased, decreased, or kept the same?\nAnswer 11:"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on aid to the poor be increased, decreased, or kept the same?\nAnswer 12:"
 #         ),
 #         dealing_with_crime_dict,
@@ -3183,7 +2878,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on aid to the poor be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on aid to the poor be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
@@ -3191,16 +2886,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on aid to the poor be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on aid to the poor be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n"
 #             f"A: Increased\n"
 #             f"B: Decreased\n"
@@ -3215,7 +2910,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3235,7 +2930,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n"
 #             f"Answer 1 (Increased, Decreased, Kept the same):"
 #         ),
@@ -3243,10 +2938,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on aid to the poor be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -3257,7 +2952,7 @@ if __name__ == "__main__":
 # "state_of_economy": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if the state of the United States economy is very good, good, neither good nor bad, bad, or very bad,\n\n"
 #             f" I would say the economy is"
 #         ),
@@ -3265,7 +2960,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?\n\n"
 #             f"A: The economy is"
 #         ),
@@ -3274,7 +2969,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?\n\n"
 #             f"ANSWER: The economy is"
 #         ),
@@ -3283,11 +2978,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?\n\n"
 #             f"ANSWER: The economy is"
 #         ),
@@ -3296,7 +2991,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?\n"
 #             f"A: The economy is"
 #         ),
@@ -3304,7 +2999,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good, good, neither good nor bad, bad, or very bad?\n"
 #             f"P1: I think the economy is"
 #         ),
@@ -3312,32 +3007,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between very good, good, neither good nor bad, bad or very bad, the United States economy is"
+#             f"{make_backstory1(row)} Between very good, good, neither good nor bad, bad or very bad, the United States economy is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} The United States economy these days is"
+#             f"{make_backstory1(row)} The United States economy these days is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think the United States economy these days is"
+#             f"{make_backstory1(row)} I think the United States economy these days is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} I think the United States economy these days is"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} I think the United States economy these days is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person think the United States economy is very good, good, neither good nor bad, bad or very bad?\n\n"
 #             f"ANSWERS:\n1) This person would think the economy is"
 #         ),
@@ -3345,7 +3040,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person think the United States economy is very good, good, neither good nor bad, bad or very bad?\n\n"
 #             f"ANSWERS:\n1) Yes\n2) This person would think the economy is"
@@ -3354,13 +3049,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\nAnswer 11: The economy is"
+#             f"{make_backstory4(row)}\n\nQuestion 11: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\nAnswer 11: The economy is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\nAnswer 12: The economy is"
 #         ),
 #         dealing_with_crime_dict,
@@ -3368,7 +3063,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?''\n\n"
 #             f" -> '''The economy is"
 #         ),
 #         dealing_with_crime_dict,
@@ -3376,16 +3071,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?''\n\n"
 #             f" -> '''The economy is"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\n"
 #             f"A: Very good\n"
 #             f"B: Good\n"
@@ -3404,7 +3099,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3428,7 +3123,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\n"
 #             f"Answer 1 (Very good, Good, Neither good nor bad, Bad, Very bad):"
 #         ),
@@ -3436,10 +3131,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: What do you think about the state of the economy these days in the United States? Would you say the state of the economy is very good,good, neither good nor bad, bad, or very bad?\n"
 #             f"Answer 2 (Very good, Good, Neither good nor bad, Bad, Very bad):"
 #         ),
@@ -3450,7 +3145,7 @@ if __name__ == "__main__":
 # "economy_change": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if over the past year the nation's economy has gotten better, stayed about the same, or gotten worse,\n\n"
 #             f" I would say the economy has"
 #         ),
@@ -3458,7 +3153,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n\n"
 #             f"A: The economy has"
 #         ),
@@ -3467,7 +3162,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n\n"
 #             f"ANSWER: The economy has"
 #         ),
@@ -3476,11 +3171,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n\n"
 #             f"ANSWER: The economy has"
 #         ),
@@ -3489,7 +3184,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"A: The economy has"
 #         ),
@@ -3497,7 +3192,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"P1: I would say the economy has"
 #         ),
@@ -3505,32 +3200,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between gotten better, gotten worse, or stayed the same, over the past year the nation's economy has"
+#             f"{make_backstory1(row)} Between gotten better, gotten worse, or stayed the same, over the past year the nation's economy has"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Over the past year the nation's economy has gotten"
+#             f"{make_backstory1(row)} Over the past year the nation's economy has gotten"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think over the past year the nation's economy has gotten"
+#             f"{make_backstory1(row)} I think over the past year the nation's economy has gotten"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} I think over the past year the nation's economy has gotten"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} I think over the past year the nation's economy has gotten"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -3538,7 +3233,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -3547,14 +3242,14 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"Answer 11: The economy has"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"Answer 12: The economy has"
 #         ),
@@ -3563,7 +3258,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?''\n\n"
 #             f" -> '''The economy has"
 #         ),
 #         dealing_with_crime_dict,
@@ -3571,16 +3266,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?''\n\n"
 #             f" -> '''The economy has"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"A: Gotten better\n"
 #             f"B: Gotten worse\n"
@@ -3595,7 +3290,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3615,7 +3310,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"Answer 1 (Gotten better, Gotten worse, Stayed the same):"
 #         ),
@@ -3623,10 +3318,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Now thinking about the economy in the country as a whole, would you say that over the past year the nation's economy has gotten better, stayed about the same, or gotten worse?\n"
 #             f"Answer 2 (Gotten better, Gotten worse, Stayed the same):"
 #         ),
@@ -3637,7 +3332,7 @@ if __name__ == "__main__":
 # "worry_financial_situation": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked, so far as you and your family are concerned, how worried are you about your current financial situation,\n\n"
 #             f" I would say I am"
 #         ),
@@ -3645,7 +3340,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: So far as you and your family are concerned, how worried are you about your current financial situation?\n\n"
 #             f"A: I am"
 #         ),
@@ -3654,7 +3349,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n\n"
 #             f"ANSWER: I would say I am"
 #         ),
@@ -3663,11 +3358,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n\n"
 #             f"ANSWER: I would say I am"
 #         ),
@@ -3676,7 +3371,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n"
 #             f"A: I would say I am"
 #         ),
@@ -3684,7 +3379,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n"
 #             f"P1: I am"
 #         ),
@@ -3692,32 +3387,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding my family's financial situation, between extremely worried, very worried, moderately worried, a little worried, or not at all worried, I am"
+#             f"{make_backstory1(row)} Regarding my family's financial situation, between extremely worried, very worried, moderately worried, a little worried, or not at all worried, I am"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding my family's financial situation, I am"
+#             f"{make_backstory1(row)} Regarding my family's financial situation, I am"
 #         ),
 #         worried_financial_situation_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding my family's financial situation, I think I am"
+#             f"{make_backstory1(row)} Regarding my family's financial situation, I think I am"
 #         ),
 #         worried_financial_situation_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} Regarding my family's financial situation, I think I am"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} Regarding my family's financial situation, I think I am"
 #         ),
 #         worried_financial_situation_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person feel extremely worried, very worried, moderately worried, a little worried, or not at all worried about his family's financial situation?\n\n"
 #             f"ANSWERS:\n1) This person would be"
 #         ),
@@ -3725,7 +3420,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) would this person feel extremely worried, very worried, moderately worried, a little worried, or not at all worried about his family's financial situation?\n\n"
 #             f"ANSWERS:\n1) Yes\n2) This person would be"
@@ -3734,13 +3429,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\nAnswer 11: I am"
+#             f"{make_backstory4(row)}\n\nQuestion 11: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\nAnswer 11: I am"
 #         ),
 #         worried_financial_situation_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\nAnswer 12: I am"
 #         ),
 #         worried_financial_situation_dict,
@@ -3748,7 +3443,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?''\n\n"
 #             f" -> '''I am"
 #         ),
 #         worried_financial_situation_dict,
@@ -3756,16 +3451,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?''\n\n"
 #             f" -> '''I am"
 #         ),
 #         worried_financial_situation_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n"
 #             f"A: Extremely worried\n"
 #             f"B: Very worried\n"
@@ -3784,7 +3479,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3808,7 +3503,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n"
 #             f"Answer 1 (Extremely worried, Very worried, Moderately worried, A little worried, Not at all worried):"
 #         ),
@@ -3816,10 +3511,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: So far as you and your family are concerned, would you say you are extremely worried, very worried, moderately worried, a little worried or not at all worried about your current financial situation?\n"
 #             f"Answer 2 (Extremely worried, Very worried, Moderately worried, A little worried, Not at all worried):"
 #         ),
@@ -3830,7 +3525,7 @@ if __name__ == "__main__":
 # "welfare_spending": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if federal spending on welfare programs be increased, decreased, or kept the same,\n\n"
 #             f" I would say federal spending on welfare programs should be"
 #         ),
@@ -3838,7 +3533,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about welfare programs? Should federal spending welfare programs be increased, decreased, or kept the same?\n\n"
 #             f"A: Federal spending on welfare programs should be"
 #         ),
@@ -3847,7 +3542,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -3856,11 +3551,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should federal spending on welfare programs be increased, decreased, or kept the same?\n\n"
 #             f"ANSWER:"
 #         ),
@@ -3869,7 +3564,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
 #             f"A:"
 #         ),
@@ -3877,7 +3572,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
 #             f"P1: I think it should be"
 #         ),
@@ -3885,32 +3580,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on welfare programs should be"
+#             f"{make_backstory1(row)} Between increased, decreased, or stay the same, federal spending on welfare programs should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Federal spending on welfare programs should be"
+#             f"{make_backstory1(row)} Federal spending on welfare programs should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
+#             f"{make_backstory1(row)} I think federal spending on welfare programs should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} I think federal spending on welfare programs should be"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} I think federal spending on welfare programs should be"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1)"
 #         ),
@@ -3918,7 +3613,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person want federal spending on welfare programs to be increased, decreased, or kept the same?\n\n"
 #             f"ANSWERS:\n1) Yes\n2)"
@@ -3927,13 +3622,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 11:"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 11:"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should federal spending on welfare programs be increased, decreased, or kept the same?\nAnswer 12:"
 #         ),
 #         dealing_with_crime_dict,
@@ -3941,7 +3636,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
@@ -3949,16 +3644,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should federal spending on welfare programs be increased, decreased, or kept the same?''\n\n"
 #             f" -> '''"
 #         ),
 #         dealing_with_crime_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
 #             f"A: Increased\n"
 #             f"B: Decreased\n"
@@ -3973,7 +3668,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -3993,7 +3688,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
 #             f"Answer 1 (Increased, Decreased, Kept the same):"
 #         ),
@@ -4001,10 +3696,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should federal spending on welfare programs be increased, decreased, or kept the same?\n"
 #             f"Answer 2 (Increased, Decreased, Kept the same):"
 #         ),
@@ -4015,7 +3710,7 @@ if __name__ == "__main__":
 # "gender_view": {
 #     "finish_sentence": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"When asked if gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized,\n\n"
 #             f" I would say gay couples should be"
 #         ),
@@ -4023,7 +3718,7 @@ if __name__ == "__main__":
 #     ),
 #     "delimiter_qa": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Q: What about gay relationship recognition? Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n\n"
 #             f"A: Gay relationships should be"
 #         ),
@@ -4032,7 +3727,7 @@ if __name__ == "__main__":
 #     "0_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n\n"
 #             f"ANSWER: They should be"
 #         ),
@@ -4041,11 +3736,11 @@ if __name__ == "__main__":
 #     "1_shot_task_context_question": (
 #         lambda row: (
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2_shot()}\n\n"
+#             f"CONTEXT: {make_backstory2_shot()}\n\n"
 #             f"QUESTION: Do you like sandwiches?\n\n"
 #             f"ANSWER: Yes\n\n"
 #             f"TASK: Consider the below demographic information and answer the following question.\n\n"
-#             f"CONTEXT: {self.make_backstory2(row)}\n\n"
+#             f"CONTEXT: {make_backstory2(row)}\n\n"
 #             f"QUESTION: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n\n"
 #             f"ANSWER: They should be"
 #         ),
@@ -4054,7 +3749,7 @@ if __name__ == "__main__":
 #     "explicit_instructions": (
 #         lambda row: (
 #             f"The ANES is a nationally representative survey of voters in American Elections. Below are examples of respondents answering various questions. Please complete what you would guess the right answers to those questions to be.\n\n"
-#             f"{self.make_backstory3(row)}\n\n"
+#             f"{make_backstory3(row)}\n\n"
 #             f"Q: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n"
 #             f"A:"
 #         ),
@@ -4062,7 +3757,7 @@ if __name__ == "__main__":
 #     ),
 #     "implicit_instructions": (
 #         lambda row: (
-#             f"P1: {self.make_backstory1(row)}\n"
+#             f"P1: {make_backstory1(row)}\n"
 #             f"P2: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n"
 #             f"P1: I think they should be"
 #         ),
@@ -4070,32 +3765,32 @@ if __name__ == "__main__":
 #     ),
 #     "enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Between fully, somewhat, or not legally recognized, gay couple relationships should be"
+#             f"{make_backstory1(row)} Between fully, somewhat, or not legally recognized, gay couple relationships should be"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "non_enumerated_response": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding legal recognition, gay couple relationships should be"
+#             f"{make_backstory1(row)} Regarding legal recognition, gay couple relationships should be"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "0_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)} Regarding legal recognition, I think gay couple relationships should be"
+#             f"{make_backstory1(row)} Regarding legal recognition, I think gay couple relationships should be"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "1_shot_first_person_backstory": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()} I think sandwiches are good.\n\n"
-#             f"{self.make_backstory1(row)} Regarding legal recognition, I think gay couple relationships should be"
+#             f"{make_backstory1_shot()} I think sandwiches are good.\n\n"
+#             f"{make_backstory1(row)} Regarding legal recognition, I think gay couple relationships should be"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "0_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person say gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n\n"
 #             f"ANSWERS:\n1) This person would say gay relationships should be"
 #         ),
@@ -4103,7 +3798,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_chapter_quiz": (
 #         lambda row: (
-#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{self.make_backstory1(row)}\n\nQUESTIONS:\n"
+#             f"CHAPTER QUIZ\n\nBACKSTORY:\n{make_backstory1(row)}\n\nQUESTIONS:\n"
 #             f"1) According to the above backstory, would this person likely want a sandwich?\n"
 #             f"2) According to the above backstory, would this person say gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n\n"
 #             f"ANSWERS:\n1) Yes\n2) This person would say gay relationships should be"
@@ -4112,13 +3807,13 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\nAnswer 11: They should be"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\nAnswer 11: They should be"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "1_shot_survey_response": (
 #         lambda row: (
-#             f"{self.make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
+#             f"{make_backstory4(row)}\n\nQuestion 11: Do you want a sandwich?\n"
 #             f"Answer 11: Yes\n\nQuestion 12: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\nAnswer 12: They should be"
 #         ),
 #         gender_view_dict,
@@ -4126,7 +3821,7 @@ if __name__ == "__main__":
 #     "0_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?''\n\n"
 #             f" -> '''They should be"
 #         ),
 #         gender_view_dict,
@@ -4134,16 +3829,16 @@ if __name__ == "__main__":
 #     "1_shot_heavy_delimited": (
 #         lambda row: (
 #             f"Given the backstory and question, please answer the question appropriately.\n\n"
-#             f"'''Backstory -- {self.make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
+#             f"'''Backstory -- {make_backstory1_shot()}''', '''Do you want a sandwich?''\n\n"
 #             f" -> '''Yes'''\n\n"
-#             f"'''Backstory -- {self.make_backstory1(row)}''', '''Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?''\n\n"
+#             f"'''Backstory -- {make_backstory1(row)}''', '''Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?''\n\n"
 #             f" -> '''"
 #         ),
 #         gender_view_dict,
 #     ),
 #     "0_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n"
 #             f"A: fully recognized\n"
 #             f"B: somewhat recognized\n"
@@ -4167,7 +3862,7 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_multiple_choice": (
 #         lambda row: (
-#             f"Background info: {self.make_backstory2(row)}\n\n"
+#             f"Background info: {make_backstory2(row)}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"A: Yes\n"
 #             f"B: No\n"
@@ -4196,7 +3891,7 @@ if __name__ == "__main__":
 #     ),
 #     "0_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 1: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n"
 #             f"Answer 1 (fully, somewhat, not):"
 #         ),
@@ -4204,10 +3899,10 @@ if __name__ == "__main__":
 #     ),
 #     "1_shot_direct_mapping": (
 #         lambda row: (
-#             f"{self.make_backstory1_shot()}\n\n"
+#             f"{make_backstory1_shot()}\n\n"
 #             f"Question 1: Do you want a sandwich?\n"
 #             f"Answer 1 (Yes, No, Indifferent): Yes"
-#             f"{self.make_backstory1(row)}\n\n"
+#             f"{make_backstory1(row)}\n\n"
 #             f"Question 2: Should gay couples should be fully legally recognized, somewhat legally recognized, or not legally recognized?\n"
 #             f"Answer 2 (fully, somewhat, not):"
 #         ),

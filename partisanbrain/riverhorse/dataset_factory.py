@@ -30,13 +30,13 @@ class DatasetFactory:
         # TODO - this is a bit of a hack, might be a bug here.
         self.questions = survey_obj.get_dv_questions()
 
+        # Get the list of DV colnames
+        self.dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
+
         df = self.modify_data(df)
 
         # df = self.modify_data(df)
         templates = self.get_templates()
-
-        # Get the list of DV colnames
-        self.dv_colnames = list(set(df.columns) - set(k.DEMOGRAPHIC_COLNAMES))
 
         # Get the list of demographic colnames present
         # Including processed demographic colnames
@@ -66,9 +66,7 @@ class DatasetFactory:
                 # Sample 5 instances for few-shot exemplars and drop them so as
                 # to not corrupt the test set
 
-                sub_df = sub_df.dropna(
-                    subset=["ground_truth"]
-                )
+                sub_df = sub_df.dropna(subset=["ground_truth"])
                 shot_df = sub_df.sample(n=10, random_state=0)
                 sub_df.drop(shot_df.index, inplace=True)
                 SimpleDataset(
@@ -94,7 +92,12 @@ class DatasetFactory:
                 print(e)
 
     def get_shots(
-        self, dv_colname, dv_dic, template_name, n, sep, 
+        self,
+        dv_colname,
+        dv_dic,
+        template_name,
+        n,
+        sep,
     ):
         # Load the pickle in data_dir called ds.pkl"
         survey_name = self.survey_name
@@ -103,9 +106,7 @@ class DatasetFactory:
         shotsdf = pd.read_pickle(shotsfname)
         shotsdf = shotsdf[shotsdf.template_name == template_name]
         # Add the prompt and ground truth columns
-        shotsdf["shots"] = (
-            shotsdf.prompt + " " + shotsdf.ground_truth.map(dv_dic)
-        )
+        shotsdf["shots"] = shotsdf.prompt + " " + shotsdf.ground_truth.map(dv_dic)
         return sep.join(shotsdf.shots.sample(n=n, random_state=0).tolist() + [""])
 
     def sample_templates(self, df, dvs=None, force_overwrite=False, playground=False):
