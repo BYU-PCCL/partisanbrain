@@ -12,6 +12,9 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 
 path = "data/guncontrol_convos.xlsx"
 df = pd.read_excel(path)
+breakpoint()
+path = "data/GC1.csv"
+df = pd.read_csv(path)
 force_recreate = False
 parties = []
 messages = []
@@ -112,11 +115,13 @@ if force_recreate or not os.path.exists("rephrasings.csv"):
                 + "\n".join(running_convo[:-1])
                 + f"\n\nNow the {party} wants to say '{message}'.\n\n{spec(party, opp_party)}\n\nHere is the rephrasing:"
             )
-            response = openai.Completion.create(
-                engine="davinci", prompt=prompt, max_tokens=100
-            )
-            rephrasing = response["choices"][0]["text"]
-            rephrasings.append(rephrasing)
+            print(prompt)
+            breakpoint()
+            # response = openai.Completion.create(
+            #     engine="davinci", prompt=prompt, max_tokens=100
+            # )
+            # rephrasing = response["choices"][0]["text"]
+            # rephrasings.append(rephrasing)
         df[f"{theory}_rephrasing"] = rephrasings
     df.to_csv("rephrasings.csv")
 
