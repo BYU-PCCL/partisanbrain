@@ -50,3 +50,5 @@ python3 pipeline_single.py data/anes2020/ds.pkl 'gpt2'
 python3 pipeline_single.py data/anes2020/ds.pkl 'EleutherAI/gpt-neo-1.3B' 
 python3 pipeline_single.py data/anes2020/ds.pkl 'EleutherAI/gpt-neo-125M' 
 
+python3 pa_preprocessor.py
+python3 pa_plot.py
