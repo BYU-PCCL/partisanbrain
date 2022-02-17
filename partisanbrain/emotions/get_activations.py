@@ -17,6 +17,8 @@ def harvest_activations(model, tokenizer, danger_filename, safe_filename):
     activations = []
     targets = []
 
+    print("Reading Danger")
+
     with open(danger_filename, "r") as danger_file:
         for line in danger_file.readlines():
             encoded_input = tokenizer(line.strip(), return_tensors="pt")
@@ -33,6 +35,8 @@ def harvest_activations(model, tokenizer, danger_filename, safe_filename):
             danger_activations = np.vstack(danger_activations)
             activations.append(danger_activations)
             targets.append(np.ones(shape=(1, 1)))
+
+    print("Reading Safe")
 
     with open(safe_filename, "r") as safe_file:
         for line in safe_file.readlines():
@@ -62,8 +66,8 @@ if __name__ == "__main__":
     model = GPT2Model.from_pretrained("gpt2-xl")
     model.eval()
 
-    danger_filename = "danger.txt"
-    safe_filename = "safe.txt"
+    danger_filename = "data/danger.txt"
+    safe_filename = "data/safe.txt"
 
     with torch.no_grad():
         activations, targets = harvest_activations(
