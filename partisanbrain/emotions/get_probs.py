@@ -56,17 +56,17 @@ def get_probs(data_filename, mask_filename):
         input = input.to(DEVICE)
 
         with torch.no_grad():
-            output = model(input)
+            output = model(**input)
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         no_masked_log_probs.append(log_probs.detach().cpu().numpy())
 
         with torch.no_grad():
-            output = model(input, mask_per_layer=mask_per_layer)
+            output = model(**input, mask_per_layer=mask_per_layer)
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         masked_log_probs.append(log_probs.detach().cpu().numpy())
 
         with torch.no_grad():
-            output = model(input, mask_per_layer=rand_mask_per_layer)
+            output = model(**input, mask_per_layer=rand_mask_per_layer)
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         rand_masked_log_probs.append(log_probs.detach().cpu().numpy())
 
