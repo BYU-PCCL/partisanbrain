@@ -70,10 +70,6 @@ def get_probs(data_filename, mask_filename):
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         rand_masked_log_probs.append(log_probs.detach().cpu().numpy())
 
-    masked_log_probs = np.vstack(masked_log_probs)
-    no_masked_log_probs = np.vstack(rand_masked_log_probs)
-    rand_masked_log_probs = np.vstack(rand_masked_log_probs)
-
     return masked_log_probs, no_masked_log_probs, rand_masked_log_probs
 
 
