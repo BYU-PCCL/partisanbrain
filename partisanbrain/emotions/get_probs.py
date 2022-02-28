@@ -53,7 +53,7 @@ def get_probs(data_filename, mask_filename):
 
     for i, row in tqdm(df.iterrows()):
         input = tokenizer.encode(row.sentence.strip(), return_tensors="pt")
-        input = input.to(DEVICE)
+        input.to(DEVICE)
 
         with torch.no_grad():
             output = model(**input)
