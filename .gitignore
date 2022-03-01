@@ -149,3 +149,4 @@ dmypy.json
 .DS_Store
 survey/gss_exploration.ipynb
 *.npz
+*.npy

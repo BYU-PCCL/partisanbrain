@@ -789,7 +789,7 @@ class GPT2Model(GPT2PreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
-        mask_per_layer=None,
+        neurons_per_layer=None,
     ):
         output_attentions = (
             output_attentions
@@ -958,8 +958,8 @@ class GPT2Model(GPT2PreTrainedModel):
             hidden_states = outputs[0]
 
             # Alex adding this
-            if mask_per_layer and i in mask_per_layer:
-                neurons = mask_per_layer[i]
+            if neurons_per_layer and i in neurons_per_layer:
+                neurons = neurons_per_layer[i]
                 # hidden_states[0, -1, neurons] = 0
                 hidden_states[:, :, neurons] = 0
 
@@ -1063,7 +1063,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         self.lm_head = new_embeddings
 
     def prepare_inputs_for_generation(
-        self, input_ids, past=None, mask_per_layer=None, **kwargs
+        self, input_ids, past=None, neurons_per_layer=None, **kwargs
     ):
         token_type_ids = kwargs.get("token_type_ids", None)
         # only last token for inputs_ids if past is defined in kwargs
@@ -1090,7 +1090,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             "position_ids": position_ids,
             "attention_mask": attention_mask,
             "token_type_ids": token_type_ids,
-            "mask_per_layer": mask_per_layer,
+            "neurons_per_layer": neurons_per_layer,
         }
 
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
@@ -1116,7 +1116,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
-        mask_per_layer=None,
+        neurons_per_layer=None,
     ):
         r"""
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
@@ -1142,7 +1142,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
-            mask_per_layer=mask_per_layer,
+            neurons_per_layer=neurons_per_layer,
         )
         hidden_states = transformer_outputs[0]
 

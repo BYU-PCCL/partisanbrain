@@ -12,28 +12,28 @@ MODEL_SHAPE = (49, 1600)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def get_mask_per_layer(mask_filename):
+def get_neurons_per_layer(mask_filename):
     with open(mask_filename) as file:
-        mask_per_layer = json.load(file)
+        neurons_per_layer = json.load(file)
 
-    mask_per_layer = {int(k): v for k, v in mask_per_layer.items()}
+    neurons_per_layer = {int(k): v for k, v in neurons_per_layer.items()}
 
-    return mask_per_layer
+    return neurons_per_layer
 
 
-def get_rand_mask_per_layer():
+def get_rand_neurons_per_layer():
     rand_neurons = np.random.randint(low=0, high=N_NEURONS, size=100)
-    rand_mask_per_layer = {}
+    rand_neurons_per_layer = {}
 
     for neuron in rand_neurons:
         layer, neuron = np.unravel_index(neuron, MODEL_SHAPE)
         layer, neuron = int(layer), int(neuron)
-        if layer in rand_mask_per_layer:
-            rand_mask_per_layer[layer].append(neuron)
+        if layer in rand_neurons_per_layer:
+            rand_neurons_per_layer[layer].append(neuron)
         else:
-            rand_mask_per_layer[layer] = [neuron]
+            rand_neurons_per_layer[layer] = [neuron]
 
-    return rand_mask_per_layer
+    return rand_neurons_per_layer
 
 
 def get_probs(data_filename, mask_filename):
@@ -42,14 +42,20 @@ def get_probs(data_filename, mask_filename):
     model.to(DEVICE)
     model.eval()
 
-    mask_per_layer = get_mask_per_layer(mask_filename)
-    rand_mask_per_layer = get_rand_mask_per_layer()
+    neurons_per_layer = get_neurons_per_layer(mask_filename)
+    rand_neurons_per_layer = get_rand_neurons_per_layer()
 
     df = pd.read_csv(data_filename)
 
+    # Use these to store the output token distributions
     masked_log_probs = []
     no_masked_log_probs = []
     rand_masked_log_probs = []
+
+    # Use these to store the input likelihoods
+    masked_likelihood = []
+    no_masked_likelihood = []
+    rand_masked_likelihood = []
 
     for i, row in tqdm(df.iterrows()):
         input = tokenizer.encode(row.sentence.strip(), return_tensors="pt")
@@ -61,12 +67,12 @@ def get_probs(data_filename, mask_filename):
         no_masked_log_probs.append(log_probs.detach().cpu().numpy())
 
         with torch.no_grad():
-            output = model(input, mask_per_layer=mask_per_layer)
+            output = model(input, neurons_per_layer=neurons_per_layer)
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         masked_log_probs.append(log_probs.detach().cpu().numpy())
 
         with torch.no_grad():
-            output = model(input, mask_per_layer=rand_mask_per_layer)
+            output = model(input, neurons_per_layer=rand_neurons_per_layer)
         log_probs = torch.nn.functional.softmax(output.logits, dim=0)
         rand_masked_log_probs.append(log_probs.detach().cpu().numpy())
 
@@ -75,7 +81,7 @@ def get_probs(data_filename, mask_filename):
 
 if __name__ == "__main__":
     data_filename = "data/train_data_binary.csv"
-    mask_filename = "mask_per_layer.json"
+    mask_filename = "neurons_per_layer.json"
 
     masked_log_probs, no_masked_log_probs, rand_masked_log_probs = get_probs(
         data_filename, mask_filename
