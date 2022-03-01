@@ -35,7 +35,7 @@ def get_probs(data_filename, mask_filename, rand_mask_filename):
     model.eval()
 
     neurons_per_layer = get_neurons_per_layer(mask_filename)
-    rand_neurons_per_layer = get_neurons_per_layer(rand_mask_filename)()
+    rand_neurons_per_layer = get_neurons_per_layer(rand_mask_filename)
 
     df = pd.read_csv(data_filename)
 
