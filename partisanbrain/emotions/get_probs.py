@@ -98,7 +98,7 @@ def get_probs(data_filename, mask_filename):
 
 if __name__ == "__main__":
     data_filename = "data/train_data_binary.csv"
-    mask_filename = "neurons_per_layer.json"
+    mask_filename = "middle/neurons_per_layer.json"
 
     output_dict = get_probs(data_filename, mask_filename)
 
