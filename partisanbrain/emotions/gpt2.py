@@ -960,7 +960,6 @@ class GPT2Model(GPT2PreTrainedModel):
             # Alex adding this
             if neurons_per_layer and i in neurons_per_layer:
                 neuron_dicts = neurons_per_layer[i]
-                print(neurons_per_layer)
                 for neuron_dict in neuron_dicts:
                     hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict["negative"]
 

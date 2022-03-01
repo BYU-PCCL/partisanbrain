@@ -21,21 +21,6 @@ def get_neurons_per_layer(mask_filename):
     return neurons_per_layer
 
 
-def get_rand_neurons_per_layer():
-    rand_neurons = np.random.randint(low=0, high=N_NEURONS, size=100)
-    rand_neurons_per_layer = {}
-
-    for neuron in rand_neurons:
-        layer, neuron = np.unravel_index(neuron, MODEL_SHAPE)
-        layer, neuron = int(layer), int(neuron)
-        if layer in rand_neurons_per_layer:
-            rand_neurons_per_layer[layer].append(neuron)
-        else:
-            rand_neurons_per_layer[layer] = [neuron]
-
-    return rand_neurons_per_layer
-
-
 def get_likelihood_sequence(input, log_probs):
     return [
         log_probs[:, i, token_index].cpu().detach().numpy()[0]
@@ -43,14 +28,14 @@ def get_likelihood_sequence(input, log_probs):
     ]
 
 
-def get_probs(data_filename, mask_filename):
+def get_probs(data_filename, mask_filename, rand_mask_filename):
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
     model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
     model.to(DEVICE)
     model.eval()
 
     neurons_per_layer = get_neurons_per_layer(mask_filename)
-    rand_neurons_per_layer = get_rand_neurons_per_layer()
+    rand_neurons_per_layer = get_neurons_per_layer(rand_mask_filename)()
 
     df = pd.read_csv(data_filename)
 
@@ -99,8 +84,9 @@ def get_probs(data_filename, mask_filename):
 if __name__ == "__main__":
     data_filename = "data/train_data_binary.csv"
     mask_filename = "middle/neurons_per_layer.json"
+    rand_mask_filename = "middle/rand_neurons_per_layer.json"
 
-    output_dict = get_probs(data_filename, mask_filename)
+    output_dict = get_probs(data_filename, mask_filename, rand_mask_filename)
 
     np.savez("output/masked_log_probs.npz", *output_dict["masked_log_probs"])
     np.savez("output/no_masked_log_probs.npz", *output_dict["no_masked_log_probs"])
