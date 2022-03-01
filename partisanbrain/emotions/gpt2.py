@@ -959,9 +959,9 @@ class GPT2Model(GPT2PreTrainedModel):
 
             # Alex adding this
             if neurons_per_layer and i in neurons_per_layer:
-                neurons = neurons_per_layer[i]
-                # hidden_states[0, -1, neurons] = 0
-                hidden_states[:, :, neurons] = 0
+                neuron_dicts = neurons_per_layer[i]
+                for neuron_dict in neuron_dicts:
+                    hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict["negative"]
 
             if use_cache is True:
                 presents = presents + (outputs[1],)
