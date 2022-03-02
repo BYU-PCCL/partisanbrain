@@ -23,7 +23,7 @@ def get_neurons_per_layer(mask_filename):
 
 def get_likelihood_sequence(input, log_probs):
     return [
-        log_probs[:, i, token_index].cpu().detach().numpy()[0]
+        log_probs[:, i, token_index].item()
         for i, token_index in enumerate(input.squeeze()[1:])
     ]
 
@@ -55,19 +55,19 @@ def get_probs(data_filename, mask_filename, rand_mask_filename):
 
         with torch.no_grad():
             output = model(input)
-        log_probs = torch.nn.functional.softmax(output.logits, dim=0)
+        log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
         no_masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
         no_masked_likelihood.append(get_likelihood_sequence(input, log_probs))
 
         with torch.no_grad():
             output = model(input, neurons_per_layer=neurons_per_layer)
-        log_probs = torch.nn.functional.softmax(output.logits, dim=0)
+        log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
         masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
         masked_likelihood.append(get_likelihood_sequence(input, log_probs))
 
         with torch.no_grad():
             output = model(input, neurons_per_layer=rand_neurons_per_layer)
-        log_probs = torch.nn.functional.softmax(output.logits, dim=0)
+        log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
         rand_masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
         rand_masked_likelihood.append(get_likelihood_sequence(input, log_probs))
 
