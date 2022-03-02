@@ -5,20 +5,21 @@ import pandas as pd
 import json
 import torch
 from tqdm import tqdm
+from neuron_selection import select_neurons_per_layer
 
 
-N_NEURONS = 78400
+N_NEURONS = 100
 MODEL_SHAPE = (49, 1600)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def get_neurons_per_layer(mask_filename):
-    with open(mask_filename) as file:
-        neurons_per_layer = json.load(file)
+# def get_neurons_per_layer(mask_filename):
+#     with open(mask_filename) as file:
+#         neurons_per_layer = json.load(file)
 
-    neurons_per_layer = {int(k): v for k, v in neurons_per_layer.items()}
+#     neurons_per_layer = {int(k): v for k, v in neurons_per_layer.items()}
 
-    return neurons_per_layer
+#     return neurons_per_layer
 
 
 def get_likelihood_sequence(input, log_probs):
@@ -34,8 +35,11 @@ def get_probs(data_filename, mask_filename, rand_mask_filename):
     model.to(DEVICE)
     model.eval()
 
-    neurons_per_layer = get_neurons_per_layer(mask_filename)
-    rand_neurons_per_layer = get_neurons_per_layer(rand_mask_filename)
+    # neurons_per_layer = get_neurons_per_layer(mask_filename)
+    # rand_neurons_per_layer = get_neurons_per_layer(rand_mask_filename)
+    neurons_per_layer = select_neurons_per_layer(
+        n_neurons=N_NEURONS, method="correlation"
+    )
 
     df = pd.read_csv(data_filename)
 
@@ -65,6 +69,10 @@ def get_probs(data_filename, mask_filename, rand_mask_filename):
         masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
         masked_likelihood.append(get_likelihood_sequence(input, log_probs))
 
+        # Recalculate the random neurons we mask each time
+        rand_neurons_per_layer = select_neurons_per_layer(
+            n_neurons=N_NEURONS, method="random"
+        )
         with torch.no_grad():
             output = model(input, neurons_per_layer=rand_neurons_per_layer)
         log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
