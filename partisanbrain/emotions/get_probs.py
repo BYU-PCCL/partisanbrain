@@ -5,8 +5,7 @@ import pandas as pd
 import json
 import torch
 from tqdm import tqdm
-from neuron_selection import select_neurons_per_layer
-from partisanbrain.emotions.neuron_selection import get_samples
+from neuron_selection import select_neurons_per_layer, get_samples
 
 
 N_NEURONS = 1000
