@@ -26,7 +26,7 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
     model.to(DEVICE)
     model.eval()
 
-    sample_info = get_samples()
+    sample_info = get_samples(data_filename)
 
     neurons_per_layer = select_neurons_per_layer(
         n_neurons=n_neurons, method="correlation", sample_info=sample_info
