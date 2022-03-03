@@ -14,7 +14,7 @@ def do_corr(layer, activations, targets):
     return corrs
 
 
-def get_samples(filename):
+def get_samples(filename=FILENAME):
     output = np.load(filename)
 
     X = output["activations"]
