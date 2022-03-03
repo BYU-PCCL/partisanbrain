@@ -75,8 +75,14 @@ def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples):
     return neurons_per_layer
 
 
-def select_neurons_per_layer(filename=FILENAME, n_neurons=N_NEURONS, method="random"):
-    X, y, samples, pos_samples, neg_samples = get_samples(filename)
+def select_neurons_per_layer(
+    filename=FILENAME, n_neurons=N_NEURONS, method="random", sample_info=None
+):
+    if sample_info is None:
+        X, y, samples, pos_samples, neg_samples = get_samples(filename)
+    else:
+        X, y, samples, pos_samples, neg_samples = sample_info
+
     if method == "correlation":
         corrs = get_corrs(X, y)
         corray = np.array(corrs).ravel()

@@ -6,6 +6,7 @@ import json
 import torch
 from tqdm import tqdm
 from neuron_selection import select_neurons_per_layer
+from partisanbrain.emotions.neuron_selection import get_samples
 
 
 N_NEURONS = 1000
@@ -26,8 +27,10 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
     model.to(DEVICE)
     model.eval()
 
+    sample_info = get_samples()
+
     neurons_per_layer = select_neurons_per_layer(
-        n_neurons=n_neurons, method="correlation"
+        n_neurons=n_neurons, method="correlation", sample_info=sample_info
     )
 
     df = pd.read_csv(data_filename)
@@ -60,7 +63,7 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
 
         # Recalculate the random neurons we mask each time
         rand_neurons_per_layer = select_neurons_per_layer(
-            n_neurons=n_neurons, method="random"
+            n_neurons=n_neurons, method="random", sample_info=sample_info
         )
         with torch.no_grad():
             output = model(input, neurons_per_layer=rand_neurons_per_layer)
