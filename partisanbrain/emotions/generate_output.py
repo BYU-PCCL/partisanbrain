@@ -7,7 +7,7 @@ import torch
 
 
 N_NEURONS = 1000
-N_SEQUENCES = 100
+N_SEQUENCES = 10000
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
