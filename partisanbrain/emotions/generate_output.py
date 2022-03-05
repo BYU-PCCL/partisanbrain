@@ -7,6 +7,7 @@ import torch
 
 
 N_NEURONS = 1000
+BATCH_SIZE = 100
 N_SEQUENCES = 1000
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -45,13 +46,25 @@ class Generator:
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
 
-        normal_outputs = self.generate(input=input, n_sequences=n_sequences)
-        altered_outputs = self.generate(
-            input=input, n_sequences=n_sequences, neurons_per_layer=neurons_per_layer
-        )
+        normal_list = []
+        altered_list = []
 
-        outputs = torch.concat((normal_outputs.cpu(), altered_outputs.cpu()), dim=0)
-        labels = [0] * N_SEQUENCES + [1] * N_SEQUENCES
+        n_batches = n_sequences // BATCH_SIZE
+        gen_sequences = min(n_sequences, BATCH_SIZE)
+
+        for i in range(n_batches):
+            normal_outputs = self.generate(input=input, n_sequences=gen_sequences)
+            altered_outputs = self.generate(
+                input=input,
+                n_sequences=gen_sequences,
+                neurons_per_layer=neurons_per_layer,
+            )
+
+            normal_list.append(normal_outputs.cpu())
+            altered_list.append(altered_outputs.cpu())
+
+        outputs = torch.concat([*normal_list, *altered_list], dim=0)
+        labels = [0] * n_sequences + [1] * n_sequences
 
         filename = "output/generated_sentences.csv"
         self.write_output(filename, outputs, labels)
