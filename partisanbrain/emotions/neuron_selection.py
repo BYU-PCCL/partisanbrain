@@ -42,15 +42,15 @@ def get_pos_neg(neuron_index, pos_samples, neg_samples):
     pos_sample = pos_samples[neuron_index]
     neg_sample = neg_samples[neuron_index]
 
-    pos_activation = pos_sample.mean()
-    neg_activation = neg_sample.mean()
+    # pos_activation = pos_sample.mean()
+    # neg_activation = neg_sample.mean()
 
-    # if pos_sample.mean() < neg_sample.mean():
-    #     pos_activation = pos_sample.min()
-    #     neg_activation = neg_sample.max()
-    # else:
-    #     pos_activation = pos_sample.max()
-    #     neg_activation = neg_sample.min()
+    if pos_sample.mean() < neg_sample.mean():
+        pos_activation = pos_sample.min()
+        neg_activation = neg_sample.max()
+    else:
+        pos_activation = pos_sample.max()
+        neg_activation = neg_sample.min()
 
     return pos_activation, neg_activation
 
