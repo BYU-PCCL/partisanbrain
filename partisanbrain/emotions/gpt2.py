@@ -15,6 +15,8 @@
 # limitations under the License.
 """PyTorch OpenAI GPT-2 model."""
 
+# IMPORTANT: The two things I added to this file are neurons_per_layer and force_emotion
+
 import math
 import os
 from dataclasses import dataclass

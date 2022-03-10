@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import numpy as np
 
 
@@ -38,31 +39,34 @@ def get_corrs(X, y):
     return np.array(corrs)
 
 
-def get_pos_neg(neuron_index, pos_samples, neg_samples):
+def get_force_values(neuron_index, pos_samples, neg_samples, force_to="mean"):
     pos_sample = pos_samples[neuron_index]
     neg_sample = neg_samples[neuron_index]
 
-    # pos_activation = pos_sample.mean()
-    # neg_activation = neg_sample.mean()
-
-    if pos_sample.mean() < neg_sample.mean():
-        pos_activation = pos_sample.min()
-        neg_activation = neg_sample.max()
+    if force_to == "mean":
+        pos_activation = pos_sample.mean()
+        neg_activation = neg_sample.mean()
+    elif force_to == "extreme":
+        if pos_sample.mean() < neg_sample.mean():
+            pos_activation = pos_sample.min()
+            neg_activation = neg_sample.max()
+        else:
+            pos_activation = pos_sample.max()
+            neg_activation = neg_sample.min()
     else:
-        pos_activation = pos_sample.max()
-        neg_activation = neg_sample.min()
+        raise ValueError("force_to must be either 'mean' or 'extreme'")
 
     return pos_activation, neg_activation
 
 
-def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples):
+def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples, force_to):
     neurons_per_layer = {}
     for neuron_index in neuron_indices:
         layer, neuron = np.unravel_index(neuron_index, MODEL_SHAPE)
         layer, neuron = int(layer), int(neuron)
 
-        pos_activation, neg_activation = get_pos_neg(
-            neuron_index, pos_samples, neg_samples
+        pos_activation, neg_activation = get_force_values(
+            neuron_index, pos_samples, neg_samples, force_to=force_to
         )
 
         neuron_dict = {
@@ -79,7 +83,11 @@ def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples):
 
 
 def select_neurons_per_layer(
-    filename=FILENAME, n_neurons=N_NEURONS, method="random", sample_info=None
+    filename=FILENAME,
+    n_neurons=N_NEURONS,
+    method="correlation",
+    sample_info=None,
+    force_to="mean",
 ):
     if sample_info is None:
         X, y, samples, pos_samples, neg_samples = get_samples(filename)
@@ -94,7 +102,11 @@ def select_neurons_per_layer(
         neuron_indices = np.random.choice(
             a=np.prod(MODEL_SHAPE), size=n_neurons, replace=False
         )
+    else:
+        raise ValueError("method must equal either 'random' or 'correlation'")
 
-    neurons_per_layer = get_neurons_per_layer(neuron_indices, pos_samples, neg_samples)
+    neurons_per_layer = get_neurons_per_layer(
+        neuron_indices, pos_samples, neg_samples, force_to=force_to
+    )
 
     return neurons_per_layer

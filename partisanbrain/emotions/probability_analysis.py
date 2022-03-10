@@ -2,15 +2,15 @@ from gpt2 import GPT2LMHeadModel
 from transformers import GPT2Tokenizer
 import numpy as np
 import pandas as pd
-import json
 import torch
 from tqdm import tqdm
 from neuron_selection import select_neurons_per_layer, get_samples
 
 
-N_NEURONS = 1000
+N_NEURONS = 100
 MODEL_SHAPE = (49, 1600)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+NEURON_SELECTION_METHOD = "correlation"
 
 
 def get_likelihood_sequence(input, log_probs):
@@ -29,7 +29,7 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
     sample_info = get_samples()
 
     neurons_per_layer = select_neurons_per_layer(
-        n_neurons=n_neurons, method="correlation", sample_info=sample_info
+        n_neurons=n_neurons, method=NEURON_SELECTION_METHOD, sample_info=sample_info
     )
 
     df = pd.read_csv(data_filename)
@@ -37,12 +37,10 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
     # Use these to store the output token distributions
     masked_log_probs = []
     no_masked_log_probs = []
-    rand_masked_log_probs = []
 
     # Use these to store the input likelihoods
     masked_likelihood = []
     no_masked_likelihood = []
-    rand_masked_likelihood = []
 
     for i, row in tqdm(df.iterrows()):
         input = tokenizer.encode(row.sentence.strip(), return_tensors="pt")
@@ -60,23 +58,11 @@ def get_probs(data_filename, n_neurons=N_NEURONS):
         masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
         masked_likelihood.append(get_likelihood_sequence(input, log_probs))
 
-        # Recalculate the random neurons we mask each time
-        rand_neurons_per_layer = select_neurons_per_layer(
-            n_neurons=n_neurons, method="random", sample_info=sample_info
-        )
-        with torch.no_grad():
-            output = model(input, neurons_per_layer=rand_neurons_per_layer)
-        log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
-        rand_masked_log_probs.append(log_probs[:, -1, :].detach().cpu().numpy())
-        rand_masked_likelihood.append(get_likelihood_sequence(input, log_probs))
-
     return {
         "masked_log_probs": masked_log_probs,
         "no_masked_log_probs": no_masked_log_probs,
-        "rand_masked_log_probs": rand_masked_log_probs,
         "masked_likelihood": masked_likelihood,
         "no_masked_likelihood": no_masked_likelihood,
-        "rand_masked_likelihood": rand_masked_likelihood,
     }
 
 
@@ -87,9 +73,5 @@ if __name__ == "__main__":
 
     np.savez("output/masked_log_probs.npz", *output_dict["masked_log_probs"])
     np.savez("output/no_masked_log_probs.npz", *output_dict["no_masked_log_probs"])
-    np.savez("output/rand_masked_log_probs.npz", *output_dict["rand_masked_log_probs"])
     np.savez("output/masked_likelihood.npz", *output_dict["masked_likelihood"])
     np.savez("output/no_masked_likelihood.npz", *output_dict["no_masked_likelihood"])
-    np.savez(
-        "output/rand_masked_likelihood.npz", *output_dict["rand_masked_likelihood"]
-    )

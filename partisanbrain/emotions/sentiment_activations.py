@@ -4,15 +4,7 @@ from transformers import GPT2Tokenizer, GPT2Model
 import numpy as np
 import pandas as pd
 
-# from matplotlib import pyplot as plt, rcParams
-# from IPython.display import set_matplotlib_formats
-
-# rcParams["figure.figsize"] = (8, 5)
-# rcParams["figure.dpi"] = 100
-# set_matplotlib_formats("retina")
-# plt.style.use("seaborn")
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def harvest_activations(model, tokenizer, filename):
@@ -25,7 +17,7 @@ def harvest_activations(model, tokenizer, filename):
     for i, row in df.iterrows():
         label, sentence = row.label, row.sentence
         encoded_input = tokenizer(sentence.strip(), return_tensors="pt")
-        encoded_input.to(device)
+        encoded_input.to(DEVICE)
         output = model(**encoded_input, output_hidden_states=True)
 
         row_activations = []
@@ -48,7 +40,7 @@ def harvest_activations(model, tokenizer, filename):
 if __name__ == "__main__":
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
     model = GPT2Model.from_pretrained("gpt2-xl")
-    model.to(device)
+    model.to(DEVICE)
     model.eval()
 
     filename = "data/train_data_binary.csv"
@@ -60,4 +52,4 @@ if __name__ == "__main__":
             filename=filename,
         )
 
-    np.savez("output.npz", activations=activations, targets=targets)
+    np.savez("output/output.npz", activations=activations, targets=targets)

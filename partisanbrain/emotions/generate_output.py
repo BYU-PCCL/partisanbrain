@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 
 
-N_NEURONS = 1000
+N_NEURONS = 100
 BATCH_SIZE = 100
 N_SEQUENCES = 1000
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -38,7 +38,12 @@ class Generator:
         )
         return outputs
 
-    def generate_samples(self, prompt, n_sequences=N_SEQUENCES):
+    def generate_samples(
+        self,
+        prompt,
+        output_filename,
+        n_sequences=N_SEQUENCES,
+    ):
         neurons_per_layer = select_neurons_per_layer(
             n_neurons=N_NEURONS, method="correlation"
         )
@@ -66,8 +71,7 @@ class Generator:
         outputs = torch.concat([*normal_list, *altered_list], dim=0)
         labels = [0] * n_sequences + [1] * n_sequences
 
-        filename = "output/generated_sentences.csv"
-        self.write_output(filename, outputs, labels)
+        self.write_output(output_filename, outputs, labels)
 
 
 if __name__ == "__main__":
@@ -77,6 +81,7 @@ if __name__ == "__main__":
     model.eval()
 
     prompt = "I watched a new movie yesterday. I thought it was"
+    output_filename = "output/generated_sentences.csv"
 
     generator = Generator(model, tokenizer)
-    generator.generate_samples(prompt)
+    generator.generate_samples(prompt=prompt, output_filename=output_filename)

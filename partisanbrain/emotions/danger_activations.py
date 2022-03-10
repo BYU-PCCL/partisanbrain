@@ -3,21 +3,11 @@ from tqdm import tqdm
 from transformers import GPT2Tokenizer, GPT2Model
 import numpy as np
 
-# from matplotlib import pyplot as plt, rcParams
-# from IPython.display import set_matplotlib_formats
-
-# rcParams["figure.figsize"] = (8, 5)
-# rcParams["figure.dpi"] = 100
-# set_matplotlib_formats("retina")
-# plt.style.use("seaborn")
-
 
 def harvest_activations(model, tokenizer, danger_filename, safe_filename):
     NUM_LAYERS = model.config.n_layer + 1
     activations = []
     targets = []
-
-    print("Reading Danger")
 
     with open(danger_filename, "r") as danger_file:
         for line in danger_file.readlines():
@@ -35,8 +25,6 @@ def harvest_activations(model, tokenizer, danger_filename, safe_filename):
             danger_activations = np.vstack(danger_activations)
             activations.append(danger_activations)
             targets.append(np.ones(shape=(1, 1)))
-
-    print("Reading Safe")
 
     with open(safe_filename, "r") as safe_file:
         for line in safe_file.readlines():
@@ -78,4 +66,4 @@ if __name__ == "__main__":
         )
 
     # Save the activations and targets to run a regression on them later
-    np.savez("output.npz", activations=activations, targets=targets)
+    np.savez("output/output.npz", activations=activations, targets=targets)
