@@ -790,6 +790,7 @@ class GPT2Model(GPT2PreTrainedModel):
         output_hidden_states=None,
         return_dict=None,
         neurons_per_layer=None,
+        force_emotion=None,
     ):
         output_attentions = (
             output_attentions
@@ -960,8 +961,15 @@ class GPT2Model(GPT2PreTrainedModel):
             # Alex adding this
             if neurons_per_layer and i in neurons_per_layer:
                 neuron_dicts = neurons_per_layer[i]
+
+                # Delete this later
+                if force_emotion is None:
+                    force_emotion = "negative"
+
                 for neuron_dict in neuron_dicts:
-                    hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict["negative"]
+                    hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
+                        force_emotion
+                    ]
 
             if use_cache is True:
                 presents = presents + (outputs[1],)
@@ -1063,7 +1071,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         self.lm_head = new_embeddings
 
     def prepare_inputs_for_generation(
-        self, input_ids, past=None, neurons_per_layer=None, **kwargs
+        self, input_ids, past=None, neurons_per_layer=None, force_emotion=None, **kwargs
     ):
         token_type_ids = kwargs.get("token_type_ids", None)
         # only last token for inputs_ids if past is defined in kwargs
@@ -1091,6 +1099,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             "attention_mask": attention_mask,
             "token_type_ids": token_type_ids,
             "neurons_per_layer": neurons_per_layer,
+            "force_emotion": force_emotion,
         }
 
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
@@ -1117,6 +1126,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         output_hidden_states=None,
         return_dict=None,
         neurons_per_layer=None,
+        force_emotion=None,
     ):
         r"""
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
@@ -1143,6 +1153,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             neurons_per_layer=neurons_per_layer,
+            force_emotion=force_emotion,
         )
         hidden_states = transformer_outputs[0]
 
