@@ -151,3 +151,6 @@ survey/gss_exploration.ipynb
 *.npz
 *.npy
 *.json
+*.csv
+*.jpg
+*.png
