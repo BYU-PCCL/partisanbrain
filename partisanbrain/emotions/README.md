@@ -37,7 +37,7 @@ Below is a description of each file with the latter files mostly for analysis an
   - SHOULD BE RUN ON GPU
 - `generate_output.py` is for generating output sentences based on an input prompt and manipulated neurons
   - SHOULD BE RUN ON GPU
-- `sentiment_analysis.py` is for analyzing the sentiment of our model generated senteces
+- `sentiment_analysis.py` is for analyzing the sentiment of our model-generated sentences
   - Designed to work with the output from `generate_output.py`
 
 ## Tips for Next Steps
