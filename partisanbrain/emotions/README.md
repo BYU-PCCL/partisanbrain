@@ -1,11 +1,24 @@
 # Emotion
 All files related to opening the black box.
 
+## Running on SIVRI
+1. `ssh remote@sivri`
+2. `cd /mnt/pccfs2/backed_up/alexshaw/partisanbrain/partisanbrain/emotions/docker`
+3. `git pull`
+4. `sh build.sh`
+5. `sh run.sh`
+6. `pip install --upgrade transformers`
+6. `pip install --upgrade torch`
+7. `export CUDA_VISIBLE_DEVICES=0,1,2,3`
+8. Perform any analysis you need...
+9. `exit`
+10. Then to move any output files you want locally to your computer using `scp`
+
 ## File Descriptions
 Below is a description of each file with the latter files mostly for analysis and the earlier files for data collection.
 
 - Anything starting with `nb` is a jupyter notebook for playing around with outputs
-- `danger_activations.py` and `sentiment_activations.py` gather and save all of the activations and labels when running sentences through the model.
+- `danger_activations.py` and `sentiment_activations.py` gather and save all of the activations and labels when running sentences through the model
   - SHOULD BE RUN ON GPU
 - `neuron_selection.py` is for selecting neurons to manipulate. You also select where to force the values to in this file.
 - `probability_analysis.py` is for saving two pieces of data based on manipulated neurons:
