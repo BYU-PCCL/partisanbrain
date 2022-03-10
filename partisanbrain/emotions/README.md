@@ -2,17 +2,26 @@
 All files related to opening the black box.
 
 ## Running on SIVRI
-1. `ssh remote@sivri`
-2. `cd /mnt/pccfs2/backed_up/alexshaw/partisanbrain/partisanbrain/emotions/docker`
-3. `git pull`
-4. `sh build.sh`
-5. `sh run.sh`
-6. `pip install --upgrade transformers`
-6. `pip install --upgrade torch`
-7. `export CUDA_VISIBLE_DEVICES=0,1,2,3`
-8. Perform any analysis you need...
-9. `exit`
-10. Then to move any output files you want locally to your computer using `scp`
+```bash
+ssh remote@sivri
+cd /mnt/pccfs2/backed_up/alexshaw/partisanbrain/partisanbrain/emotions/docker
+
+git pull
+sh build.sh
+sh run.sh
+
+# These are run on docker
+pip install --upgrade transformers
+pip install --upgrade torch
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+
+# Perform any analysis you need...
+
+# Then to quit docker
+exit
+
+# Then to move any output files you want locally to your computer using scp
+```
 
 ## File Descriptions
 Below is a description of each file with the latter files mostly for analysis and the earlier files for data collection.
