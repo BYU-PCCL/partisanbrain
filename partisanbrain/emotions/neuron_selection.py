@@ -1,10 +1,29 @@
 from multiprocessing.sharedctypes import Value
 import numpy as np
+from sklearn.decomposition import PCA
 
 
 N_NEURONS = 100
 MODEL_SHAPE = (49, 1600)
 FILENAME = "output/output.npz"
+
+
+def pca_transform(X, dim=1):
+    axes = np.arange(X.ndim)
+    new_axes = axes[dim : dim + 1] + axes[:dim] + axes[dim + 1 :]
+    # reverse_axes = list(range(dim)) + [0] + list(range(dim+1, X.ndim))
+
+    pcas = []
+    Xhat = []
+
+    for Xi in np.transpose(X, axes=new_axes):
+        pca = PCA(n_components=MODEL_SHAPE[-1])
+        Xhati = pca.fit_transform(Xi)
+        pcas.append(pca)
+        Xhat.append(Xhati)
+    Xhat = np.array(Xhati)
+
+    return Xhat, pcas
 
 
 def do_corr(layer, activations, targets):
