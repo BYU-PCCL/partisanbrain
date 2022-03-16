@@ -58,7 +58,7 @@ def get_corrs(X, y):
     return np.array(corrs)
 
 
-def get_force_values(neuron_index, pos_samples, neg_samples, force_to="mean"):
+def get_force_values(neuron_index, pos_samples, neg_samples, force_to="mean", percentile=0.25):
     pos_sample = pos_samples[neuron_index]
     neg_sample = neg_samples[neuron_index]
 
@@ -72,8 +72,15 @@ def get_force_values(neuron_index, pos_samples, neg_samples, force_to="mean"):
         else:
             pos_activation = pos_sample.max()
             neg_activation = neg_sample.min()
+    elif force_to == "quantile":
+        if pos_sample.mean() < neg_sample.mean():
+            pos_activation = np.quantile(pos_sample, percentile)
+            neg_activation = np.quantile(neg_sample, 1 - percentile)
+        else:
+            pos_activation = np.quantile(pos_sample, 1 - percentile)
+            neg_activation = np.quantile(neg_sample, percentile)
     else:
-        raise ValueError("force_to must be either 'mean' or 'extreme'")
+        raise ValueError("force_to must be 'mean', 'extreme', or 'quantile'")
 
     return pos_activation, neg_activation
 
