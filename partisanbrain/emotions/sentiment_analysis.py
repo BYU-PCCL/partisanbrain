@@ -14,7 +14,7 @@ class SentimentClassifier:
         sentiments = [result["label"] for result in results]
 
         self.mod_df["score"] = scores
-        self.mod_df["label"] = sentiments
+        self.mod_df["semtiment"] = sentiments
 
     def get_value_counts(self):
         altered_mask = self.mod_df.label == 1
