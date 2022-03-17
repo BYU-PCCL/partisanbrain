@@ -67,7 +67,6 @@ class Generator:
 
         final_batch_sequences = n_sequences % BATCH_SIZE
         if final_batch_sequences == 0:
-            n_batches -= 1
             final_batch_sequences = BATCH_SIZE
         else:
             n_batches += 1
