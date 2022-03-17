@@ -4,6 +4,7 @@ from transformers import GPT2Tokenizer
 import numpy as np
 import pandas as pd
 import torch
+import sys
 
 
 N_NEURONS = 100
@@ -13,9 +14,10 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Generator:
-    def __init__(self, model, tokenizer):
+    def __init__(self, model, tokenizer, force_emotion="positive"):
         self.model = model
         self.tokenizer = tokenizer
+        self.force_emotion = force_emotion
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
@@ -35,7 +37,7 @@ class Generator:
             num_return_sequences=n_sequences,
             early_stopping=True,
             neurons_per_layer=neurons_per_layer,
-            force_emotion="positive",
+            force_emotion=self.force_emotion,
         )
         return outputs
 
@@ -85,5 +87,12 @@ if __name__ == "__main__":
     prompt = "I watched a new movie yesterday. I thought it was"
     output_filename = "output/generated_sentences.csv"
 
+    if len(sys.argv) > 1:
+        force_emotion = sys.argv[-1]
+    else:
+        force_emotion = "positive"
+
     generator = Generator(model, tokenizer)
-    generator.generate_samples(prompt=prompt, output_filename=output_filename)
+    generator.generate_samples(
+        prompt=prompt, output_filename=output_filename, force_emotion=force_emotion
+    )
