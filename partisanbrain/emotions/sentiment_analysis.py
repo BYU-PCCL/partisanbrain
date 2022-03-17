@@ -1,12 +1,16 @@
 from transformers import pipeline
 import pandas as pd
+import torch
+
+
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class SentimentClassifier:
     def __init__(self, input_filename):
         self.df = pd.read_csv(input_filename)
         self.mod_df = self.df.copy()
-        self.classifier = pipeline("sentiment-analysis")
+        self.classifier = pipeline("sentiment-analysis", device=DEVICE)
 
     def classify_sentiment(self):
         results = self.classifier(self.df.sentence.to_list())
