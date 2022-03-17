@@ -14,11 +14,14 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Generator:
-    def __init__(self, model, tokenizer, force_emotion="positive", percentile=0.8):
+    def __init__(
+        self, model, tokenizer, force_emotion="positive", percentile=0.8, layers=25
+    ):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
         self.percentile = percentile
+        self.layers = layers
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
@@ -51,7 +54,7 @@ class Generator:
         lda_selector = LdaNeuronSelector(
             filename="output/output.npz", device=DEVICE, percentile=self.percentile
         )
-        neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=25)
+        neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=self.layers)
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
@@ -91,7 +94,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", default="positive")
     parser.add_argument("-p", type=float, default=0.8)
+    parser.add_argument("-l", type=list, default=list(range(25, 49)))
     args = parser.parse_args()
 
-    generator = Generator(model, tokenizer, force_emotion=args.e, percentile=args.p)
+    generator = Generator(
+        model, tokenizer, force_emotion=args.e, percentile=args.p, layers=args.l
+    )
     generator.generate_samples(prompt=prompt, output_filename=output_filename)
