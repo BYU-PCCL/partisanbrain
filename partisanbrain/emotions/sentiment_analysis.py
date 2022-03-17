@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = 0 if torch.cuda.is_available() else None
 
 
 class SentimentClassifier:
