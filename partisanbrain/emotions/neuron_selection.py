@@ -113,7 +113,7 @@ def select_neurons_per_layer(
     n_neurons=N_NEURONS,
     method="correlation",
     sample_info=None,
-    force_to="mean",
+    force_to="extreme",
 ):
     if sample_info is None:
         X, y, samples, pos_samples, neg_samples = get_samples(filename)
