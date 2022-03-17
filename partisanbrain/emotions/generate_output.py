@@ -62,9 +62,15 @@ class Generator:
         normal_list = []
         altered_list = []
 
-        n_batches = n_sequences // BATCH_SIZE + 1
+        n_batches = n_sequences // BATCH_SIZE
         gen_sequences = min(n_sequences, BATCH_SIZE)
+
         final_batch_sequences = n_sequences % BATCH_SIZE
+        if final_batch_sequences == 0:
+            n_batches -= 1
+            final_batch_sequences = BATCH_SIZE
+        else:
+            n_batches += 1
 
         for i in range(n_batches):
             normal_outputs = self.generate(input=input, n_sequences=gen_sequences)
