@@ -1,4 +1,4 @@
-from neuron_selection import select_neurons_per_layer
+from lda_neuron_selection import LdaNeuronSelector
 from gpt2 import GPT2LMHeadModel
 from transformers import GPT2Tokenizer
 import numpy as np
@@ -44,9 +44,8 @@ class Generator:
         output_filename,
         n_sequences=N_SEQUENCES,
     ):
-        neurons_per_layer = select_neurons_per_layer(
-            n_neurons=N_NEURONS, method="correlation"
-        )
+        lda_selector = LdaNeuronSelector(filename="output/output.npz")
+        neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=25)
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
