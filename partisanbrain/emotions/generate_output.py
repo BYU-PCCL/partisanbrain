@@ -62,14 +62,17 @@ class Generator:
         normal_list = []
         altered_list = []
 
-        n_batches = n_sequences // BATCH_SIZE
+        n_batches = n_sequences // BATCH_SIZE + 1
         gen_sequences = min(n_sequences, BATCH_SIZE)
+        final_batch_sequences = n_sequences % BATCH_SIZE
 
         for i in range(n_batches):
             normal_outputs = self.generate(input=input, n_sequences=gen_sequences)
             altered_outputs = self.generate(
                 input=input,
-                n_sequences=gen_sequences,
+                n_sequences=(
+                    gen_sequences if i < n_batches - 1 else final_batch_sequences
+                ),
                 neurons_per_layer=neurons_per_layer,
             )
 
