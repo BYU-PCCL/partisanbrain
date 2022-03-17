@@ -44,7 +44,7 @@ class Generator:
         output_filename,
         n_sequences=N_SEQUENCES,
     ):
-        lda_selector = LdaNeuronSelector(filename="output/output.npz")
+        lda_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
         neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=25)
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
