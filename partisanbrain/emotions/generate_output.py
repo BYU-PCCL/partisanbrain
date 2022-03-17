@@ -97,6 +97,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
     )
+    parser.add_argument("-s", "--sentences", type=int, default=1000)
     args = parser.parse_args()
 
     generator = Generator(
@@ -106,4 +107,6 @@ if __name__ == "__main__":
         percentile=args.percentile,
         layers=args.layers,
     )
-    generator.generate_samples(prompt=prompt, output_filename=output_filename)
+    generator.generate_samples(
+        prompt=prompt, output_filename=output_filename, n_sequences=args.sentences
+    )
