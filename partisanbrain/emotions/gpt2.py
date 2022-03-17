@@ -975,7 +975,7 @@ class GPT2Model(GPT2PreTrainedModel):
 
                 # This line of code is terrible to read, but it makes the shapes match up how we want
                 # hidden_states += weights * projection.squeeze().unsqueeze(0)
-                # hidden_states += weights * projection.transpose(-1, -2)
+                hidden_states += weights * projection.transpose(-1, -2)
 
             if use_cache is True:
                 presents = presents + (outputs[1],)
