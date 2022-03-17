@@ -35,6 +35,7 @@ class Generator:
             num_return_sequences=n_sequences,
             early_stopping=True,
             neurons_per_layer=neurons_per_layer,
+            force_emotion="positive",
         )
         return outputs
 
