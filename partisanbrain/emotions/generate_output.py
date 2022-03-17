@@ -92,12 +92,18 @@ if __name__ == "__main__":
     output_filename = "output/generated_sentences.csv"
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", default="positive")
-    parser.add_argument("-p", type=float, default=0.8)
-    parser.add_argument("-l", type=list, default=list(range(25, 49)))
+    parser.add_argument("-e", "--emotion", default="positive")
+    parser.add_argument("-p", "--percentile", type=float, default=0.8)
+    parser.add_argument(
+        "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
+    )
     args = parser.parse_args()
 
     generator = Generator(
-        model, tokenizer, force_emotion=args.e, percentile=args.p, layers=args.l
+        model,
+        tokenizer,
+        force_emotion=args.emotion,
+        percentile=args.percentile,
+        layers=args.layers,
     )
     generator.generate_samples(prompt=prompt, output_filename=output_filename)
