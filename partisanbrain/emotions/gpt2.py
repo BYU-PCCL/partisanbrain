@@ -21,6 +21,7 @@ import math
 import os
 from dataclasses import dataclass
 from typing import Optional, Tuple
+from matplotlib.patches import Wedge
 
 import torch
 import torch.utils.checkpoint
@@ -962,16 +963,18 @@ class GPT2Model(GPT2PreTrainedModel):
 
             # Alex adding this
             if neurons_per_layer and i in neurons_per_layer:
-                neuron_dicts = neurons_per_layer[i]
+                neuron_dict = neurons_per_layer[i]
 
                 # Delete this later
                 if force_emotion is None:
                     force_emotion = "negative"
 
-                for neuron_dict in neuron_dicts:
-                    hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
-                        force_emotion
-                    ]
+                projection = neuron_dict["projection"]
+                value = neuron_dict[force_emotion]
+                weights = value - (hidden_states @ projection)
+
+                # This line of code is terrible to read, but it makes the shapes match up how we want
+                hidden_states += weights * projection.squeeze().unsqueeze(0)
 
             if use_cache is True:
                 presents = presents + (outputs[1],)

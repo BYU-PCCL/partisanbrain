@@ -71,7 +71,9 @@ def get_corrs(X, y):
     return np.array(corrs)
 
 
-def get_force_values(neuron_index, pos_samples, neg_samples, force_to="mean", percentile=0.25):
+def get_force_values(
+    neuron_index, pos_samples, neg_samples, force_to="mean", percentile=0.25
+):
     pos_sample = pos_samples[neuron_index]
     neg_sample = neg_samples[neuron_index]
 
