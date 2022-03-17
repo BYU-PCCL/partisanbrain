@@ -92,7 +92,5 @@ if __name__ == "__main__":
     else:
         force_emotion = "positive"
 
-    generator = Generator(model, tokenizer)
-    generator.generate_samples(
-        prompt=prompt, output_filename=output_filename, force_emotion=force_emotion
-    )
+    generator = Generator(model, tokenizer, force_emotion=force_emotion)
+    generator.generate_samples(prompt=prompt, output_filename=output_filename)
