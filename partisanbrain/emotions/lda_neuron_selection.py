@@ -9,7 +9,7 @@ FILENAME = "output/output.npz"
 
 
 class LdaNeuronSelector:
-    def __init__(self, filename=None, X=None, y=None, percentile=0.8):
+    def __init__(self, filename=None, device=None, X=None, y=None, percentile=0.8):
         """
         Parameters:
             X (ndarray): Should be of shape (batch_size x layers x neurons)
@@ -29,6 +29,8 @@ class LdaNeuronSelector:
 
             self.X = output["activations"]
             self.y = output["targets"].squeeze()
+
+        self.device = device
         self.percentile = percentile
 
     def get_lda_neuron_dict(self, layer):
@@ -49,8 +51,13 @@ class LdaNeuronSelector:
             pos_val = np.quantile(pos_dist, 1 - self.percentile)
             neg_val = np.quantile(neg_dist, self.percentile)
 
+        projection = torch.tensor(projection, dtype=torch.float)
+
+        if self.device:
+            projection = projection.to(self.device)
+
         return {
-            "projection": torch.tensor(projection, dtype=torch.float),
+            "projection": projection,
             "positive": pos_val,
             "negative": neg_val,
         }
