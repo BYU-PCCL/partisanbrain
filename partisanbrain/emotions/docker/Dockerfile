@@ -1,15 +1,15 @@
 FROM huggingface/transformers-pytorch-gpu
 
-RUN pip install --upgrade pip
-RUN pip install ipython
-RUN pip install --upgrade transformers
-RUN pip install --upgrade torch
-RUN pip install sklearn
-RUN pip install openai
-RUN pip install pandas
-RUN pip install matplotlib
-RUN pip install lifelines
-RUN pip install cmocean
+RUN pip3 install --upgrade pip
+RUN pip3 install ipython
+RUN pip3 install --upgrade transformers
+RUN pip3 install --upgrade torch
+RUN pip3 install sklearn
+RUN pip3 install openai
+RUN pip3 install pandas
+RUN pip3 install matplotlib
+RUN pip3 install lifelines
+RUN pip3 install cmocean
 RUN mkdir -p /partisanbrain/transformers_cache
 ENV TRANSFORMERS_CACHE=/partisanbrain/transformers_cache
 WORKDIR "/partisanbrain"
