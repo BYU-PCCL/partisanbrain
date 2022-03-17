@@ -4,7 +4,7 @@ from transformers import GPT2Tokenizer
 import numpy as np
 import pandas as pd
 import torch
-import sys
+import argparse
 
 
 N_NEURONS = 100
@@ -14,10 +14,11 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Generator:
-    def __init__(self, model, tokenizer, force_emotion="positive"):
+    def __init__(self, model, tokenizer, force_emotion="positive", percentile=0.8):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
+        self.percentile = percentile
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
@@ -48,7 +49,7 @@ class Generator:
         n_sequences=N_SEQUENCES,
     ):
         lda_selector = LdaNeuronSelector(
-            filename="output/output.npz", device=DEVICE, percentile=0.99
+            filename="output/output.npz", device=DEVICE, percentile=self.percentile
         )
         neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=25)
 
@@ -87,10 +88,10 @@ if __name__ == "__main__":
     prompt = "I watched a new movie yesterday. I thought it was"
     output_filename = "output/generated_sentences.csv"
 
-    if len(sys.argv) > 1:
-        force_emotion = sys.argv[-1]
-    else:
-        force_emotion = "positive"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", default="positive")
+    parser.add_argument("-p", type=float, default=0.8)
+    args = parser.parse_args()
 
-    generator = Generator(model, tokenizer, force_emotion=force_emotion)
+    generator = Generator(model, tokenizer, force_emotion=args.e, percentile=args.p)
     generator.generate_samples(prompt=prompt, output_filename=output_filename)
