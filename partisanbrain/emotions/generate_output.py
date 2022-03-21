@@ -28,7 +28,7 @@ class Generator:
 
     def write_output(self, filename, outputs):
         sentences = [self.convert_to_text(output) for output in outputs]
-        series = pd.Series(data=sentences)
+        series = pd.Series(name="sentence", data=sentences)
         series.to_csv(filename, index=False)
 
     def generate(self, input, n_sequences=N_SEQUENCES, neurons_per_layer=None):
