@@ -84,6 +84,8 @@ class Generator:
 
             outputs.append(batch_outputs.cpu())
 
+        outputs = torch.concat(outputs, dim=0)
+
         self.write_output(output_filename, outputs)
 
 
@@ -96,7 +98,6 @@ if __name__ == "__main__":
     model.eval()
 
     prompt = "I watched a new movie yesterday. I thought it was"
-    output_filename = "output/generated_sentences.csv"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
@@ -106,6 +107,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("-s", "--sentences", type=int, default=1000)
     args = parser.parse_args()
+    output_filename = f"output/{args.emotion}.csv"
 
     generator = Generator(
         model,
