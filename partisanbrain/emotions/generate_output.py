@@ -26,12 +26,10 @@ class Generator:
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
 
-    def write_output(self, filename, outputs, labels):
+    def write_output(self, filename, outputs):
         sentences = [self.convert_to_text(output) for output in outputs]
-        df = pd.DataFrame(
-            data=np.array([labels, sentences]).T, columns=["label", "sentence"]
-        )
-        df.to_csv(filename, index=False)
+        series = pd.Series(data=sentences)
+        series.to_csv(filename, index=False)
 
     def generate(self, input, n_sequences=N_SEQUENCES, neurons_per_layer=None):
         outputs = self.model.generate(
@@ -54,13 +52,16 @@ class Generator:
         lda_selector = LdaNeuronSelector(
             filename="output/output.npz", device=DEVICE, percentile=self.percentile
         )
-        neurons_per_layer = lda_selector.get_lda_neurons_per_layer(layers=self.layers)
+
+        if self.force_emotion != "default":
+            neurons_per_layer = lda_selector.get_lda_neurons_per_layer(
+                layers=self.layers
+            )
+        else:
+            neurons_per_layer = None
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
-
-        normal_list = []
-        altered_list = []
 
         n_batches = n_sequences // BATCH_SIZE
         gen_sequences = min(n_sequences, BATCH_SIZE)
@@ -71,9 +72,9 @@ class Generator:
         else:
             n_batches += 1
 
+        outputs = []
         for i in range(n_batches):
-            normal_outputs = self.generate(input=input, n_sequences=gen_sequences)
-            altered_outputs = self.generate(
+            batch_outputs = self.generate(
                 input=input,
                 n_sequences=(
                     gen_sequences if i < n_batches - 1 else final_batch_sequences
@@ -81,13 +82,9 @@ class Generator:
                 neurons_per_layer=neurons_per_layer,
             )
 
-            normal_list.append(normal_outputs.cpu())
-            altered_list.append(altered_outputs.cpu())
+            outputs.append(batch_outputs.cpu())
 
-        outputs = torch.concat([*normal_list, *altered_list], dim=0)
-        labels = [0] * n_sequences + [1] * n_sequences
-
-        self.write_output(output_filename, outputs, labels)
+        self.write_output(output_filename, outputs)
 
 
 if __name__ == "__main__":
@@ -102,7 +99,7 @@ if __name__ == "__main__":
     output_filename = "output/generated_sentences.csv"
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--emotion", default="positive")
+    parser.add_argument("-e", "--emotion", default="default")
     parser.add_argument("-p", "--percentile", type=float, default=0.8)
     parser.add_argument(
         "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
