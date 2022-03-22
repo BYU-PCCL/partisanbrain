@@ -97,7 +97,8 @@ if __name__ == "__main__":
     model.to(DEVICE)
     model.eval()
 
-    prompt = "I watched a new movie yesterday. I thought it was"
+    # prompt = "I watched a new movie yesterday. I thought it was"
+    prompt = ""
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
