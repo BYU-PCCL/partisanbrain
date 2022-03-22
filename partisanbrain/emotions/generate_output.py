@@ -98,7 +98,7 @@ if __name__ == "__main__":
     model.eval()
 
     # prompt = "I watched a new movie yesterday. I thought it was"
-    prompt = ""
+    prompt = "I"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
