@@ -56,7 +56,7 @@ if __name__ == "__main__":
     model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
 
     perp_analyzer = PerplexityAnalyzer(model, tokenizer)
-    filename = ""
+    filename = "data/wiki.csv"
 
     avg_perplexity = perp_analyzer.get_average_perplexity(filename)
 
