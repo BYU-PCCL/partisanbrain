@@ -1,6 +1,7 @@
 from audioop import avg
 import torch
 import numpy as np
+import pandas as pd
 from gpt2 import GPT2LMHeadModel
 from transformers import GPT2Tokenizer
 
@@ -38,15 +39,19 @@ class PerplexityAnalyzer:
         return perplexity
 
     def get_average_perplexity(self, filename):
-        # Read in file (should be a dataset, preferrably .csv)
-        # For each sentence in the dataset
-        #   get the likelihood sequence
-        #   get the perplexity of that sequence
-        # Average all of the perplexities and return that
-        pass
+        df = pd.read_csv(filename)
+
+        perplexities = []
+        for i, row in df.iterrows():
+            likelihood = self.process_sentence(row.sentence)
+            preplexity = self.get_perplexity(likelihood)
+            perplexities.append(preplexity)
+
+        return np.mean(perplexities)
 
 
 if __name__ == "__main__":
+
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
     model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
 
