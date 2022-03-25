@@ -90,7 +90,7 @@ if __name__ == "__main__":
     prompt = "I watched a new movie yesterday. I thought it was"
     output_filename = "output/generated_sentences.csv"
 
-     parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
     parser.add_argument("-p", "--percentile", type=float, default=0.8)
     parser.add_argument(
