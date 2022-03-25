@@ -21,25 +21,19 @@ class SentimentClassifier:
         self.mod_df["sentiment"] = sentiments
 
     def get_value_counts(self):
-        altered_mask = self.mod_df.label == 1
-        normal_mask = self.mod_df.label == 0
-
-        normal_value_counts = self.mod_df[normal_mask].sentiment.value_counts()
-        altered_value_counts = self.mod_df[altered_mask].sentiment.value_counts()
-
-        return normal_value_counts, altered_value_counts
+        return self.mod_df.sentiment.value_counts()
 
 
 if __name__ == "__main__":
-    input_filename = "output/generated_sentences.csv"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--emotion", default="default")
+    args = parser.parse_args()
+    input_filename = f"output/{args.emotion}.csv"
 
     classifier = SentimentClassifier(input_filename)
     classifier.classify_sentiment()
 
-    normal_value_counts, altered_value_counts = classifier.get_value_counts()
+    value_counts = classifier.get_value_counts()
 
-    print("Unaltered")
-    print(normal_value_counts, end="\n\n")
-
-    print("Altered")
-    print(altered_value_counts)
+    print(args.emotion[0].upper() + args.emotion[1:])
+    print(value_counts, end="\n\n")
