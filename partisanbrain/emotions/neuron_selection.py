@@ -1,4 +1,5 @@
 from multiprocessing.sharedctypes import Value
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -32,6 +33,18 @@ def do_corr(layer, activations, targets):
         result = np.corrcoef(targets[:, 0], activations[:, layer, ind])
         corrs.append(result[0, 1])
     return corrs
+
+
+def do_log_reg(activations, targets):
+    # do we want to make layer a paramter?, or do all layers at a time?
+    # obtains and returns accuracies for logistic regressions
+    accs = []
+    activations = activations.reshape(-1, np.prod(activations.shape[1:]))
+    for i in range(activations.shape[1]):
+        clf = LogisticRegression().fit(activations[:, i : i + 1], targets)
+        acc = clf.score(activations[:, i : i + 1], targets)
+        accs.append(acc)
+    return accs
 
 
 def get_samples(filename=FILENAME):
@@ -124,6 +137,10 @@ def select_neurons_per_layer(
         corrs = get_corrs(X, y)
         corray = np.array(corrs).ravel()
         neuron_indices = np.abs(corray).argsort()[::-1][:n_neurons]
+    elif method == "logistic_regression":
+        # I ADDED THIS STUFF TOO
+        accs = do_log_reg(X, y)
+        neuron_indices = np.argsort(accs)[::-1][:n_neurons]
     elif method == "random":
         neuron_indices = np.random.choice(
             a=np.prod(MODEL_SHAPE), size=n_neurons, replace=False
@@ -136,3 +153,4 @@ def select_neurons_per_layer(
     )
 
     return neurons_per_layer
+
