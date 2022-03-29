@@ -21,6 +21,7 @@ import math
 import os
 from dataclasses import dataclass
 from typing import Optional, Tuple
+from matplotlib.patches import Wedge
 
 import torch
 import torch.utils.checkpoint
@@ -982,8 +983,8 @@ class GPT2Model(GPT2PreTrainedModel):
                     pass
                 elif force_with == "projection":
                     # For LDA
-                    projection = neuron_dict["projection"]
-                    value = neuron_dict[force_emotion]
+                    projection = neuron_dicts["projection"]
+                    value = neuron_dicts[force_emotion]
                     weights = value - (hidden_states @ projection)
                     hidden_states += weights * projection.transpose(-1, -2)
 

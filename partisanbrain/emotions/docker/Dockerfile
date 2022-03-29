@@ -3,6 +3,8 @@ FROM huggingface/transformers-pytorch-gpu
 RUN pip3 install --upgrade pip
 RUN pip3 install ipython
 RUN pip3 install --upgrade transformers
+RUN pip3 install --upgrade torch
+RUN pip3 install sklearn
 RUN pip3 install openai
 RUN pip3 install pandas
 RUN pip3 install matplotlib

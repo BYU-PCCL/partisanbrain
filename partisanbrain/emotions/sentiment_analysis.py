@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
     args = parser.parse_args()
-    input_filename = "output/generated_sentences.csv"
+    input_filename = f"output/{args.emotion}.csv"
 
     classifier = SentimentClassifier(input_filename)
     classifier.classify_sentiment()
