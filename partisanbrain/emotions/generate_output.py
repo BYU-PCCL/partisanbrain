@@ -9,7 +9,7 @@ import argparse
 
 N_NEURONS = 100
 BATCH_SIZE = 100
-N_SEQUENCES = 10000
+N_SEQUENCES = 1000
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -45,14 +45,10 @@ class Generator:
         return outputs
 
     def generate_samples(
-        self,
-        prompt,
-        output_filename,
-        n_sequences=N_SEQUENCES,
-        neurons=N_NEURONS
+        self, prompt, output_filename, n_sequences=N_SEQUENCES, n_neurons=N_NEURONS
     ):
         neurons_per_layer = select_neurons_per_layer(
-            n_neurons=N_NEURONS, method="correlation"
+            n_neurons=n_neurons, method="correlation"
         )
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
@@ -88,26 +84,25 @@ if __name__ == "__main__":
     model.eval()
 
     prompt = "I watched a new movie yesterday. I thought it was"
-    output_filename = "output/generated_sentences.csv"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--emotion", default="default")
     parser.add_argument("-p", "--percentile", type=float, default=0.8)
-    parser.add_argument(
-        "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
-    )
     parser.add_argument("-s", "--sentences", type=int, default=1000)
     parser.add_argument("-n", "--neurons", type=int, default=100)
     args = parser.parse_args()
+
+    output_filename = f"output/{args.emotion}.csv"
 
     generator = Generator(
         model,
         tokenizer,
         force_emotion=args.emotion,
         percentile=args.percentile,
-        layers=args.layers,
     )
     generator.generate_samples(
-        prompt=prompt, output_filename=output_filename, n_sequences=args.sentences,
-        neurons=args.neurons
+        prompt=prompt,
+        output_filename=output_filename,
+        n_sequences=args.sentences,
+        neurons=args.neurons,
     )
