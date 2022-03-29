@@ -22,7 +22,7 @@ class SentimentClassifier:
         self.mod_df["sentiment"] = sentiments
 
     def get_value_counts(self):
-        return self.mod_df.sentiment.value_counts()
+        return self.mod_df[mod_df["label"] == 1].sentiment.value_counts()
 
 
 if __name__ == "__main__":
