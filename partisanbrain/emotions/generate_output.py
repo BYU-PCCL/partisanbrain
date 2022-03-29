@@ -104,5 +104,5 @@ if __name__ == "__main__":
         prompt=prompt,
         output_filename=output_filename,
         n_sequences=args.sentences,
-        neurons=args.neurons,
+        n_neurons=args.neurons,
     )
