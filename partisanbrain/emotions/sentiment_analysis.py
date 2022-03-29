@@ -8,8 +8,8 @@ DEVICE = 0 if torch.cuda.is_available() else None
 
 
 class SentimentClassifier:
-    def __init__(self, input_filename):
-        self.df = pd.read_csv(input_filename)
+    def __init__(self, input_filename=None, df=None):
+        self.df = df if df else pd.read_csv(input_filename)
         self.mod_df = self.df.copy()
         self.classifier = pipeline("sentiment-analysis", device=DEVICE)
 

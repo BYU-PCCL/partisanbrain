@@ -9,7 +9,8 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class PerplexityAnalyzer:
-    def __init__(self, model, tokenizer):
+    def __init__(self, model, tokenizer, df=None, filename=None):
+        self.df = df if df else pd.read_csv(filename)
         self.model = model
         self.tokenizer = tokenizer
 
@@ -19,12 +20,23 @@ class PerplexityAnalyzer:
             for i, token_index in enumerate(input.squeeze()[1:])
         ]
 
-    def process_sentence(self, sentence):
+    def process_sentence(
+        self,
+        sentence,
+        neurons_per_layer=None,
+        force_emotion=None,
+        force_with=None,
+    ):
         input = self.tokenizer.encode(sentence.strip(), return_tensors="pt")
         input = input.to(DEVICE)
 
         with torch.no_grad():
-            output = self.model(input)
+            output = self.model(
+                input,
+                neurons_per_layer=neurons_per_layer,
+                force_emotion=force_emotion,
+                force_with=force_with,
+            )
 
         log_probs = torch.nn.functional.log_softmax(output.logits, dim=2)
         likelihood_sequence = self.get_likelihood_sequence(input, log_probs)
@@ -38,14 +50,22 @@ class PerplexityAnalyzer:
 
         return perplexity
 
-    def get_average_perplexity(self, filename):
-        df = pd.read_csv(filename)
-
+    def get_average_perplexity(
+        self,
+        neurons_per_layer=None,
+        force_emotion=None,
+        force_with=None,
+    ):
         perplexities = []
-        for i, row in df.iterrows():
-            likelihood = self.process_sentence(row.sentence)
-            preplexity = self.get_perplexity(likelihood)
-            perplexities.append(preplexity)
+        for i, row in self.df.iterrows():
+            likelihood = self.process_sentence(
+                row.sentence,
+                neurons_per_layer=neurons_per_layer,
+                force_emotion=force_emotion,
+                force_with=force_with,
+            )
+            perplexity = self.get_perplexity(likelihood)
+            perplexities.append(perplexity)
 
         return np.mean(perplexities)
 

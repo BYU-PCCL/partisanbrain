@@ -15,42 +15,59 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Generator:
     def __init__(
-        self, model, tokenizer, force_emotion="positive", percentile=0.8, layers=25
+        self,
+        model,
+        tokenizer,
+        neurons_per_layer=None,
+        force_emotion="positive",
+        percentile=0.8,
+        force_with="per_neuron",
     ):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
         self.percentile = percentile
-        self.layers = layers
+        self.force_with = force_with
+        self.neurons_per_layer = (
+            neurons_per_layer
+            if neurons_per_layer
+            else select_neurons_per_layer(percentile=self.percentile)
+        )
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
 
-    def write_output(self, filename, outputs, labels):
+    def get_df(self, outputs, labels):
         sentences = [self.convert_to_text(output) for output in outputs]
         df = pd.DataFrame(
             data=np.array([labels, sentences]).T, columns=["label", "sentence"]
         )
+        return df
+
+    def write_output(self, filename, outputs, labels):
+        df = self.get_df(outputs, labels)
         df.to_csv(filename, index=False)
 
-    def generate(self, input, n_sequences=N_SEQUENCES, neurons_per_layer=None):
+    def generate(self, input, n_sequences=N_SEQUENCES):
         outputs = self.model.generate(
             input,
             max_length=30,
             do_sample=True,
             num_return_sequences=n_sequences,
             early_stopping=True,
-            neurons_per_layer=neurons_per_layer,
+            neurons_per_layer=self.neurons_per_layer,
+            force_emotion=self.force_emotion,
+            force_with=self.force_with,
         )
         return outputs
 
     def generate_samples(
-        self, prompt, output_filename, n_sequences=N_SEQUENCES, n_neurons=N_NEURONS
+        self,
+        prompt,
+        output_filename=None,
+        n_sequences=N_SEQUENCES,
+        n_neurons=N_NEURONS,
     ):
-        neurons_per_layer = select_neurons_per_layer(
-            n_neurons=n_neurons, method="correlation"
-        )
-
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
 
@@ -65,7 +82,6 @@ class Generator:
             altered_outputs = self.generate(
                 input=input,
                 n_sequences=gen_sequences,
-                neurons_per_layer=neurons_per_layer,
             )
 
             normal_list.append(normal_outputs.cpu())
@@ -74,7 +90,11 @@ class Generator:
         outputs = torch.concat([*normal_list, *altered_list], dim=0)
         labels = [0] * n_sequences + [1] * n_sequences
 
-        self.write_output(output_filename, outputs, labels)
+        if output_filename:
+            self.write_output(output_filename, outputs, labels)
+
+        df = self.get_df(outputs, labels)
+        return df
 
 
 if __name__ == "__main__":
@@ -104,5 +124,5 @@ if __name__ == "__main__":
         prompt=prompt,
         output_filename=output_filename,
         n_sequences=args.sentences,
-        neurons=args.neurons,
+        n_neurons=args.neurons,
     )

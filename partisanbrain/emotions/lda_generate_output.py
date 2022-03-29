@@ -15,31 +15,44 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Generator:
     def __init__(
-        self, model, tokenizer, force_emotion="positive", percentile=0.8, layers=25
+        self,
+        model,
+        tokenizer,
+        neurons_per_layer=None,
+        force_emotion="positive",
+        force_with="correlation",
+        percentile=0.8,
+        layers=25,
     ):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
+        self.force_with = force_with
         self.percentile = percentile
         self.layers = layers
+        self.neurons_per_layer = neurons_per_layer
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
 
-    def write_output(self, filename, outputs):
+    def make_series(self, outputs):
         sentences = [self.convert_to_text(output) for output in outputs]
-        series = pd.Series(name="sentence", data=sentences)
+        return pd.Series(name="sentence", data=sentences)
+
+    def write_output(self, filename, outputs):
+        series = self.make_series(outputs)
         series.to_csv(filename, index=False)
 
-    def generate(self, input, n_sequences=N_SEQUENCES, neurons_per_layer=None):
+    def generate(self, input, n_sequences=N_SEQUENCES):
         outputs = self.model.generate(
             input,
             max_length=30,
             do_sample=True,
             num_return_sequences=n_sequences,
             early_stopping=True,
-            neurons_per_layer=neurons_per_layer,
+            neurons_per_layer=self.neurons_per_layer,
             force_emotion=self.force_emotion,
+            force_with=self.force_with,
         )
         return outputs
 
@@ -49,16 +62,13 @@ class Generator:
         output_filename,
         n_sequences=N_SEQUENCES,
     ):
-        lda_selector = LdaNeuronSelector(
-            filename="output/output.npz", device=DEVICE, percentile=self.percentile
-        )
-
-        if self.force_emotion != "default":
-            neurons_per_layer = lda_selector.get_lda_neurons_per_layer(
+        if self.neurons_per_layer is None and self.force_emotion != "default":
+            lda_selector = LdaNeuronSelector(
+                filename="output/output.npz", device=DEVICE, percentile=self.percentile
+            )
+            self.neurons_per_layer = lda_selector.get_lda_neurons_per_layer(
                 layers=self.layers
             )
-        else:
-            neurons_per_layer = None
 
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
@@ -79,14 +89,17 @@ class Generator:
                 n_sequences=(
                     gen_sequences if i < n_batches - 1 else final_batch_sequences
                 ),
-                neurons_per_layer=neurons_per_layer,
             )
 
             outputs.append(batch_outputs.cpu())
 
         outputs = torch.concat(outputs, dim=0)
 
-        self.write_output(output_filename, outputs)
+        series = self.make_series(outputs)
+        if output_filename:
+            self.write_output(output_filename, outputs)
+
+        return series
 
 
 if __name__ == "__main__":

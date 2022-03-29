@@ -28,15 +28,14 @@ def pca_transform(X, dim=1):
 
 
 def do_corr(layer, activations, targets):
-    corrs = []
-    for ind in range(activations.shape[2]):
-        result = np.corrcoef(targets[:, 0], activations[:, layer, ind])
-        corrs.append(result[0, 1])
-    return corrs
+    return [
+        np.corrcoef(targets[:, 0], activations[:, layer, ind])[0, 1]
+        for ind in range(activations.shape[2])
+    ]
 
 
 def do_log_reg(activations, targets):
-    # do we want to make layer a paramter?, or do all layers at a time?
+    # do we want to make layer a parameter?, or do all layers at a time?
     # obtains and returns accuracies for logistic regressions
     accs = []
     activations = activations.reshape(-1, np.prod(activations.shape[1:]))
@@ -63,51 +62,31 @@ def get_samples(filename=FILENAME):
 
 
 def get_corrs(X, y):
-    corrs = []
-    for layer in range(MODEL_SHAPE[0]):
-        corr = do_corr(layer, X, y)
-        corrs.append(corr)
-
-    return np.array(corrs)
+    return np.array([do_corr(layer, X, y) for layer in range(MODEL_SHAPE[0])])
 
 
-def get_force_values(
-    neuron_index, pos_samples, neg_samples, force_to="mean", percentile=0.25
-):
+def get_force_values(neuron_index, pos_samples, neg_samples, percentile=0.75):
     pos_sample = pos_samples[neuron_index]
     neg_sample = neg_samples[neuron_index]
 
-    if force_to == "mean":
-        pos_activation = pos_sample.mean()
-        neg_activation = neg_sample.mean()
-    elif force_to == "extreme":
-        if pos_sample.mean() < neg_sample.mean():
-            pos_activation = pos_sample.min()
-            neg_activation = neg_sample.max()
-        else:
-            pos_activation = pos_sample.max()
-            neg_activation = neg_sample.min()
-    elif force_to == "quantile":
-        if pos_sample.mean() < neg_sample.mean():
-            pos_activation = np.quantile(pos_sample, percentile)
-            neg_activation = np.quantile(neg_sample, 1 - percentile)
-        else:
-            pos_activation = np.quantile(pos_sample, 1 - percentile)
-            neg_activation = np.quantile(neg_sample, percentile)
+    if pos_sample.mean() < neg_sample.mean():
+        pos_activation = np.quantile(pos_sample, 1 - percentile)
+        neg_activation = np.quantile(neg_sample, percentile)
     else:
-        raise ValueError("force_to must be 'mean', 'extreme', or 'quantile'")
+        pos_activation = np.quantile(pos_sample, percentile)
+        neg_activation = np.quantile(neg_sample, 1 - percentile)
 
     return pos_activation, neg_activation
 
 
-def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples, force_to):
+def get_neurons_per_layer(neuron_indices, pos_samples, neg_samples, percentile):
     neurons_per_layer = {}
     for neuron_index in neuron_indices:
         layer, neuron = np.unravel_index(neuron_index, MODEL_SHAPE)
         layer, neuron = int(layer), int(neuron)
 
         pos_activation, neg_activation = get_force_values(
-            neuron_index, pos_samples, neg_samples, force_to=force_to
+            neuron_index, pos_samples, neg_samples, percentile=percentile
         )
 
         neuron_dict = {
@@ -128,7 +107,7 @@ def select_neurons_per_layer(
     n_neurons=N_NEURONS,
     method="correlation",
     sample_info=None,
-    force_to="extreme",
+    percentile=0.75,
 ):
     if sample_info is None:
         X, y, samples, pos_samples, neg_samples = get_samples(filename)
@@ -151,8 +130,7 @@ def select_neurons_per_layer(
         raise ValueError("method must equal either 'random' or 'correlation'")
 
     neurons_per_layer = get_neurons_per_layer(
-        neuron_indices, pos_samples, neg_samples, force_to=force_to
+        neuron_indices, pos_samples, neg_samples, percentile=percentile
     )
 
     return neurons_per_layer
-
