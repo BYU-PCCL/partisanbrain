@@ -15,7 +15,7 @@
 # limitations under the License.
 """PyTorch OpenAI GPT-2 model."""
 
-# IMPORTANT: The two things I added to this file are neurons_per_layer and force_emotion
+# IMPORTANT: The two things I added to this file are neurons_per_layer, force_emotion, force_with
 
 import math
 import os
@@ -793,6 +793,7 @@ class GPT2Model(GPT2PreTrainedModel):
         return_dict=None,
         neurons_per_layer=None,
         force_emotion=None,
+        force_with=None,
     ):
         output_attentions = (
             output_attentions
@@ -968,10 +969,23 @@ class GPT2Model(GPT2PreTrainedModel):
                 if force_emotion is None:
                     force_emotion = "negative"
 
-                for neuron_dict in neuron_dicts:
-                    hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
-                        force_emotion
-                    ]
+                if force_with is None:
+                    force_with = "per_neuron"
+
+                if force_with == "per_neuron":
+                    for neuron_dict in neuron_dicts:
+                        hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
+                            force_emotion
+                        ]
+                elif force_with == "transform":
+                    # Add PCA here
+                    pass
+                elif force_with == "projection":
+                    # For LDA
+                    projection = neuron_dict["projection"]
+                    value = neuron_dict[force_emotion]
+                    weights = value - (hidden_states @ projection)
+                    hidden_states += weights * projection.transpose(-1, -2)
 
             if use_cache is True:
                 presents = presents + (outputs[1],)
@@ -1073,7 +1087,13 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         self.lm_head = new_embeddings
 
     def prepare_inputs_for_generation(
-        self, input_ids, past=None, neurons_per_layer=None, force_emotion=None, **kwargs
+        self,
+        input_ids,
+        past=None,
+        neurons_per_layer=None,
+        force_emotion=None,
+        force_with=None,
+        **kwargs,
     ):
         token_type_ids = kwargs.get("token_type_ids", None)
         # only last token for inputs_ids if past is defined in kwargs
@@ -1102,6 +1122,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             "token_type_ids": token_type_ids,
             "neurons_per_layer": neurons_per_layer,
             "force_emotion": force_emotion,
+            "force_with": force_with,
         }
 
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
@@ -1129,6 +1150,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         return_dict=None,
         neurons_per_layer=None,
         force_emotion=None,
+        force_with=None,
     ):
         r"""
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
@@ -1156,6 +1178,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             return_dict=return_dict,
             neurons_per_layer=neurons_per_layer,
             force_emotion=force_emotion,
+            force_with=force_with,
         )
         hidden_states = transformer_outputs[0]
 
