@@ -9,6 +9,7 @@ from gpt2 import GPT2LMHeadModel
 import torch
 from perplexity import PerplexityAnalyzer
 import pandas as pd
+from tqdm import tqdm
 
 torch.manual_seed(0)
 
@@ -58,6 +59,7 @@ selection_method_to_force_with = {
 }
 
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
+tokenizer.padding_token = tokenizer.eos_token
 model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
 model.to(DEVICE)
 model.eval()
@@ -75,7 +77,7 @@ perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df.samp
 
 results = []
 neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
-for params in ParameterGrid(hyperparams):
+for params in tqdm(ParameterGrid(hyperparams)):
     neuron_selector.set_samples(X=X, y=y)
     neurons_per_layer = neuron_selector.get_neurons_per_layer(
         n_neurons=params["n_neurons"],
@@ -110,7 +112,7 @@ for params in ParameterGrid(hyperparams):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_filename = f"output/hyperparams/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"
+    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"
     classifier.mod_df.to_csv(output_filename, index=False)
 
     res_dict = {
@@ -121,11 +123,11 @@ for params in ParameterGrid(hyperparams):
     }
 
     results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparams/results.csv", index=False)
+    pd.DataFrame(results).to_csv("output/hyperparam/results.csv", index=False)
 
 results = []
 lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
-for params in ParameterGrid(lda_hyperparams):
+for params in tqdm(ParameterGrid(lda_hyperparams)):
     neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
         n_layers=params["n_layers"],
         percentile=params["percentile"],
@@ -159,7 +161,7 @@ for params in ParameterGrid(lda_hyperparams):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_filename = f"output/hyperparams/dfs/{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
+    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
     classifier.mod_df.to_csv(output_filename, index=False)
 
     res_dict = {
@@ -170,4 +172,4 @@ for params in ParameterGrid(lda_hyperparams):
     }
 
     results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparams/lda_results.csv", index=False)
+    pd.DataFrame(results).to_csv("output/hyperparam/lda_results.csv", index=False)
