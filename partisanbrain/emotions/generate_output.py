@@ -1,4 +1,3 @@
-from neuron_selection import select_neurons_per_layer
 from gpt2 import GPT2LMHeadModel
 from transformers import GPT2Tokenizer
 import numpy as np
