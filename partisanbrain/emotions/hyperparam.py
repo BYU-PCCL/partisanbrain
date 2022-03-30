@@ -10,7 +10,7 @@ import torch
 from perplexity import PerplexityAnalyzer
 import pandas as pd
 
-torch.seed(0)
+torch.manual_seed(0)
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 FORCE_EMOTION = "negative"
