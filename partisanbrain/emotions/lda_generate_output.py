@@ -18,30 +18,26 @@ class Generator:
         self,
         model,
         tokenizer,
-        neurons_per_layer=None,
+        neurons_per_layer,
         force_emotion="positive",
         force_with="correlation",
-        percentile=0.8,
-        layers=25,
     ):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
         self.force_with = force_with
-        self.percentile = percentile
-        self.layers = layers
         self.neurons_per_layer = neurons_per_layer
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
 
-    def make_series(self, outputs):
+    def make_df(self, outputs):
         sentences = [self.convert_to_text(output) for output in outputs]
-        return pd.Series(name="sentence", data=sentences)
+        return pd.DataFrame(columns=["sentence"], data=sentences)
 
     def write_output(self, filename, outputs):
-        series = self.make_series(outputs)
-        series.to_csv(filename, index=False)
+        df = self.make_df(outputs)
+        df.to_csv(filename, index=False)
 
     def generate(self, input, n_sequences=N_SEQUENCES):
         outputs = self.model.generate(
@@ -59,17 +55,9 @@ class Generator:
     def generate_samples(
         self,
         prompt,
-        output_filename,
+        output_filename=None,
         n_sequences=N_SEQUENCES,
     ):
-        if self.neurons_per_layer is None and self.force_emotion != "default":
-            lda_selector = LdaNeuronSelector(
-                filename="output/output.npz", device=DEVICE, percentile=self.percentile
-            )
-            self.neurons_per_layer = lda_selector.get_lda_neurons_per_layer(
-                layers=self.layers
-            )
-
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
 
@@ -95,41 +83,41 @@ class Generator:
 
         outputs = torch.concat(outputs, dim=0)
 
-        series = self.make_series(outputs)
+        df = self.make_df(outputs)
         if output_filename:
             self.write_output(output_filename, outputs)
 
-        return series
+        return df
 
 
-if __name__ == "__main__":
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
-    model = GPT2LMHeadModel.from_pretrained(
-        "gpt2-xl", pad_token_id=tokenizer.eos_token_id
-    )
-    model.to(DEVICE)
-    model.eval()
+# if __name__ == "__main__":
+#     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
+#     model = GPT2LMHeadModel.from_pretrained(
+#         "gpt2-xl", pad_token_id=tokenizer.eos_token_id
+#     )
+#     model.to(DEVICE)
+#     model.eval()
 
-    # prompt = "I watched a new movie yesterday. I thought it was"
-    prompt = "Review:"
+#     # prompt = "I watched a new movie yesterday. I thought it was"
+#     prompt = "Review:"
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--emotion", default="default")
-    parser.add_argument("-p", "--percentile", type=float, default=0.8)
-    parser.add_argument(
-        "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
-    )
-    parser.add_argument("-s", "--sentences", type=int, default=1000)
-    args = parser.parse_args()
-    output_filename = f"output/{args.emotion}.csv"
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("-e", "--emotion", default="default")
+#     parser.add_argument("-p", "--percentile", type=float, default=0.8)
+#     parser.add_argument(
+#         "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
+#     )
+#     parser.add_argument("-s", "--sentences", type=int, default=1000)
+#     args = parser.parse_args()
+#     output_filename = f"output/{args.emotion}.csv"
 
-    generator = Generator(
-        model,
-        tokenizer,
-        force_emotion=args.emotion,
-        percentile=args.percentile,
-        layers=args.layers,
-    )
-    generator.generate_samples(
-        prompt=prompt, output_filename=output_filename, n_sequences=args.sentences
-    )
+#     generator = Generator(
+#         model,
+#         tokenizer,
+#         force_emotion=args.emotion,
+#         percentile=args.percentile,
+#         layers=args.layers,
+#     )
+#     generator.generate_samples(
+#         prompt=prompt, output_filename=output_filename, n_sequences=args.sentences
+#     )

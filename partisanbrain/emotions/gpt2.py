@@ -979,8 +979,16 @@ class GPT2Model(GPT2PreTrainedModel):
                             force_emotion
                         ]
                 elif force_with == "transform":
-                    # Add PCA here
-                    pass
+                    # For PCA
+                    transform = neuron_dicts[0]["transform"]
+                    hidden_states = hidden_states @ transform
+
+                    for neuron_dict in neuron_dicts:
+                        hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
+                            force_emotion
+                        ]
+
+                    hidden_states = hidden_states @ transform.T
                 elif force_with == "projection":
                     # For LDA
                     projection = neuron_dicts["projection"]

@@ -10,7 +10,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class PerplexityAnalyzer:
     def __init__(self, model, tokenizer, df=None, filename=None):
-        self.df = df if df else pd.read_csv(filename)
+        self.df = df if df is not None else pd.read_csv(filename)
         self.model = model
         self.tokenizer = tokenizer
 
