@@ -1,12 +1,9 @@
-from gpt2 import GPT2LMHeadModel
-from transformers import GPT2Tokenizer
 import numpy as np
 import pandas as pd
 import torch
 import argparse
 
 
-N_NEURONS = 100
 BATCH_SIZE = 100
 N_SEQUENCES = 1000
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -17,34 +14,25 @@ class Generator:
         self,
         model,
         tokenizer,
-        neurons_per_layer=None,
+        neurons_per_layer,
         force_emotion="positive",
-        percentile=0.8,
-        force_with="per_neuron",
+        force_with="correlation",
     ):
         self.model = model
         self.tokenizer = tokenizer
         self.force_emotion = force_emotion
-        self.percentile = percentile
         self.force_with = force_with
-        self.neurons_per_layer = (
-            neurons_per_layer
-            if neurons_per_layer
-            else select_neurons_per_layer(percentile=self.percentile)
-        )
+        self.neurons_per_layer = neurons_per_layer
 
     def convert_to_text(self, output):
         return self.tokenizer.decode(output, skip_special_tokens=True)
 
-    def get_df(self, outputs, labels):
+    def make_df(self, outputs):
         sentences = [self.convert_to_text(output) for output in outputs]
-        df = pd.DataFrame(
-            data=np.array([labels, sentences]).T, columns=["label", "sentence"]
-        )
-        return df
+        return pd.DataFrame(columns=["sentence"], data=sentences)
 
-    def write_output(self, filename, outputs, labels):
-        df = self.get_df(outputs, labels)
+    def write_output(self, filename, outputs):
+        df = self.make_df(outputs)
         df.to_csv(filename, index=False)
 
     def generate(self, input, n_sequences=N_SEQUENCES):
@@ -65,63 +53,67 @@ class Generator:
         prompt,
         output_filename=None,
         n_sequences=N_SEQUENCES,
-        n_neurons=N_NEURONS,
     ):
         input = self.tokenizer.encode(prompt.strip(), return_tensors="pt")
         input = input.to(DEVICE)
 
-        normal_list = []
-        altered_list = []
-
         n_batches = n_sequences // BATCH_SIZE
         gen_sequences = min(n_sequences, BATCH_SIZE)
 
+        final_batch_sequences = n_sequences % BATCH_SIZE
+        if final_batch_sequences == 0:
+            final_batch_sequences = BATCH_SIZE
+        else:
+            n_batches += 1
+
+        outputs = []
         for i in range(n_batches):
-            normal_outputs = self.generate(input=input, n_sequences=gen_sequences)
-            altered_outputs = self.generate(
+            batch_outputs = self.generate(
                 input=input,
-                n_sequences=gen_sequences,
+                n_sequences=(
+                    gen_sequences if i < n_batches - 1 else final_batch_sequences
+                ),
             )
 
-            normal_list.append(normal_outputs.cpu())
-            altered_list.append(altered_outputs.cpu())
+            outputs.append(batch_outputs.cpu())
 
-        outputs = torch.concat([*normal_list, *altered_list], dim=0)
-        labels = [0] * n_sequences + [1] * n_sequences
+        outputs = torch.concat(outputs, dim=0)
 
+        df = self.make_df(outputs)
         if output_filename:
-            self.write_output(output_filename, outputs, labels)
+            self.write_output(output_filename, outputs)
 
-        df = self.get_df(outputs, labels)
         return df
 
 
-if __name__ == "__main__":
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
-    model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
-    model.to(DEVICE)
-    model.eval()
+# if __name__ == "__main__":
+#     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
+#     model = GPT2LMHeadModel.from_pretrained(
+#         "gpt2-xl", pad_token_id=tokenizer.eos_token_id
+#     )
+#     model.to(DEVICE)
+#     model.eval()
 
-    prompt = "I watched a new movie yesterday. I thought it was"
+#     # prompt = "I watched a new movie yesterday. I thought it was"
+#     prompt = "Review:"
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--emotion", default="default")
-    parser.add_argument("-p", "--percentile", type=float, default=0.8)
-    parser.add_argument("-s", "--sentences", type=int, default=1000)
-    parser.add_argument("-n", "--neurons", type=int, default=100)
-    args = parser.parse_args()
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("-e", "--emotion", default="default")
+#     parser.add_argument("-p", "--percentile", type=float, default=0.8)
+#     parser.add_argument(
+#         "-l", "--layers", nargs="+", type=int, default=list(range(25, 49))
+#     )
+#     parser.add_argument("-s", "--sentences", type=int, default=1000)
+#     args = parser.parse_args()
+#     output_filename = f"output/{args.emotion}.csv"
 
-    output_filename = f"output/{args.emotion}.csv"
-
-    generator = Generator(
-        model,
-        tokenizer,
-        force_emotion=args.emotion,
-        percentile=args.percentile,
-    )
-    generator.generate_samples(
-        prompt=prompt,
-        output_filename=output_filename,
-        n_sequences=args.sentences,
-        n_neurons=args.neurons,
-    )
+#     generator = Generator(
+#         model,
+#         tokenizer,
+#         force_emotion=args.emotion,
+#         percentile=args.percentile,
+#         layers=args.layers,
+#     )
+#     generator.generate_samples(
+#         prompt=prompt, output_filename=output_filename, n_sequences=args.sentences
+#     )

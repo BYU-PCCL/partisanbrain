@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.model_selection import ParameterGrid
 from generate_output import Generator
-from lda_generate_output import Generator as LdaGenerator
 from neuron_selection import NeuronSelector
 from lda_neuron_selection import LdaNeuronSelector
 from sentiment_analysis import SentimentClassifier
@@ -52,7 +51,7 @@ y = output["targets"].squeeze()
 
 perplexity_df = pd.read_csv("data/wiki.csv")
 
-neuron_selector = NeuronSelector(filename="output/output.npz", device=DEVICE)
+neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
 for params in ParameterGrid(hyperparams):
     neuron_selector.set_samples(X=X, y=y)
     neurons_per_layer = neuron_selector.get_neurons_per_layer(
@@ -66,14 +65,12 @@ for params in ParameterGrid(hyperparams):
         model,
         tokenizer,
         force_emotion=FORCE_EMOTION,
-        percentile=params["percentile"],
         neurons_per_layer=neurons_per_layer,
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
     df = generator.generate_samples(
         prompt=prompt,
         n_sequences=1000,
-        n_neurons=params["n_neurons"],
     )
 
     # Classify the sentiment of the generated sentences
@@ -96,12 +93,13 @@ for params in ParameterGrid(lda_hyperparams):
         percentile=params["percentile"],
         method=params["layer_selection_method"],
     )
+
     # Generate 1000 sentences
-    generator = LdaGenerator(
+    generator = Generator(
         model,
         tokenizer,
-        neurons_per_layer=neurons_per_layer,
         force_emotion=FORCE_EMOTION,
+        neurons_per_layer=neurons_per_layer,
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
     df = generator.generate_samples(
