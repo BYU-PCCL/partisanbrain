@@ -5,6 +5,7 @@ from gpt2 import GPT2LMHeadModel
 from transformers import GPT2Tokenizer
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+BATCH_SIZE = 5
 
 
 class PerplexityAnalyzer:
@@ -12,6 +13,7 @@ class PerplexityAnalyzer:
         self.df = df if df is not None else pd.read_csv(filename)
         self.model = model
         self.tokenizer = tokenizer
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
     def get_likelihood_sequence(self, input, log_probs):
         return [
@@ -26,7 +28,7 @@ class PerplexityAnalyzer:
         force_emotion=None,
         force_with=None,
     ):
-        input = self.tokenizer.encode(sentence.strip(), return_tensors="pt")
+        input = self.tokenizer.encode(sentence, return_tensors="pt")
         input = input.to(DEVICE)
 
         with torch.no_grad():
@@ -69,14 +71,14 @@ class PerplexityAnalyzer:
         return np.mean(perplexities)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
-    model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
+#     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
+#     model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
 
-    perp_analyzer = PerplexityAnalyzer(model, tokenizer)
-    filename = "data/wiki.csv"
+#     perp_analyzer = PerplexityAnalyzer(model, tokenizer)
+#     filename = "data/wiki.csv"
 
-    avg_perplexity = perp_analyzer.get_average_perplexity(filename)
+#     avg_perplexity = perp_analyzer.get_average_perplexity(filename)
 
-    print(avg_perplexity)
+#     print(avg_perplexity)

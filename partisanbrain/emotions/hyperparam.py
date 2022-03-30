@@ -10,6 +10,8 @@ import torch
 from perplexity import PerplexityAnalyzer
 import pandas as pd
 
+torch.seed(0)
+
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 FORCE_EMOTION = "negative"
 
@@ -50,7 +52,9 @@ X = output["activations"]
 y = output["targets"].squeeze()
 
 perplexity_df = pd.read_csv("data/wiki.csv")
+perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df)
 
+results = []
 neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
 for params in ParameterGrid(hyperparams):
     neuron_selector.set_samples(X=X, y=y)
@@ -74,18 +78,32 @@ for params in ParameterGrid(hyperparams):
     )
 
     # Classify the sentiment of the generated sentences
-    classifier = SentimentClassifier(df)
+    classifier = SentimentClassifier(df=df)
     classifier.classify_sentiment()
-    value_counts = df.get_value_counts()
+    value_counts = classifier.get_value_counts()
+    n_negative = value_counts.NEGATIVE
 
     # Measure the perplexity
-    perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df)
     average_perplexity = perplexity_analyzer.get_average_perplexity(
         neurons_per_layer=neurons_per_layer,
         force_emotion=FORCE_EMOTION,
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
+    output_filename = f"output/hyperparams/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"
+    classifier.mod_df.to_csv(output_filename, index=False)
+
+    res_dict = {
+        **params,
+        "n_negative": n_negative,
+        "average_perplexity": average_perplexity,
+        "output_filename": output_filename,
+    }
+
+    results.append(res_dict)
+    pd.DataFrame(results).to_csv("output/hyperparams/results.csv", index=False)
+
+results = []
 lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
 for params in ParameterGrid(lda_hyperparams):
     neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
@@ -108,14 +126,27 @@ for params in ParameterGrid(lda_hyperparams):
     )
 
     # Classify the sentiment of the generated sentences
-    classifier = SentimentClassifier(df)
+    classifier = SentimentClassifier(df=df)
     classifier.classify_sentiment()
-    value_counts = df.get_value_counts()
+    value_counts = classifier.get_value_counts()
+    n_negative = value_counts.NEGATIVE
 
     # Measure the perplexity
-    perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df)
     average_perplexity = perplexity_analyzer.get_average_perplexity(
         neurons_per_layer=neurons_per_layer,
         force_emotion=FORCE_EMOTION,
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
+
+    output_filename = f"output/hyperparams/dfs/{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
+    classifier.mod_df.to_csv(output_filename, index=False)
+
+    res_dict = {
+        **params,
+        "n_negative": n_negative,
+        "average_perplexity": average_perplexity,
+        "output_filename": output_filename,
+    }
+
+    results.append(res_dict)
+    pd.DataFrame(results).to_csv("output/hyperparams/lda_results.csv", index=False)
