@@ -78,7 +78,8 @@ perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df.samp
 results = []
 neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
 for params in tqdm(ParameterGrid(hyperparams)):
-    neuron_selector.set_samples(X=X, y=y)
+    if not params["selection_method"].startswith("pca"):
+        neuron_selector.set_samples(X=X, y=y)
     neurons_per_layer = neuron_selector.get_neurons_per_layer(
         n_neurons=params["n_neurons"],
         percentile=params["percentile"],
