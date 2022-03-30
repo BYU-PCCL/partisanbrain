@@ -9,7 +9,9 @@ from gpt2 import GPT2LMHeadModel
 import torch
 from perplexity import PerplexityAnalyzer
 import pandas as pd
+import random
 
+random.seed(0)
 torch.manual_seed(0)
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
