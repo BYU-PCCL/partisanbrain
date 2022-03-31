@@ -74,10 +74,10 @@ class LdaNeuronSelector:
         return np.argsort(accs)[::-1]
 
     def select_with_correlation(self):
-        corrs = [np.corrcoef(self.y, dist)[0, 1] for dist in self.dists]
+        corrs = [np.corrcoef(self.y, dist.squeeze())[0, 1] for dist in self.dists]
         return np.argsort(corrs)[::-1]
 
-    def select_layers(self, method, n_layers):
+    def set_projections_and_dists(self):
         self.projections = []
         self.dists = []
         lda = LinearDiscriminantAnalysis()
@@ -91,6 +91,10 @@ class LdaNeuronSelector:
 
             self.dists.append(dist)
             self.projections.append(projection)
+
+    def select_layers(self, method, n_layers):
+        if not hasattr(self, "projections") or not hasattr(self, "dists"):
+            self.set_projections_and_dists()
 
         if method == "correlation":
             layer_rankings = self.select_with_correlation()

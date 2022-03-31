@@ -16,16 +16,37 @@ torch.manual_seed(0)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 FORCE_EMOTION = "negative"
 
-# hyperparams = {
-#     "selection_method": [
-#         "correlation",
-#         "logistic_regression",
-#         "pca_correlation",
-#         "pca_log_reg",
-#     ],
-#     "n_neurons": [100, 200, 500, 1000, 5000],
-#     "percentile": [0.5, 0.8, 1],
-# }
+# We have to structure it like this to optimize our runtime
+# hyperparams = [
+#     {
+#         "selection_method": [
+#             "correlation",
+#         ],
+#         "n_neurons": [100, 200, 500, 1000, 5000],
+#         "percentile": [0.5, 0.8, 1],
+#     },
+#     {
+#         "selection_method": [
+#             "logistic_regression",
+#         ],
+#         "n_neurons": [100, 200, 500, 1000, 5000],
+#         "percentile": [0.5, 0.8, 1],
+#     },
+#     {
+#         "selection_method": [
+#             "pca_correlation",
+#         ],
+#         "n_neurons": [100, 200, 500, 1000, 5000],
+#         "percentile": [0.5, 0.8, 1],
+#     },
+#     {
+#         "selection_method": [
+#             "pca_log_reg",
+#         ],
+#         "n_neurons": [100, 200, 500, 1000, 5000],
+#         "percentile": [0.5, 0.8, 1],
+#     },
+# ]
 # lda_hyperparams = {
 #     "selection_method": ["lda"],
 #     "layer_selection_method": ["correlation", "logistic_regression"],
