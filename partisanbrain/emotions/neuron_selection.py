@@ -55,17 +55,22 @@ class NeuronSelector:
             }
 
             if self.method.startswith("pca"):
-                transform = torch.tensor(self.transforms[layer], dtype=torch.float)
+                if layer in neurons_per_layer:
+                    neurons_per_layer[layer]["dicts"].append(neuron_dict)
+                else:
+                    transform = torch.tensor(self.transforms[layer], dtype=torch.float)
+                    if self.device:
+                        transform = transform.to(self.device)
 
-                # TODO maybe we should restructure this to only save one transform per layer
-                if self.device:
-                    transform = transform.to(self.device)
-                neuron_dict["transform"] = transform
-
-            if layer in neurons_per_layer:
-                neurons_per_layer[layer].append(neuron_dict)
+                    neurons_per_layer[layer] = {
+                        "transform": transform,
+                        "dicts": [neuron_dict],
+                    }
             else:
-                neurons_per_layer[layer] = [neuron_dict]
+                if layer in neurons_per_layer:
+                    neurons_per_layer[layer].append(neuron_dict)
+                else:
+                    neurons_per_layer[layer] = [neuron_dict]
         return neurons_per_layer
 
     def rank_neuron_indices(self, method):

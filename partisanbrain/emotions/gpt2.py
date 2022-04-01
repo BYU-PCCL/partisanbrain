@@ -980,10 +980,10 @@ class GPT2Model(GPT2PreTrainedModel):
                         ]
                 elif force_with == "transform":
                     # For PCA
-                    transform = neuron_dicts[0]["transform"]
+                    transform = neuron_dicts["transform"]
                     hidden_states = hidden_states @ transform
 
-                    for neuron_dict in neuron_dicts:
+                    for neuron_dict in neuron_dicts["dicts"]:
                         hidden_states[:, :, neuron_dict["neuron"]] = neuron_dict[
                             force_emotion
                         ]

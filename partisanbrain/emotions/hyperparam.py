@@ -32,20 +32,20 @@ hyperparams = [
         "n_neurons": [100, 200, 500, 1000, 5000],
         "percentile": [0.5, 0.8, 1],
     },
-    # {
-    #     "selection_method": [
-    #         "pca_correlation",
-    #     ],
-    #     "n_neurons": [100, 200, 500, 1000, 5000],
-    #     "percentile": [0.5, 0.8, 1],
-    # },
-    # {
-    #     "selection_method": [
-    #         "pca_log_reg",
-    #     ],
-    #     "n_neurons": [100, 200, 500, 1000, 5000],
-    #     "percentile": [0.5, 0.8, 1],
-    # },
+    {
+        "selection_method": [
+            "pca_correlation",
+        ],
+        "n_neurons": [100, 200, 500, 1000, 5000],
+        "percentile": [0.5, 0.8, 1],
+    },
+    {
+        "selection_method": [
+            "pca_log_reg",
+        ],
+        "n_neurons": [100, 200, 500, 1000, 5000],
+        "percentile": [0.5, 0.8, 1],
+    },
 ]
 lda_hyperparams = {
     "selection_method": ["lda"],
