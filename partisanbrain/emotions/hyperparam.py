@@ -18,41 +18,41 @@ FORCE_EMOTION = "negative"
 
 # We have to structure it like this to optimize our runtime
 hyperparams = [
-    {
-        "selection_method": [
-            "correlation",
-        ],
-        "n_neurons": [100, 200, 500, 1000, 5000],
-        "percentile": [0.5, 0.8, 1],
-    },
-    {
-        "selection_method": [
-            "logistic_regression",
-        ],
-        "n_neurons": [100, 200, 500, 1000, 5000],
-        "percentile": [0.5, 0.8, 1],
-    },
+    # {
+    #     "selection_method": [
+    #         "correlation",
+    #     ],
+    #     "n_neurons": [100, 200, 500, 1000, 5000],
+    #     "percentile": [0.5, 0.8, 1],
+    # },
+    # {
+    #     "selection_method": [
+    #         "logistic_regression",
+    #     ],
+    #     "n_neurons": [100, 200, 500, 1000, 5000],
+    #     "percentile": [0.5, 0.8, 1],
+    # },
     {
         "selection_method": [
             "pca_correlation",
         ],
-        "n_neurons": [100, 200, 500, 1000, 5000],
+        "n_neurons": [1, 2, 5, 10, 50],
         "percentile": [0.5, 0.8, 1],
     },
     {
         "selection_method": [
             "pca_log_reg",
         ],
-        "n_neurons": [100, 200, 500, 1000, 5000],
+        "n_neurons": [1, 2, 5, 10, 50],
         "percentile": [0.5, 0.8, 1],
     },
 ]
-lda_hyperparams = {
-    "selection_method": ["lda"],
-    "layer_selection_method": ["correlation", "logistic_regression"],
-    "n_layers": [1, 10, 25, 49],
-    "percentile": [0.5, 0.8, 1],
-}
+# lda_hyperparams = {
+#     "selection_method": ["lda"],
+#     "layer_selection_method": ["correlation", "logistic_regression"],
+#     "n_layers": [1, 10, 25, 49],
+#     "percentile": [0.5, 0.8, 1],
+# }
 
 selection_method_to_force_with = {
     "correlation": "per_neuron",
@@ -126,52 +126,52 @@ for params in tqdm(ParameterGrid(hyperparams)):
     }
 
     results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparam/results.csv", index=False)
+    pd.DataFrame(results).to_csv("output/hyperparam/pca_results.csv", index=False)
 
-results = []
-lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
-for params in tqdm(ParameterGrid(lda_hyperparams)):
-    neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
-        n_layers=params["n_layers"],
-        percentile=params["percentile"],
-        method=params["layer_selection_method"],
-    )
+# results = []
+# lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
+# for params in tqdm(ParameterGrid(lda_hyperparams)):
+#     neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
+#         n_layers=params["n_layers"],
+#         percentile=params["percentile"],
+#         method=params["layer_selection_method"],
+#     )
 
-    # Generate 1000 sentences
-    generator = Generator(
-        model,
-        tokenizer,
-        force_emotion=FORCE_EMOTION,
-        neurons_per_layer=neurons_per_layer,
-        force_with=selection_method_to_force_with[params["selection_method"]],
-    )
-    df = generator.generate_samples(
-        prompt=prompt,
-        n_sequences=1000,
-    )
+#     # Generate 1000 sentences
+#     generator = Generator(
+#         model,
+#         tokenizer,
+#         force_emotion=FORCE_EMOTION,
+#         neurons_per_layer=neurons_per_layer,
+#         force_with=selection_method_to_force_with[params["selection_method"]],
+#     )
+#     df = generator.generate_samples(
+#         prompt=prompt,
+#         n_sequences=1000,
+#     )
 
-    # Classify the sentiment of the generated sentences
-    classifier = SentimentClassifier(df=df)
-    classifier.classify_sentiment()
-    value_counts = classifier.get_value_counts()
-    n_negative = value_counts.NEGATIVE
+#     # Classify the sentiment of the generated sentences
+#     classifier = SentimentClassifier(df=df)
+#     classifier.classify_sentiment()
+#     value_counts = classifier.get_value_counts()
+#     n_negative = value_counts.NEGATIVE
 
-    # Measure the perplexity
-    average_perplexity = perplexity_analyzer.get_average_perplexity(
-        neurons_per_layer=neurons_per_layer,
-        force_emotion=FORCE_EMOTION,
-        force_with=selection_method_to_force_with[params["selection_method"]],
-    )
+#     # Measure the perplexity
+#     average_perplexity = perplexity_analyzer.get_average_perplexity(
+#         neurons_per_layer=neurons_per_layer,
+#         force_emotion=FORCE_EMOTION,
+#         force_with=selection_method_to_force_with[params["selection_method"]],
+#     )
 
-    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
-    classifier.mod_df.to_csv(output_filename, index=False)
+#     output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
+#     classifier.mod_df.to_csv(output_filename, index=False)
 
-    res_dict = {
-        **params,
-        "n_negative": n_negative,
-        "average_perplexity": average_perplexity,
-        "output_filename": output_filename,
-    }
+#     res_dict = {
+#         **params,
+#         "n_negative": n_negative,
+#         "average_perplexity": average_perplexity,
+#         "output_filename": output_filename,
+#     }
 
-    results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparam/lda_results.csv", index=False)
+#     results.append(res_dict)
+#     pd.DataFrame(results).to_csv("output/hyperparam/lda_results.csv", index=False)
