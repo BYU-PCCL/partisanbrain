@@ -156,3 +156,4 @@ survey/gss_exploration.ipynb
 *.png
 *.pkl
 *.sav
+nb_*.ipynb

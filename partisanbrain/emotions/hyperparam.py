@@ -36,14 +36,14 @@ hyperparams = [
         "selection_method": [
             "pca_correlation",
         ],
-        "n_neurons": [1, 2, 5, 10, 50],
+        "n_neurons": [1, 2, 5, 10, 20, 50],
         "percentile": [0.5, 0.8, 1],
     },
     {
         "selection_method": [
             "pca_log_reg",
         ],
-        "n_neurons": [1, 2, 5, 10, 50],
+        "n_neurons": [1, 2, 5, 10, 20, 50],
         "percentile": [0.5, 0.8, 1],
     },
 ]
