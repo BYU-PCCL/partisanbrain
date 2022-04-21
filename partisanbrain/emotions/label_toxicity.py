@@ -22,10 +22,15 @@ ATTRS = [
     "FLIRTATION",
 ]
 
+API_KEY = os.getenv("PERSPECTIVE_API_KEY")
+if API_KEY == None:
+    print("Please set the PERSPECTIVE_API_KEY environment variable")
+    sys.exit(1)
+
 client = discovery.build(
     "commentanalyzer",
     "v1alpha1",
-    developerKey=os.getenv("PERSPECTIVE_API_KEY"),
+    developerKey=API_KEY,
     discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
     static_discovery=False,
 )

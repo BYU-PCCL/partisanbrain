@@ -10,6 +10,7 @@ RUN pip3 install pandas
 RUN pip3 install matplotlib
 RUN pip3 install lifelines
 RUN pip3 install cmocean
+RUN pip3 install google-api-python-client
 RUN mkdir -p /partisanbrain/transformers_cache
 ENV TRANSFORMERS_CACHE=/partisanbrain/transformers_cache
 WORKDIR "/partisanbrain"

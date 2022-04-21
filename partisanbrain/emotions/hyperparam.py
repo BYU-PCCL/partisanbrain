@@ -14,9 +14,9 @@ import argparse
 import os
 import label_toxicity
 
-args = argparse.ArgumentParser()
-args.add_argument("-a", "--activations", type=str)
-args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-a", "--activations", type=str)
+args = parser.parse_args()
 
 attribute = os.path.split(args.activations)[-1].split(".")[0]
 activation_filename = args.activations
