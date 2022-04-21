@@ -66,4 +66,6 @@ if __name__ == "__main__":
         )
 
     # Save the activations and targets to run a regression on them later
-    np.savez("output/output.npz", activations=activations, targets=targets)
+    np.savez(
+        "output/sentiment_activations.npz", activations=activations, targets=targets
+    )

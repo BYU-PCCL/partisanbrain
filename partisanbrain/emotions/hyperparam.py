@@ -70,7 +70,7 @@ model.eval()
 prompt = "I watched a new movie yesterday. I thought it was"
 
 # Read in the data
-output = np.load("output/output.npz")
+output = np.load("output/sentiment_activations.npz")
 
 X = output["activations"]
 y = output["targets"].squeeze()
@@ -79,7 +79,9 @@ perplexity_df = pd.read_csv("data/wiki.csv")
 perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df)
 
 results = []
-neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
+neuron_selector = NeuronSelector(
+    input_filename="output/sentiment_activations.npz", device=DEVICE
+)
 for params in tqdm(ParameterGrid(hyperparams)):
     if not params["selection_method"].startswith("pca"):
         neuron_selector.set_samples(X=X, y=y)
@@ -129,7 +131,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
     pd.DataFrame(results).to_csv("output/hyperparam/pca_results.csv", index=False)
 
 # results = []
-# lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
+# lda_neuron_selector = LdaNeuronSelector(filename="output/sentiment_activations.npz", device=DEVICE)
 # for params in tqdm(ParameterGrid(lda_hyperparams)):
 #     neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
 #         n_layers=params["n_layers"],
