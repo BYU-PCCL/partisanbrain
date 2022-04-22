@@ -6,7 +6,7 @@ import torch
 
 
 MODEL_SHAPE = (49, 1600)
-FILENAME = "output/output.npz"
+FILENAME = "output/sentiment_activations.npz"
 
 
 class LdaNeuronSelector:

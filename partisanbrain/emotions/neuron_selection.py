@@ -6,7 +6,7 @@ import torch
 
 
 MODEL_SHAPE = (49, 1600)
-FILENAME = "output/output.npz"
+FILENAME = "output/sentiment_activations.npz"
 
 
 class NeuronSelector:
@@ -34,14 +34,22 @@ class NeuronSelector:
         self.neg_samples = samples[neg_mask].T
 
     def get_neurons_per_layer(
-        self, n_neurons=100, percentile=0.8, method="correlation"
+        self, n_neurons=100, percentile=0.8, method="correlation", layer=None
     ):
         if method != self.method or not hasattr(self, "neuron_indices"):
             self.rank_neuron_indices(method=method)
             self.method = method
 
+        if layer is None:
+            filtered_neuron_indices = self.neuron_indices[:n_neurons]
+        else:
+            start_index = layer * MODEL_SHAPE[-1]
+            end_index = (layer + 1) * MODEL_SHAPE[-1]
+            mask = self.neuron_indices >= start_index & self.neuron_indices < end_index
+            filtered_neuron_indices = self.neuron_indices[mask][:n_neurons]
+
         neurons_per_layer = {}
-        for neuron_index in self.neuron_indices[:n_neurons]:
+        for neuron_index in filtered_neuron_indices:
             layer, neuron = np.unravel_index(neuron_index, MODEL_SHAPE)
             layer, neuron = int(layer), int(neuron)
 
@@ -100,7 +108,7 @@ class NeuronSelector:
         X = X if X is not None else self.X
 
         accs = []
-        Xhat = X.reshape(-1, np.prod(X.shape[1:]))
+        Xhat = X.reshape(X.shape[0], -1)
         model = LogisticRegression()
         for i in range(Xhat.shape[1]):
             model.fit(Xhat[:, i : i + 1], self.y)
