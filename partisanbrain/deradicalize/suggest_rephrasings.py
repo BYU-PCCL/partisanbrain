@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import openai
 
-
+API_KEY = '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'
+openai.api_key = API_KEY
 # First import the data
 
 path = "data/guncontrol_convos.xlsx"
@@ -110,12 +111,8 @@ for theory, spec in rephrasing_specs.items():
                                             prompt=prompt,
                                             max_tokens=100,
                                             logprobs=100)
+        rephrasing = response.choices[0]['text']
         breakpoint()
-        rephrasings =
+        rephrasings = []
 
     print(prompt)
-    breakpoint()
-
-
-breakpoint()
-breakpoint()
