@@ -126,7 +126,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_dir = os.path(f"output/hyperparam/{attribute}/dfs")
+    output_dir = f"output/hyperparam/{attribute}/dfs"
     if not os.path.exists(output_dir):
         os.path.mkdir(output_dir)
     output_filename = f"{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"

@@ -91,14 +91,14 @@ except:
 
 def score_df(df, attribute):
     scores = []
-    results = []
+    responses = []
 
     for i, row in tqdm(df.iterrows()):
         sentence = row["sentence"]
 
         try:
             resp = analyze_text(sentence)
-            results.append(resp)
+            responses.append(resp)
             scores.append(resp["attributeScores"][attribute]["summaryScore"]["value"])
             time.sleep(1 / (100 - 5))  # rate limit is 100 qps
         except Exception as e:
