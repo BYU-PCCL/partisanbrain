@@ -45,7 +45,9 @@ class NeuronSelector:
         else:
             start_index = layer * MODEL_SHAPE[-1]
             end_index = (layer + 1) * MODEL_SHAPE[-1]
-            mask = self.neuron_indices >= start_index & self.neuron_indices < end_index
+            mask = (self.neuron_indices >= start_index) & (
+                self.neuron_indices < end_index
+            )
             filtered_neuron_indices = self.neuron_indices[mask][:n_neurons]
 
         neurons_per_layer = {}
