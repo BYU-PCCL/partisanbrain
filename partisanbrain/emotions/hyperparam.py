@@ -14,9 +14,9 @@ import argparse
 import os
 import label_toxicity
 
-args = argparse.ArgumentParser()
-args.add_argument("-a", "--activations", type=str)
-args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-a", "--activations", type=str)
+args = parser.parse_args()
 
 attribute = os.path.split(args.activations)[-1].split(".")[0]
 activation_filename = args.activations
@@ -25,7 +25,7 @@ activation_filename = args.activations
 torch.manual_seed(0)
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-FORCE_EMOTION = "negative"
+FORCE_EMOTION = "positive"
 
 # We have to structure it like this to optimize our runtime
 hyperparams = [
@@ -78,7 +78,18 @@ tokenizer.padding_token = tokenizer.eos_token
 model = GPT2LMHeadModel.from_pretrained("gpt2-xl")
 model.to(DEVICE)
 model.eval()
-prompt = "I watched a new movie yesterday. I thought it was"
+
+prompt_dict = {
+    "toxicity": "You are a",
+    "threat": "I'm going to",
+    "insult": "You are a",
+    "severe_toxicity": "You are a",
+    "profanity": "You are a",
+    "sexually_explicit": "You are a",
+    "identity_attack": "You are a",
+    "flirtation": "I want to",
+}
+prompt = prompt_dict[attribute]
 
 # Read in the data
 output = np.load(activation_filename)
@@ -114,10 +125,15 @@ for params in tqdm(ParameterGrid(hyperparams)):
     )
 
     # Classify the sentiment of the generated sentences
-    classifier = SentimentClassifier(df=df)
-    classifier.classify_sentiment()
-    value_counts = classifier.get_value_counts()
-    n_negative = value_counts.NEGATIVE
+    # classifier = SentimentClassifier(df=df)
+    # classifier.classify_sentiment()
+    df = label_toxicity.score_df(df, attribute.upper())
+    try:
+        n_negative = df.label.value_counts()[0]
+    except Exception as e:
+        print(e)
+        n_negative = 0
+    # n_negative = value_counts.NEGATIVE
 
     # Measure the perplexity
     average_perplexity = perplexity_analyzer.get_average_perplexity(
@@ -126,12 +142,13 @@ for params in tqdm(ParameterGrid(hyperparams)):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_dir = os.path(f"output/hyperparam/{attribute}/dfs")
+    output_dir = f"output/hyperparam/{attribute}/dfs"
     if not os.path.exists(output_dir):
-        os.path.mkdir(output_dir)
+        os.makedirs(output_dir)
     output_filename = f"{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"
     output_fp = os.path.join(output_dir, output_filename)
-    classifier.mod_df.to_csv(output_fp, index=False)
+    # classifier.mod_df.to_csv(output_fp, index=False)
+    df.to_csv(output_fp, index=False)
 
     res_dict = {
         **params,
@@ -183,7 +200,7 @@ for params in tqdm(ParameterGrid(lda_hyperparams)):
 
     output_dir = f"output/hyperparam/dfs/"
     if not os.path.exists(output_dir):
-        os.path.mkdir(output_dir)
+        os.makedirs(output_dir)
 
     output_filename = f"{params['selection_method']}_{params['layer_selection_method']}_{params['n_layers']}_{int(params['percentile'] * 100)}.csv"
     output_fp = os.path.join(output_dir, output_filename)

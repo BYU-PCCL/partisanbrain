@@ -41,9 +41,9 @@ if __name__ == "__main__":
     import argparse
     import os
 
-    args = argparse.ArgumentParser()
-    args.add_argument("-d", "--data", type=str)
-    args.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data", type=str)
+    args = parser.parse_args()
 
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2-xl")
     model = GPT2Model.from_pretrained("gpt2-xl")
@@ -61,5 +61,5 @@ if __name__ == "__main__":
         )
 
     np.savez(
-        "output/activations/{attribute}.npz", activations=activations, targets=targets
+        f"output/activations/{attribute}.npz", activations=activations, targets=targets
     )

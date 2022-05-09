@@ -22,10 +22,15 @@ ATTRS = [
     "FLIRTATION",
 ]
 
+API_KEY = os.getenv("PERSPECTIVE_API_KEY")
+if API_KEY == None:
+    print("Please set the PERSPECTIVE_API_KEY environment variable")
+    sys.exit(1)
+
 client = discovery.build(
     "commentanalyzer",
     "v1alpha1",
-    developerKey=os.getenv("PERSPECTIVE_API_KEY"),
+    developerKey=API_KEY,
     discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
     static_discovery=False,
 )
@@ -46,62 +51,75 @@ def analyze_text(raw_text):
 # ---------------------------------------------------------------------------------
 #
 
-np.random.seed(42)
+# np.random.seed(42)
 
-prompts_fn = sys.argv[1]
-prompts = pd.read_csv(prompts_fn)
+# prompts_fn = sys.argv[1]
+# prompts = pd.read_csv(prompts_fn)
 
-full_data = []
-responses = []
-score_dict = {a: [] for a in ATTRS}
+# full_data = []
+# responses = []
+# score_dict = {a: [] for a in ATTRS}
 
-for i, prompt in tqdm(prompts.iterrows()):
-    prompt = prompt["text"]
+# for i, prompt in tqdm(prompts.iterrows()):
+#     prompt = prompt["text"]
 
-    try:
-        resp = analyze_text(prompt)
-        responses.append(resp)
-        for a in ATTRS:
-            score_dict[a].append(resp["attributeScores"][a]["summaryScore"]["value"])
-        time.sleep(1 / (100 - 5))  # rate limit is 100 qps
-    except Exception as e:
-        print(f"Error processing [{prompt}]")
-        responses.append(None)
-        for a in ATTRS:
-            score_dict[a].append(None)
-        # continue
-        # prob = resp['attributeScores'][a]['summaryScore']['value']
+#     try:
+#         resp = analyze_text(prompt)
+#         responses.append(resp)
+#         for a in ATTRS:
+#             score_dict[a].append(resp["attributeScores"][a]["summaryScore"]["value"])
+#         time.sleep(1 / (100 - 5))  # rate limit is 100 qps
+#     except Exception as e:
+#         print(f"Error processing [{prompt}]")
+#         responses.append(None)
+#         for a in ATTRS:
+#             score_dict[a].append(None)
+#         # continue
+#         # prob = resp['attributeScores'][a]['summaryScore']['value']
 
 
-try:
-    prompts["responses"] = responses
-    for a in ATTRS:
-        prompts[a] = score_dict[a]
-    prompts.to_csv(f"processed_{prompts_fn}", index=False)
-except:
-    # Save responses as a pickle
-    with open(f"responses_{prompts_fn[:-3]}pkl", "wb") as f:
-        pickle.dump(responses, f)
+# try:
+#     prompts["responses"] = responses
+#     for a in ATTRS:
+#         prompts[a] = score_dict[a]
+#     prompts.to_csv(f"processed_{prompts_fn}", index=False)
+# except:
+#     # Save responses as a pickle
+#     with open(f"responses_{prompts_fn[:-3]}pkl", "wb") as f:
+#         pickle.dump(responses, f)
+
+def round_with_errors(x):
+    #Check if x is a nan
+    if np.isnan(x):
+        return np.nan
+    else:
+        return round(x)
+
+
+
 
 
 def score_df(df, attribute):
     scores = []
-    results = []
+    responses = []
 
     for i, row in tqdm(df.iterrows()):
         sentence = row["sentence"]
 
         try:
             resp = analyze_text(sentence)
-            results.append(resp)
+            responses.append(resp)
+            score = resp["attributeScores"][attribute]["summaryScore"]["value"]
             scores.append(resp["attributeScores"][attribute]["summaryScore"]["value"])
-            time.sleep(1 / (100 - 5))  # rate limit is 100 qps
+            # time.sleep(1 / (100 - 50))  # rate limit is 100 qps
+            time.sleep(.04)  # rate limit is 100 qps
         except Exception as e:
-            print(f"Error processing [{prompt}]")
+            print(e)
+            print(f"Error processing sentence {i}")
             responses.append(None)
             scores.append(None)
 
     df["responses"] = responses
     df[attribute] = scores
-    df["label"] = df[attribute].apply(round)
+    df["label"] = df[attribute].apply(round_with_errors)
     return df
