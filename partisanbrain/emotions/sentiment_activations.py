@@ -52,4 +52,6 @@ if __name__ == "__main__":
             filename=filename,
         )
 
-    np.savez("output/output.npz", activations=activations, targets=targets)
+    np.savez(
+        "output/sentiment_activations.npz", activations=activations, targets=targets
+    )

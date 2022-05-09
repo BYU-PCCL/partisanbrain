@@ -109,7 +109,6 @@ def score_df(df, attribute):
         try:
             resp = analyze_text(sentence)
             responses.append(resp)
-            score = resp["attributeScores"][attribute]["summaryScore"]["value"]
             scores.append(resp["attributeScores"][attribute]["summaryScore"]["value"])
             # time.sleep(1 / (100 - 50))  # rate limit is 100 qps
             time.sleep(.04)  # rate limit is 100 qps
