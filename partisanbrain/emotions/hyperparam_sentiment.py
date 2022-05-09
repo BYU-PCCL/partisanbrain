@@ -33,19 +33,40 @@ hyperparams = [
     #     "percentile": [0.5, 0.8, 1],
     # },
     {
-        "selection_method": [
-            "pca_correlation",
+        "selection_method": ["pca_correlation"],
+        "n_neurons": [10],
+        "percentile": [0.8],
+        "layer": [
+            None,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
         ],
-        "n_neurons": [1, 2, 5, 10, 20, 50],
-        "percentile": [0.5, 0.8, 1],
     },
-    {
-        "selection_method": [
-            "pca_log_reg",
-        ],
-        "n_neurons": [1, 2, 5, 10, 20, 50],
-        "percentile": [0.5, 0.8, 1],
-    },
+    # {
+    #     "selection_method": [
+    #         "pca_log_reg",
+    #     ],
+    #     "n_neurons": [1, 2, 5, 10, 20, 50],
+    #     "percentile": [0.5, 0.8, 1],
+    # },
 ]
 # lda_hyperparams = {
 #     "selection_method": ["lda"],
@@ -87,6 +108,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
         n_neurons=params["n_neurons"],
         percentile=params["percentile"],
         method=params["selection_method"],
+        layer=params["layer"],
     )
 
     # Generate 1000 sentences
@@ -115,7 +137,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}.csv"
+    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}_{params['layer']}.csv"
     classifier.mod_df.to_csv(output_filename, index=False)
 
     res_dict = {
@@ -126,7 +148,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
     }
 
     results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparam/pca_results.csv", index=False)
+    pd.DataFrame(results).to_csv("output/hyperparam/layer_results.csv", index=False)
 
 # results = []
 # lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
