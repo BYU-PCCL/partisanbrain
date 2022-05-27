@@ -36,7 +36,7 @@ hyperparams = [
         "selection_method": ["pca_correlation"],
         "n_neurons": [10],
         "percentile": [0.8],
-        "layer": None,
+        "layer": [None],
         "n_exemplars": [10, 20, 50, 100, 200, 500, 1000, 5000, 6920],
     },
     # {
