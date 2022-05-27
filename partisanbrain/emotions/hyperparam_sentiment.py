@@ -36,7 +36,8 @@ hyperparams = [
         "selection_method": ["pca_correlation"],
         "n_neurons": [10],
         "percentile": [0.8],
-        "layer": [None] + list(range(49)),
+        "layer": None,
+        "n_exemplars": [10, 20, 50, 100, 200, 500, 1000, 5000, 6920],
     },
     # {
     #     "selection_method": [
@@ -69,7 +70,7 @@ model.eval()
 prompt = "I watched a new movie yesterday. I thought it was"
 
 # Read in the data
-output = np.load("output/output.npz")
+output = np.load("output/activations/sentiment.npz")
 
 X = output["activations"]
 y = output["targets"].squeeze()
@@ -78,10 +79,13 @@ perplexity_df = pd.read_csv("data/wiki.csv")
 perplexity_analyzer = PerplexityAnalyzer(model, tokenizer, df=perplexity_df)
 
 results = []
-neuron_selector = NeuronSelector(input_filename="output/output.npz", device=DEVICE)
+neuron_selector = NeuronSelector(
+    input_filename="output/activations/sentiment.npz",
+    device=DEVICE,
+)
 for params in tqdm(ParameterGrid(hyperparams)):
-    if not params["selection_method"].startswith("pca"):
-        neuron_selector.set_samples(X=X, y=y)
+    # if not params["selection_method"].startswith("pca"):
+    #     neuron_selector.set_samples(X=X, y=y, n_exemplars=params["n_exemplars"])
     neurons_per_layer = neuron_selector.get_neurons_per_layer(
         n_neurons=params["n_neurons"],
         percentile=params["percentile"],
@@ -115,7 +119,7 @@ for params in tqdm(ParameterGrid(hyperparams)):
         force_with=selection_method_to_force_with[params["selection_method"]],
     )
 
-    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}_{params['layer']}.csv"
+    output_filename = f"output/hyperparam/dfs/{params['selection_method']}_{params['n_neurons']}_{int(params['percentile'] * 100)}_{params['n_exemplars']}.csv"
     classifier.mod_df.to_csv(output_filename, index=False)
 
     res_dict = {
@@ -126,10 +130,12 @@ for params in tqdm(ParameterGrid(hyperparams)):
     }
 
     results.append(res_dict)
-    pd.DataFrame(results).to_csv("output/hyperparam/layer_results.csv", index=False)
+    pd.DataFrame(results).to_csv(
+        "output/hyperparam/n_exemplar_results.csv", index=False
+    )
 
 # results = []
-# lda_neuron_selector = LdaNeuronSelector(filename="output/output.npz", device=DEVICE)
+# lda_neuron_selector = LdaNeuronSelector(filename="output/activations/sentiment.npz", device=DEVICE)
 # for params in tqdm(ParameterGrid(lda_hyperparams)):
 #     neurons_per_layer = lda_neuron_selector.get_lda_neurons_per_layer(
 #         n_layers=params["n_layers"],

@@ -10,21 +10,33 @@ FILENAME = "output/sentiment_activations.npz"
 
 
 class NeuronSelector:
-    def __init__(self, input_filename=FILENAME, X=None, y=None, device=None):
+    def __init__(
+        self, input_filename=FILENAME, X=None, y=None, device=None, n_exemplars=None
+    ):
         if input_filename is not None:
-            self.set_samples(filename=input_filename)
+            self.set_samples(filename=input_filename, n_exemplars=n_exemplars)
         else:
-            self.set_samples(X=X, y=y)
+            self.set_samples(X=X, y=y, n_exemplars=n_exemplars)
         self.device = device
         self.method = None
         self.transforms = None
 
-    def set_samples(self, filename=None, X=None, y=None):
+    def set_samples(self, filename=None, X=None, y=None, n_exemplars=None):
         if filename is not None:
             output = np.load(filename)
+            self.X = output["activations"]
+            self.y = output["targets"]
+        elif X is not None and y is not None:
+            self.X = X
+            self.y = y
+        else:
+            raise ValueError("Must provide either filename or X and y")
 
-        self.X = output["activations"] if X is None else X
-        self.y = output["targets"] if y is None else y
+        if n_exemplars is not None:
+            indices = np.random.choice(self.X.shape[0], size=n_exemplars, replace=False)
+            self.X = self.X[indices]
+            self.y = self.y[indices]
+
         self.y = self.y.squeeze()
 
         samples = self.X.reshape(self.y.shape[0], -1)
@@ -36,9 +48,10 @@ class NeuronSelector:
     def get_neurons_per_layer(
         self, n_neurons=100, percentile=0.8, method="correlation", layer=None
     ):
-        if method != self.method or not hasattr(self, "neuron_indices"):
-            self.rank_neuron_indices(method=method)
-            self.method = method
+        # Commenting this out for the n_exemplars experiment
+        # if method != self.method or not hasattr(self, "neuron_indices"):
+        self.rank_neuron_indices(method=method)
+        self.method = method
 
         if layer is None:
             filtered_neuron_indices = self.neuron_indices[:n_neurons]
