@@ -37,7 +37,8 @@ hyperparams = [
         "n_neurons": [10],
         "percentile": [0.8],
         "layer": [None],
-        "n_exemplars": [10, 20, 50, 100, 200, 500, 1000, 5000, 6920],
+        "n_exemplars": [1600, 2000, 3000, 4000, 5000, 6920],
+        # "n_exemplars": [10, 20, 50, 100, 200, 500, 1000, 5000, 6920],
     },
     # {
     #     "selection_method": [
