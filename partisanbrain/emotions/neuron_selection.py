@@ -158,10 +158,12 @@ class NeuronSelector:
         return Xhat, transforms
 
     def rank_with_pca_correlation(self):
-        if self.transforms is None:
-            Xhat, self.transforms = self.get_transforms()
-        else:
-            Xhat = self.X
+        # if self.transforms is None:
+        #     Xhat, self.transforms = self.get_transforms()
+        # else:
+        #     Xhat = self.X
+
+        Xhat, self.transforms = self.get_transforms()
 
         return self.rank_with_correlation(Xhat)
 
