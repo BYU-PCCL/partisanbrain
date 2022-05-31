@@ -85,7 +85,8 @@ neuron_selector = NeuronSelector(
 )
 for params in tqdm(ParameterGrid(hyperparams)):
     # if not params["selection_method"].startswith("pca"):
-    #     neuron_selector.set_samples(X=X, y=y, n_exemplars=params["n_exemplars"])
+    neuron_selector.set_samples(X=X, y=y, n_exemplars=params["n_exemplars"])
+
     neurons_per_layer = neuron_selector.get_neurons_per_layer(
         n_neurons=params["n_neurons"],
         percentile=params["percentile"],
