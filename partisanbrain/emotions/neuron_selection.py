@@ -142,7 +142,8 @@ class NeuronSelector:
 
         # Calculate and save the transform for each layer
         for Xi in np.transpose(self.X, axes=axes):
-            pca = PCA(n_components=MODEL_SHAPE[-1])
+            n_components = min(*Xi.shape, MODEL_SHAPE[-1])
+            pca = PCA(n_components=n_components)
             pca.fit(Xi)
             # We don't shift by the means because we don't need that functionality
             Xhati = np.dot(Xi, pca.components_.T)
