@@ -1,6 +1,7 @@
 from pathlib import Path
 
 DEMOGRAPHIC_COLNAMES = [
+    "id",
     "age",
     "gender",
     "party",

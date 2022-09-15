@@ -39,7 +39,7 @@ class Survey:
 
             # Check that df looks correct
             self.check_col_for_each_demographic(df)
-            self.check_correct_num_of_dv_cols(df)
+            # self.check_correct_num_of_dv_cols(df)
             self.check_dv_col_question_keys_align(df)
 
             # Drop NAs (this might be done in individual subclasses
