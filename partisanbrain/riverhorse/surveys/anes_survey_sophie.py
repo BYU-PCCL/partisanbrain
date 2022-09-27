@@ -201,13 +201,44 @@ def for_chris(row):
         f"Religion: {row['religion']} \n"
         f"Race/ Ethnicity: {row['race_ethnicity']} \n"
         f"Region: {row['region']} \n"
-        f"Marital status {row['marital_status']}: \n"
+        f"Marital status {row['marital_status']} \n"
         f"Question: Four years ago, in 2016, Hillary Clinton ran on the Democratic ticket against Donald Trump for the Republicans. Do you remember for sure whether or not you voted in that election? Which one did you vote for? \n"
         f"1. Hillary Clinton \n"
         f"2. Donald Trump \n"
         f"5. Other (specify) \n"
         f"Answer:"
     )
+def abstractive_phrasing(row):
+    return (
+    f"Four years ago, in 2016, Hillary Clinton ran on the Democratic ticket against Donald Trump for the Republicans. Which candidate did the following voter vote for? \\n "
+    f"(a) hillary clinton (b) donald trump (c) other \\n "
+    f"The folowing are demographics about this voter in the U.S. They are a {int(row['age'])}-year-old "
+    f"{row['gender']} who belongs to the {row['party']} with a {row['ideology']} ideology. "
+    f"They have the degree of {row['education']} and make {row['income']} a year. Their religion "
+    f"is {row['religion']}, and they are {row['race_ethnicity']}. They are from the {row['region']} region "
+    f"of the United States and their marital status is {row['marital_status']}."
+
+    )
+def fine_tuned_phrasing(row):
+      return (
+        f"Four years ago, in 2016, Hillary Clinton ran on the Democratic ticket against Donald Trump for the Republicans. Which candidate did the following voter vote for? \\n "
+        f"(a) hillary clinton (b) donald trump (c) other \\n "
+        f"The folowing are demographics about this voter in the U.S. They are a {int(row['age'])}-year-old "
+        f"{row['gender']} who belongs to the {row['party']} with a {row['ideology']} ideology. "
+        f"They have the degree of {row['education']} and make {row['income']} a year. Their religion "
+        f"is {row['religion']}, and they are {row['race_ethnicity']}. They are from the {row['region']} region "
+        f"of the United States and their marital status is {row['marital_status']}."
+
+    )
+    # return (
+    #     f"The folowing are demographics about a voter in the U.S. They are a {int(row['age'])}-year-old "
+    #     f"{row['gender']} who belongs to the {row['party']} with a {row['ideology']} ideology. "
+    #     f"They have the degree of {row['education']} and make {row['income']} a year. Their religion "
+    #     f"is {row['religion']}, and they are {row['race_ethnicity']}. They are from the {row['region']} region "
+    #     f"of the United States and their marital status is {row['marital_status']}. \n"
+    #     f"Four years ago, in 2016, Hillary Clinton ran on the Democratic ticket against Donald Trump for the Republicans. Which candidate did this voter vote for? \n "
+    #     f"(a) hillary clinton (b) donald trump (c) other"
+    # )
 
 if __name__ == "__main__":
     # Make sure this runs without errors after pulling the most
@@ -216,6 +247,5 @@ if __name__ == "__main__":
     s = AnesSurveySophie()
     df = s.download_data()
     df_mod = s.modify_data(df)
-    # print(for_chris(df_mod.iloc[7]))
-    # print(df_mod.iloc[7]["vote_2016"])
-    s.modify_data(df).to_csv("ANES_for_josh.csv")
+    # s.modify_data(df).to_csv("ANES_for_josh.csv")
+    print(for_chris(df_mod.iloc[9]))
