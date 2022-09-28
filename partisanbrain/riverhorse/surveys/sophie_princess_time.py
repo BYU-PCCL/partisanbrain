@@ -18,8 +18,8 @@ if __name__ == "__main__":
     df = s.download_data()
     df_mod = s.modify_data(df)
     # df_mod = df_mod.sample(10)
-    keeping_track = {'1': {'y_hat': 0, 'y_true': 0, 'acc': 0}, '2': {
-        'y_hat': 0, 'y_true': 0, 'acc': 0}, '5': {'y_hat': 0, 'y_true': 0, 'acc': 0}}
+    keeping_track = {'donald trump': {'y_hat': 0, 'y_true': 0, 'acc': 0}, 'hillary clinton': {
+        'y_hat': 0, 'y_true': 0, 'acc': 0}, 'other \{specify\}': {'y_hat': 0, 'y_true': 0, 'acc': 0}}
 
     # prompt = (f"Four years ago, in 2016, Hillary Clinton ran on the Democratic ticket against Donald Trump for the Republicans. Which candidate did the following voter vote for? \\n"
     # f" (A) donald trump (B) hillary clinton (C) other \\n "
