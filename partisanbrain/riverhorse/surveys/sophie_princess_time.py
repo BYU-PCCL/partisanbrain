@@ -17,7 +17,7 @@ if __name__ == "__main__":
     s = AnesSurveySophie()
     df = s.download_data()
     df_mod = s.modify_data(df)
-    df_mod = df_mod.sample(10)
+    # df_mod = df_mod.sample(10)
     keeping_track = {'1': {'y_hat': 0, 'y_true': 0, 'acc': 0}, '2': {
         'y_hat': 0, 'y_true': 0, 'acc': 0}, '5': {'y_hat': 0, 'y_true': 0, 'acc': 0}}
 
@@ -30,13 +30,13 @@ if __name__ == "__main__":
         # prompt = for_chris(row)
         prompt = fine_tuned_phrasing(row)
         result = run_model(prompt, max_length=1000)
-        y_hat = result[0][0]
-        print(prompt, result, row['vote_2016'])
-        print("\n\n")
-        # y_true = str(row['vote_2016_raw'])
-        # keeping_track[y_true]['y_true'] += 1
-        # keeping_track[y_hat]['y_hat'] += 1
-        # if y_hat == y_true:
-        #     keeping_track[y_true]['acc'] += 1
+        y_hat = result[0]
+        # print(prompt, result, row['vote_2016'])
+        # print("\n\n")
+        y_true = row['vote_2016'].lower()
+        keeping_track[y_true]['y_true'] += 1
+        keeping_track[y_hat]['y_hat'] += 1
+        if y_hat == y_true:
+            keeping_track[y_true]['acc'] += 1
 
-    # print(keeping_track)
+    print(keeping_track)
