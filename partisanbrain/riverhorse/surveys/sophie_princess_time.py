@@ -17,7 +17,6 @@ if __name__ == "__main__":
     s = AnesSurveySophie()
     df = s.download_data()
     df_mod = s.modify_data(df)
-    df_mod = df_mod.sample(200)
     keeping_track = {'donald trump': {'y_hat': 0, 'y_true': 0, 'acc': 0}, 'hillary clinton': {
         'y_hat': 0, 'y_true': 0, 'acc': 0}, 'other \{specify\}': {'y_hat': 0, 'y_true': 0, 'acc': 0}}
 
