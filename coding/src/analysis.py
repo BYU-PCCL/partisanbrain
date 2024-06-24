@@ -279,6 +279,8 @@ class ExperimentResults():
         '''
         Plots the top_k accuracy from 1 to max_k.
         '''
+        plt.figure(figsize=(8, 6))
+        
         if df is None:
             df = self.results
         
@@ -286,8 +288,36 @@ class ExperimentResults():
         K = np.arange(1, max_k + 1)
         # get scores
         scores = [self.get_average_score(df, k) for k in K]
+        # plotting marker style
+        marker = 'o-'
         # plot
-        plt.plot(K, scores)
+        plt.plot(K, scores, marker)
+
+        # PLOT HORIZONTAL LINES
+        # min_score, max_score are current ylims
+        min_score = plt.ylim()[0]
+        max_score = plt.ylim()[1]
+        # ceil min and max score by .05
+        min_score = np.ceil(min_score / .05) * .05
+        max_score = np.floor(max_score / .05) * .05
+        ylim = plt.ylim()
+        for i in np.arange(min_score, max_score+.05, .05):
+            # solid light gray lines, low opacity
+            plt.axhline(i, color='#dddddd', alpha=.2)
+        plt.ylim(ylim)
+        
+        # PLOT VERTICAL LINES
+        min_k, max_k = K[0], K[-1]
+        # ceil min_k and floor max_k by 5
+        min_k = np.ceil(min_k / 5) * 5
+        max_k = np.floor(max_k / 5) * 5
+        xlim = plt.xlim()
+        for i in np.arange(min_k, max_k+5, 5):
+            # solid light gray lines, low opacity
+            plt.axvline(i, color='#dddddd', alpha=.2)
+        plt.xlim(xlim)
+
+
         plt.xlabel('k')
         plt.ylabel('accuracy')
         plt.title('Top-k Accuracy')
@@ -330,6 +360,15 @@ class ExperimentResults():
         df_agg = df.groupby(split_by).agg({y_variable: 'mean'})
         df_agg = df_agg.reset_index()
 
+        # make figure size big for plotting
+        plt.figure(figsize=(10, 8))
+        # if df[x_variable] is string, rotate xticks by 20 degrees
+        if isinstance(df[x_variable].iloc[0], str):
+            plt.xticks(rotation=20)
+
+        # plotting marker style
+        marker = 'o-'
+
         # iterate through unique tuples of columns, excluding x_variable and y_variable
         other_columns = list(set(df_agg.columns) - set([x_variable, y_variable]))
         if not average:
@@ -348,26 +387,43 @@ class ExperimentResults():
                         label = run[i+1]
                         color = color_dict[label]
                         if label not in labels:
-                            plt.plot(df_run[x_variable], df_run[y_variable], label=f'{color_by}: {label}', color=color, alpha=.6)
+                            # plot lines with markers
+                            plt.plot(df_run[x_variable], df_run[y_variable], marker, label=f'{color_by}: {label}', color=color, alpha=.6)
                             labels.append(label)
                         else:
-                            plt.plot(df_run[x_variable], df_run[y_variable], color=color, alpha=.6)
+                            plt.plot(df_run[x_variable], df_run[y_variable], marker, color=color, alpha=.6)
                     else:
                         label = y_variable
                         if label not in labels:
-                            plt.plot(df_run[x_variable], df_run[y_variable], alpha=.6, label=label)
+                            plt.plot(df_run[x_variable], df_run[y_variable], marker, alpha=.6, label=label)
                         else:
-                            plt.plot(df_run[x_variable], df_run[y_variable], alpha=.6)
+                            plt.plot(df_run[x_variable], df_run[y_variable], marker, alpha=.6)
             # otherwise, just plot x_variable vs. y_variable
             else:
                 label = y_variable
-                plt.plot(df_agg[x_variable], df_agg[y_variable], label=label)
+                plt.plot(df_agg[x_variable], df_agg[y_variable], marker, label=label)
         else:
             means = df_agg.groupby(x_variable).agg({y_variable: 'mean'}).reset_index()
             std = df_agg.groupby(x_variable).agg({y_variable: 'std'}).reset_index()
             # plot with shaded error bars
-            plt.plot(means[x_variable], means[y_variable], label=f'{y_variable}')
+            plt.plot(means[x_variable], means[y_variable], marker, label=f'{y_variable}')
             plt.fill_between(means[x_variable], means[y_variable] - 2*std[y_variable], means[y_variable] + 2*std[y_variable], alpha=0.2)
+        
+
+        # if y is score, add horizontal lines for each .05 from min to max
+        if y_variable == 'score':
+            # min_score, max_score are current ylims
+            min_score = plt.ylim()[0]
+            max_score = plt.ylim()[1]
+            # ceil min and max score by .05
+            min_score = np.ceil(min_score / .05) * .05
+            max_score = np.floor(max_score / .05) * .05
+            ylim = plt.ylim()
+            for i in np.arange(min_score, max_score+.05, .05):
+                # solid light gray lines, low opacity
+                plt.axhline(i, color='#dddddd', alpha=.2)
+            # plot ylim
+            plt.ylim(ylim)
         
         plt.legend()
         plt.xlabel(x_variable)
